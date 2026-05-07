@@ -1,0 +1,236 @@
+"""
+trafego_fetch.py
+Script unificado de busca de dados do Meta Ads para o trafego-analise.
+
+Faz TODAS as chamadas necessarias em uma unica execucao e salva o resultado
+em cache local (skill-analise/cache/). Proximas chamadas reutilizam o cache
+da mesma sessao sem bater na API novamente.
+
+Uso:
+    python3 trafego_fetch.py \
+        --account 1210963877470650 \
+        --filtro "VTSD - CV" \
+        --periodo last_30d \
+        --output diagnostico \
+        --cache-dir skill-analise/cache
+
+Saida: escreve JSON em stdout (UTF-8) + salva em cache_dir/{account}_{periodo}_{output}.json
+"""
+
+import sys
+import os
+import json
+import time
+import argparse
+import urllib.request
+import urllib.parse
+from pathlib import Path
+from datetime import datetime
+
+
+def write_out(data):
+    """Saida JSON sempre em UTF-8, funciona em Windows (cp1252) e Mac (utf-8)."""
+    sys.stdout.buffer.write(json.dumps(data, ensure_ascii=False).encode("utf-8"))
+    sys.stdout.buffer.write(b"\n")
+    sys.stdout.buffer.flush()
+
+
+def err(msg):
+    sys.stderr.buffer.write(f"[ERRO] {msg}\n".encode("utf-8"))
+    sys.stderr.buffer.flush()
+
+
+def fetch(url, retries=3, backoff=5):
+    """Faz GET com retry em rate limit."""
+    for attempt in range(retries):
+        try:
+            with urllib.request.urlopen(url, timeout=30) as r:
+                return json.loads(r.read())
+        except urllib.error.HTTPError as e:
+            body = e.read().decode("utf-8", errors="replace")
+            try:
+                parsed = json.loads(body)
+                code = parsed.get("error", {}).get("code", 0)
+            except Exception:
+                code = 0
+            # Rate limit: code 4 ou 17
+            if code in (4, 17) and attempt < retries - 1:
+                wait = backoff * (attempt + 1)
+                err(f"Rate limit (code {code}). Aguardando {wait}s antes de tentar novamente...")
+                time.sleep(wait)
+                continue
+            err(f"HTTP {e.code}: {body[:300]}")
+            return {"error": body, "http_code": e.code}
+        except Exception as e:
+            err(f"Excecao na requisicao: {e}")
+            return {"error": str(e)}
+    return {"error": "max_retries_exceeded"}
+
+
+def fetch_all_pages(base_params, account, endpoint, token):
+    """Busca todas as paginas de um endpoint de insights ou campaigns."""
+    params = dict(base_params)
+    params["access_token"] = token
+    url = "https://graph.facebook.com/v21.0/act_{}/{}?{}".format(
+        account, endpoint, urllib.parse.urlencode(params)
+    )
+    results = []
+    while url:
+        d = fetch(url)
+        if "error" in d and "data" not in d:
+            err(f"Falha ao buscar pagina: {d.get('error','')[:200]}")
+            return None  # None = falha, [] = vazio valido
+        results.extend(d.get("data", []))
+        url = d.get("paging", {}).get("next")
+    return results
+
+
+def filtrar(lista, filtro):
+    """Filtra campanhas pelo nome (case-insensitive, substring)."""
+    if lista is None:
+        return []
+    filtro_lower = filtro.lower()
+    return [c for c in lista if filtro_lower in c.get("campaign_name", c.get("name", "")).lower()]
+
+
+def load_env(project_root):
+    """Le variaveis do .env sem dependencias externas."""
+    env_path = Path(project_root) / ".env"
+    env = {}
+    if not env_path.exists():
+        return env
+    with open(env_path, encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line and not line.startswith("#") and "=" in line:
+                key, _, val = line.partition("=")
+                env[key.strip()] = val.strip()
+    return env
+
+
+def main():
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--account", required=True)
+    parser.add_argument("--filtro", default="")
+    parser.add_argument("--periodo", default="last_30d",
+                        help="Preset da API: last_7d, last_14d, last_30d, last_60d")
+    parser.add_argument("--output", default="diagnostico",
+                        help="Tipo de output: diagnostico, performance, criativos, etc.")
+    parser.add_argument("--cache-dir", default="skill-analise/cache")
+    parser.add_argument("--force", action="store_true",
+                        help="Ignora cache e busca da API mesmo que cache exista")
+    parser.add_argument("--project-root", default=".")
+    args = parser.parse_args()
+
+    project_root = Path(args.project_root).resolve()
+    cache_dir = project_root / args.cache_dir
+    cache_dir.mkdir(parents=True, exist_ok=True)
+
+    # Nome do arquivo de cache
+    filtro_slug = args.filtro.replace(" ", "_").replace("-", "").lower() or "all"
+    cache_file = cache_dir / f"{args.account}_{args.periodo}_{filtro_slug}_{args.output}.json"
+
+    # Usar cache se existir e nao forcar
+    if cache_file.exists() and not args.force:
+        with open(cache_file, "rb") as f:
+            cached = json.loads(f.read())
+        cached["_from_cache"] = True
+        cached["_cache_file"] = str(cache_file)
+        write_out(cached)
+        return
+
+    # Carregar token do .env
+    env = load_env(project_root)
+    token = env.get("FB_ACCESS_TOKEN_PERMANENTE", "")
+    if not token:
+        err("FB_ACCESS_TOKEN_PERMANENTE nao encontrado no .env")
+        write_out({"error": "token_missing"})
+        return
+
+    account = args.account
+    periodo = args.periodo
+    filtro = args.filtro
+
+    # Calcula periodos comparativos
+    periodo_wow_map = {
+        "last_7d": ("last_14d", 7),
+        "last_14d": ("last_28d", 14),
+        "last_30d": ("last_60d", 30),
+    }
+    periodo_wow, time_increment = periodo_wow_map.get(periodo, (None, None))
+
+    # ── CHAMADA 1A: Metricas principais do periodo ──
+    # Campos do nivel campaign (sem landing_page_views que so existe em ad level)
+    campos_1a = ",".join([
+        "campaign_id", "campaign_name", "spend", "impressions", "clicks",
+        "ctr", "cpm", "cpc", "reach", "frequency",
+        "actions", "action_values", "cost_per_action_type",
+    ])
+    all_1a = fetch_all_pages(
+        {"fields": campos_1a, "level": "campaign", "date_preset": periodo, "limit": 500},
+        account, "insights", token
+    )
+    camps_1a = filtrar(all_1a, filtro)
+
+    # ── CHAMADA 1B: Comparativo WoW (apenas se periodo suportado) ──
+    camps_1b = []
+    if periodo_wow and time_increment:
+        all_1b = fetch_all_pages(
+            {
+                "fields": "campaign_id,campaign_name,spend,clicks,ctr,actions,cost_per_action_type,frequency,date_start,date_stop",
+                "level": "campaign",
+                "date_preset": periodo_wow,
+                "time_increment": time_increment,
+                "limit": 500,
+            },
+            account, "insights", token
+        )
+        camps_1b = filtrar(all_1b, filtro) if all_1b is not None else []
+
+    # ── CHAMADA 1C: Orcamentos das campanhas ──
+    all_1c = fetch_all_pages(
+        {
+            "fields": "id,name,status,daily_budget,lifetime_budget,budget_remaining",
+            "effective_status": json.dumps(["ACTIVE"]),
+            "limit": 500,
+        },
+        account, "campaigns", token
+    )
+    camps_1c = filtrar(all_1c, filtro) if all_1c is not None else []
+
+    # ── CHAMADA 1D: Gasto de hoje ──
+    all_1d = fetch_all_pages(
+        {"fields": "campaign_id,campaign_name,spend", "level": "campaign", "date_preset": "today", "limit": 500},
+        account, "insights", token
+    )
+    camps_1d = filtrar(all_1d, filtro) if all_1d is not None else []
+
+    result = {
+        "_meta": {
+            "account": account,
+            "filtro": filtro,
+            "periodo": periodo,
+            "output": args.output,
+            "gerado_em": datetime.now().isoformat(),
+            "camps_1a": len(camps_1a),
+            "camps_1b": len(camps_1b),
+            "camps_1c": len(camps_1c),
+            "camps_1d": len(camps_1d),
+        },
+        "_from_cache": False,
+        "_cache_file": str(cache_file),
+        "1a": camps_1a,
+        "1b": camps_1b,
+        "1c": camps_1c,
+        "1d": camps_1d,
+    }
+
+    # Salvar cache
+    with open(cache_file, "wb") as f:
+        f.write(json.dumps(result, ensure_ascii=False).encode("utf-8"))
+
+    write_out(result)
+
+
+if __name__ == "__main__":
+    main()

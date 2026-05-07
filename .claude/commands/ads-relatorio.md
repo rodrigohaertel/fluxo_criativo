@@ -1,6 +1,6 @@
 ---
 name: workshop-marketing:ads-relatorio
-description: Configura as credenciais e preferências do relatório de Facebook Ads (canal, métricas, filtro de campanhas) e oferece envio imediato via /enviar-relatorio-ads. Telegram ou WhatsApp. Suporta modo CLI (recomendado, Python) e modo Manual (PowerShell legado).
+description: Configura as credenciais e preferências do relatório de Facebook Ads (canal, métricas, filtro de campanhas) e oferece envio imediato via /enviar-relatorio-ads. Telegram ou WhatsApp. Usa o Meta Ads CLI via Python.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, AskUserQuestion
 model: sonnet
 ---
@@ -13,38 +13,51 @@ O mentoreado nunca abre arquivo, nunca instala nada manualmente. So cola as chav
 
 ## COMO FUNCIONA
 
-1. Claude detecta ou pergunta o modo de integracao (CLI ou Manual)
-2. Claude guia a instalacao e configuracao de credenciais
-3. Claude registra as preferencias de metricas e filtro de campanhas
-4. Ao final, voce pode enviar um relatorio imediatamente com `/enviar-relatorio-ads`
+1. Claude configura o Meta Ads CLI (Python) e as credenciais
+2. Claude registra as preferencias de metricas e filtro de campanhas
+3. Ao final, voce pode enviar um relatorio imediatamente com `/enviar-relatorio-ads`
 
 ---
 
-## PASSO 0. Selecionar Modo de Integracao
+## PASSO -1. Verificar modo de conexão Meta
 
-Leia `.env`. Se `RELATORIO_AUTH_MODO` ja existir com valor `CLI` ou `MANUAL`:
-- `CLI` → pule para o **Passo 0-CLI**
-- `MANUAL` → pule para o **Passo 0-CANAL**
+Antes de qualquer coisa, leia `META_AUTH_MODO` no `.env`.
 
-Se nao existir, exiba:
+**Se a variável estiver vazia ou ausente:**
+
+A conexão Meta ainda não foi configurada. Avise o aluno:
 
 ```
-Como voce prefere integrar com o Facebook Ads?
+Você ainda não configurou a conexão com o Meta Ads.
 
-1. Meta Ads CLI (recomendado)
-   Python 3.12+, funciona no Windows, Mac e Linux.
-   Comandos simples, sem construir URLs de API na mao.
-
-2. API manual via PowerShell (metodo anterior)
-   Nao precisa de Python. So funciona no Windows.
-   Bom se voce ja esta no Windows e nao quer instalar mais nada.
-
-Digite o numero:
+Vou rodar /meta-conexao primeiro para você escolher entre o MCP da
+Meta (recomendado) ou o caminho do App via Facebook Developers.
+Quando terminar, volto direto pra configuração do relatório.
 ```
 
-**Se escolher opcao 1 (CLI):** salve `RELATORIO_AUTH_MODO=CLI` no `.env` e siga para o **Passo 0-CLI**.
+Acione a skill `/meta-conexao`. Quando ela terminar e gravar `META_AUTH_MODO` no `.env`, retorne aqui e siga conforme o valor salvo.
 
-**Se escolher opcao 2 (Manual):** salve `RELATORIO_AUTH_MODO=MANUAL` no `.env` e pule para o **Passo 0-CANAL**.
+**Se `META_AUTH_MODO=MCP_CONECTOR`:**
+
+Pule todo o **Passo 0** e o **Passo 0-CLI**. Não precisa instalar Python, nem o pacote `meta-ads`, nem coletar `ACCESS_TOKEN` ou `AD_ACCOUNT_ID` (essas variáveis só importam no caminho APP). A conexão com o Meta já está garantida pelo conector personalizado validado em `/meta-conexao`.
+
+Vá direto para o **Passo 0-CANAL** (configuração do canal de envio Telegram ou WhatsApp).
+
+**Se `META_AUTH_MODO=APP`:**
+
+Siga para o **Passo 0** atual. Dentro do ramo APP, a variável `RELATORIO_AUTH_MODO` continua decidindo qual script de execução roda (Python CLI ou PowerShell).
+
+> **Nota sobre as duas variáveis.** `META_AUTH_MODO` decide o caminho de autenticação com o Meta (MCP via Claude ou Token via App no `.env`). `RELATORIO_AUTH_MODO` decide o executor do relatório dentro do ramo App (Python CLI cross-platform ou PowerShell Windows). Não são redundantes, atuam em camadas diferentes.
+
+---
+
+## PASSO 0. Verificar Modo de Integracao
+
+> Este passo só executa se `META_AUTH_MODO=APP`. Caminho MCP pula direto para o Passo 0-CANAL.
+
+Leia `.env`. Se `RELATORIO_AUTH_MODO` ja existir com valor `CLI`, pule para o **Passo 0-CLI**.
+
+Se nao existir (ou tiver qualquer outro valor), salve `RELATORIO_AUTH_MODO=CLI` no `.env` com `Edit` e siga para o **Passo 0-CLI**.
 
 ---
 
@@ -214,59 +227,7 @@ Se todas as chaves do canal estiverem presentes, pule para o **Passo 2**.
 
 ## PASSO 1. Coletar Credenciais do Canal de Envio
 
-### 1.1 Facebook Ads (apenas MODO MANUAL)
-
-Esta secao so se aplica se `RELATORIO_AUTH_MODO=MANUAL`.
-
-Se o modo for CLI, as credenciais ja foram configuradas no Passo 0-CLI. Pule para o **Passo 1.2**.
-
-```
-Para buscar os dados do Facebook Ads, precisamos de 2 informacoes:
-
-1. Token de acesso (Access Token)
-2. ID da conta de anuncios
-
-Voce tem esses dados?
-
-1. Sim, tenho os dois
-2. Nao sei onde pegar
-```
-
-**Se nao souber onde pegar:**
-
-```
-Voce ja tem um App criado no Facebook Developers (developers.facebook.com)?
-
-1. Sim, ja tenho
-2. Nao tenho ainda
-```
-
-- **Opcao 2 (nao tem App):** execute a skill `criar-aplicativo-analise-ads`
-
-Pergunte um por vez:
-
-```
-Cole seu Facebook Access Token:
-```
-
-Use `Edit` para salvar `FB_ACCESS_TOKEN_TEMPORARIO=valor` no `.env`. Depois:
-
-```
-Cole o ID da sua conta de anuncios (so os numeros):
-```
-
-Salve `FB_AD_ACCOUNT_ID=valor` no `.env`.
-
-**Teste de conexao (modo Manual):**
-
-```bash
-powershell.exe -ExecutionPolicy Bypass -File "scripts/relatorio-ads.ps1"
-```
-
-Se o script buscar metricas sem erro, conexao validada.
-Se retornar erro de credencial, token invalido ou ID errado, corrija o `.env`.
-
-### 1.2 Credenciais do Canal de Envio
+### 1.1 Credenciais do Canal de Envio
 
 **Se `RELATORIO_CANAL=TELEGRAM`:**
 
@@ -309,19 +270,13 @@ Salve os tres no `.env`.
 
 **Teste de conexao Z-API:**
 
-Se `RELATORIO_AUTH_MODO=CLI`:
 ```bash
 python scripts/relatorio-ads-cli.py 1
 ```
 
-Se `RELATORIO_AUTH_MODO=MANUAL`:
-```bash
-powershell.exe -ExecutionPolicy Bypass -File "scripts/relatorio-ads.ps1"
-```
-
 Se o envio concluir sem erro, WhatsApp conectado.
 
-### 1.3 Numero de destino (somente para WhatsApp)
+### 1.2 Numero de destino (somente para WhatsApp)
 
 Esta etapa so se aplica se `RELATORIO_CANAL=WHATSAPP`.
 
@@ -379,7 +334,6 @@ Mostre o resumo da configuracao salva:
 ```
 Configuracao salva.
 
-- Modo: [CLI ou Manual]
 - Conta Meta Ads: [nome retornado no teste]
 - Canal: Telegram (@username_do_bot)
 - Metricas: [descricao da escolha]
@@ -393,7 +347,6 @@ Configuracao salva.
 ```
 Configuracao salva.
 
-- Modo: [CLI ou Manual]
 - Conta Meta Ads: [nome retornado no teste]
 - Canal: WhatsApp [numero mascarado, ex: 5511****7766]
 - Metricas: [descricao da escolha]
@@ -427,7 +380,6 @@ Se opcao 2: encerre com a mensagem abaixo.
 ```
 Configuracao concluida.
 
-Modo: [CLI ou Manual]
 Canal: [Telegram ou WhatsApp]
 Metricas: [descricao]
 Campanhas: [descricao]
@@ -441,7 +393,7 @@ Para enviar um relatorio a qualquer momento: /enviar-relatorio-ads
 
 | Etapa | Aprovacao? |
 |---|---|
-| Teste de conexao Facebook (CLI ou Manual) | Confirmado antes de continuar |
+| Teste de conexao Facebook (CLI) | Confirmado antes de continuar |
 | Teste de conexao Telegram ou Z-API | Confirmado antes de continuar |
 | Confirmacao geral (resumo) | Sim, obrigatoria |
 
@@ -453,5 +405,4 @@ Para enviar um relatorio a qualquer momento: /enviar-relatorio-ads
 - Nao exibir scripts ou arquivos de configuracao no chat. Salvar silenciosamente e informar apenas o caminho.
 - Se a conta nao tiver dados no periodo, o relatorio informa "sem dados" e envia assim mesmo.
 - Se o usuario ja tem `RELATORIO_CANAL` salvo e quiser trocar de canal: salvar novo valor e refazer o passo de credenciais do novo canal.
-- Se o usuario quiser trocar de modo (CLI para Manual ou vice-versa): salvar novo `RELATORIO_AUTH_MODO` e refazer os passos de credenciais do modo escolhido.
-- Modo CLI: usa `ACCESS_TOKEN` e `AD_ACCOUNT_ID`. Modo Manual: usa `FB_ACCESS_TOKEN_PERMANENTE`/`FB_ACCESS_TOKEN_TEMPORARIO` e `FB_AD_ACCOUNT_ID`. Ambos podem coexistir no `.env`.
+- O modo CLI usa `ACCESS_TOKEN` e `AD_ACCOUNT_ID`. Se o `.env` tiver variaveis no formato legado (`FB_ACCESS_TOKEN_PERMANENTE`, `FB_AD_ACCOUNT_ID`), mapear para os nomes do CLI sem remover as originais.

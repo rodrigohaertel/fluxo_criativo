@@ -1,0 +1,69 @@
+# 🕐 Dayparting — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Gerado em:** {{ now.strftime('%d/%m/%Y %H:%M') }}
+
+---
+
+## Spend e CPA por dia da semana
+
+| Dia | Gasto | CPA | Conversões |
+|---|---|---|---|
+{% for label, spend, cpa, results in spend_por_dia -%}
+| **{{ label }}** | {{ spend | brl }} | {% if cpa %}{{ cpa | brl }}{% else %}-{% endif %} | {{ results | num }} |
+{% endfor %}
+
+---
+
+## Janelas extremas
+
+{% if melhor %}
+### Melhor janela (menor CPA)
+
+- **Dia/hora:** {{ dias_pt[melhor.dia_idx] }} às {{ '%02d'|format(melhor.hora) }}:00
+- **CPA:** {{ melhor.cpa | brl }}
+- **Gasto na janela:** {{ melhor.spend | brl }} — {{ melhor.results | num }} conversões
+- **Ação sugerida:** concentre budget em janelas próximas (±1h) deste slot
+{% endif %}
+
+{% if pior %}
+### Pior janela (maior CPA)
+
+- **Dia/hora:** {{ dias_pt[pior.dia_idx] }} às {{ '%02d'|format(pior.hora) }}:00
+- **CPA:** {{ pior.cpa | brl }}
+- **Gasto na janela:** {{ pior.spend | brl }} — {{ pior.results | num }} conversões
+- **Ação sugerida:** avalie excluir este slot via schedule (pode reduzir CPA geral 15-25%)
+{% endif %}
+
+---
+
+## Heatmap de CPA (linhas = dias, colunas = horas)
+
+{% set horas_labels = range(0, 24) %}
+| Dia |{% for h in horas %} {{ '%02d'|format(h) }} |{% endfor %}
+|-----|{% for h in horas %}-----|{% endfor %}
+{% for i in range(7) -%}
+| **{{ dias_pt[i] }}** |
+{%- for h in horas -%}
+{%- set v = matriz_cpa[i][h] -%}
+{%- if v is not none %} {{ '%.0f'|format(v) }} |
+{%- else %} - |
+{%- endif -%}
+{%- endfor %}
+{% endfor %}
+
+*Valores em R$ (inteiros, para caber na tabela). "-" = sem conversão no slot.*
+
+---
+
+## Como agir
+
+1. **Schedule em adsets:** se o pior slot é claramente ruim, crie schedule excluindo-o
+2. **Concentre em winners:** aumente budget nas 3-4 melhores janelas (via regras ou manualmente)
+3. **Cuidado com sazonalidade:** dayparting muda em feriados/Black Friday — rode novamente em períodos especiais
+4. **Mínimo 14 dias:** abaixo disso, amostra é ruim; rode com período maior quando possível
+
+---
+*Gerado por `trafego`*

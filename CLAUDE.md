@@ -197,6 +197,46 @@ Proibido criar CSS ou componentes que não estejam nos arquivos de referência.
 
 ---
 
+## TRÁFEGO PAGO. CONEXÃO META OBRIGATÓRIA NO PASSO 0
+
+> Esta regra tem prioridade sobre qualquer outra instrução de execução das skills de tráfego. Aplica-se a todo command que comece com `/trafego-*` ou que precise tocar a Marketing API do Meta (Facebook Ads, Instagram Ads).
+
+**Toda skill que faz operação no Meta Ads precisa de conexão configurada antes de qualquer outra ação.** A conexão é estabelecida pelo command `/meta-conexao`, que pergunta ao aluno se quer usar o conector oficial Claude + Meta (recomendado, MCP via OAuth) ou o caminho do App via Facebook Developers (token permanente no `.env`), valida e salva a preferência em `META_AUTH_MODO` no `.env`.
+
+### Passo 0 obrigatório de toda skill de tráfego
+
+Antes de executar qualquer ação, a skill deve:
+
+1. **Ler `META_AUTH_MODO`** no `.env`.
+2. **Se vazio ou ausente:** acionar `/meta-conexao` e aguardar conclusão. Não tentar adivinhar, não cair em fallback, não pedir credenciais ad-hoc.
+3. **Se `MCP_CONECTOR`:** confirmar que pelo menos uma tool com prefixo `mcp__*__ads_*` está disponível. Se nenhuma estiver, instruir o aluno a reabrir o Claude Code (MCP recém-adicionado pode precisar de reload). Se persistir, voltar ao `/meta-conexao` para diagnosticar.
+4. **Se `APP`:** confirmar que `FB_ACCESS_TOKEN_PERMANENTE` e `FB_AD_ACCOUNT_ID` (e, em `/trafego-criar-campanha`, também `FB_PAGE_ID`) existem no `.env`. Se faltar algum, acionar `/meta-conexao`.
+
+A skill **nunca prossegue** sem essa validação passar.
+
+### Skills que herdam essa regra
+
+Todos os 8 commands `/trafego-*` invocáveis pelo usuário:
+- `/trafego-insights`. Leitura de métricas (com cache local em arquivo .md).
+- `/trafego-criar-campanha`. Criação de campanha via Marketing API.
+- `/trafego-otimizar`. Diagnóstico e otimização. Inclui ações em lote por filtro e atalhos compostos.
+- `/trafego-analise`. Análise narrada VTSD em 9 outputs (exceto Modo Demo, que usa dados fictícios).
+- `/trafego-pixel`. Diagnóstico de pixels (apenas leitura).
+- `/trafego-publicos`. Cria audiences (Custom, Lookalike, Saved).
+- `/trafego-regras`. Cria regras automáticas, resumo recorrente e schedule de adset.
+- `/trafego-testes`. Cria testes A/B disciplinados e variações estruturadas.
+
+**Skill interna (não invocável diretamente pelo usuário):**
+- `trafego-escalar`. Invocada automaticamente por `/trafego-otimizar` quando `sinal_para_escala.pronta: true`.
+
+Os commands legados (`/ads-relatorio`, `/enviar-relatorio-ads`, `/lt-otimizar`) usam variáveis próprias (`RELATORIO_AUTH_MODO=CLI`, `ACCESS_TOKEN`, `AD_ACCOUNT_ID`) e não dependem de `META_AUTH_MODO`. Migração desses commands é tarefa separada.
+
+### Quando outras skills de tráfego forem criadas no futuro
+
+Toda skill nova que precise se conectar ao Meta Ads deve seguir o mesmo padrão de Passo 0: ler `META_AUTH_MODO` antes de qualquer outra ação, e acionar `/meta-conexao` se a variável não estiver configurada. A skill `/meta-conexao` é idempotente, pode ser chamada várias vezes sem efeito colateral.
+
+---
+
 ## Modo Toolkit. Projetos Estruturados
 
 O Workshop tem um fluxo proprietário para conduzir projetos de marketing grandes (lançamento, funil completo, reestruturação). Ele vive nos comandos `/toolkit-*` e guarda o estado em `meus-produtos/{ativo}/projeto/{slug}/`.
@@ -274,6 +314,17 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 - `/lt-quiz`. Gerar perguntas do quiz
 - `/lt-pagina`. Gerar as 4 leads low ticket
 - `/lt-otimizar`. Analisar planilha do Gerenciador e otimizar campanhas low ticket
+
+**Tráfego Pago (Meta Ads via API ou MCP):**
+- `/meta-conexao`. Configurar conexão com Meta Ads (MCP do Claude ou App Facebook Developers) e salvar preferência em META_AUTH_MODO
+- `/trafego-insights`. Ler métricas de campanhas com cálculo automático de derivadas (connect rate, conversão por etapa, custo por etapa). Modo campanha única ou conta completa com ranking de urgência
+- `/trafego-criar-campanha`. Subir campanha nova via Marketing API (PAUSED por padrão, preview YAML obrigatório, gate de pixel ativo). Cobre Sales e Leads
+- `/trafego-otimizar`. Diagnóstico em 2 camadas (tendência + gargalo) para 6 trilhas (perpétuo low/mid/high, lançamento low/mid/high). Quando a campanha está pronta, aciona automaticamente a escala.
+- `/trafego-analise`. Análise narrada VTSD reorganizada em 9 outputs (Diagnóstico Rápido, Performance & Funil, Criativos & Copy com Mandala 18 tipos, Geo & Demografia, Timing & Sazonalidade, Investigação Profunda, Lifecycle & Histórico, Problemas Ocultos, Orçamento & Projeção). Aluno escolhe um output por vez e recebe diagnóstico com handoff para skill executora.
+- `/trafego-pixel`. Diagnóstico de pixels da conta (Meta Pixel / Datasets). Lê status, último disparo, eventos rastreados nos últimos 7 dias e destaca pixels sem atividade. Apenas leitura, não configura evento.
+- `/trafego-publicos`. Cria, lista e gerencia audiences via Marketing API. Cobre Custom Audiences (evento padrão do pixel, evento personalizado, video view %), Lookalike (1% a 10%), Saved Audiences (bases por nível iniciante/intermediário/avançado a partir do produto ativo). Toda criação passa por preview YAML e confirmação SIM.
+- `/trafego-regras`. Cria automações no Meta Ads. Regra automática (adrules_library) com triggers de CPA/CPL/ROAS, resumo recorrente agendado por Telegram/WhatsApp, e programação liga/pausa de adsets (delivery schedule). Toda regra nasce PAUSED.
+- `/trafego-testes`. Cria testes A/B disciplinados (criativo, headline, audiência, faixa etária, posicionamento, lance, estrutura), duplica entidade existente alterando UMA dimensão, e fluxo composto de campanha de remarketing (audience + campanha). Hipótese documentada e handoff para /trafego-analise [3] após D+7.
 
 **Dados e Automações:**
 - `/ads-relatorio`. Criar rotina diária automática que busca métricas do Facebook Ads e envia relatório pelo WhatsApp via Z-API. Agente agendado na nuvem do Claude, roda todo dia às 8h sem precisar do computador ligado.

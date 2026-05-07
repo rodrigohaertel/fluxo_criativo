@@ -1,0 +1,64 @@
+# 🔴 Modo Demo — Cenário D6 (Crise)
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+>
+> ⚠️ **MODO DEMO ATIVO** — conta fictícia em crise para fins didáticos
+
+---
+
+## Cenário: {{ dados.nome }}
+
+| Dado | Valor |
+|---|---|
+| Período | {{ dados.periodo_dias }} dias |
+| Investimento | {{ dados.investimento_total | brl }} |
+| Receita | {{ dados.receita | brl }} |
+| ROAS | **{{ dados.roas }}x** 🔴 |
+| CPA | {{ dados.cpa | brl }} 🔴 |
+| Compras | {{ dados.compras }} |
+
+---
+
+## 🚨 Problemas Detectados
+
+{% for p in dados.problemas %}
+- {{ p }}
+{% endfor %}
+
+---
+
+## 🎯 Diagnóstico Sofia
+
+Essa conta não tem **um** problema — tem **três problemas combinados** que se retroalimentam:
+
+1. **Identidade do Consumidor saturada** (freq 6.2)
+2. **Mandala mínima** (2 criativos, ambos velhos) — sem variedade pra re-engajar
+3. **Oferta silenciada** (Offer Rate 1.2%) — mesmo quem chegou na LP não clica em comprar
+
+Quando esses 3 acontecem juntos, o algoritmo Meta **penaliza relevância** (rankings caem) e o CPM dispara. É o ciclo de morte da conta.
+
+---
+
+## Plano de Recuperação VTSD (ordem importa)
+
+{% for passo in dados.plano_recuperacao %}
+{{ passo }}
+{% endfor %}
+
+---
+
+## 📚 Ensine Isso
+
+{% for e in ensine_isso %}
+### {{ e.conceito }}
+
+{{ e.explicacao_simples }}
+
+**Analogia:** {{ e.analogia }}
+
+**Pergunta:** {{ e.pergunta_fixacao }}
+
+---
+{% endfor %}
+
+*Sofia · Método VTSD · Ready To Go*

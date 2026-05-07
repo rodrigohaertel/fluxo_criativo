@@ -1,0 +1,19 @@
+{
+  "nome": "lancamento",
+  "descricao": "Janela curta de lançamento. Tolerância maior a frequency; escalada agressiva permitida.",
+  "baseline": "janela_lancamento_atual",
+  "fadiga": {
+    "freq_cold_perigo": 3.0,
+    "freq_rmk_perigo": 8.0,
+    "ctr_drop_wow_pct": 20.0,
+    "cpa_rise_vs_baseline_pct": 40.0,
+    "cpr_critico_multiplicador": 3.0
+  },
+  "escalada": {
+    "cpa_max_pct_media": 80.0,
+    "freq_max_pra_escalar": 3.0,
+    "incremento_budget_pct": 100.0,
+    "min_conversoes": 20
+  },
+  "match_regex": ["lch", "lancamento", "lancamento-"]
+}

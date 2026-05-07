@@ -72,7 +72,9 @@ def ler_env():
     return env
 
 # ── Apify ────────────────────────────────────────────────────────────────────
-SCRAPER_URL = 'https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items'
+SCRAPER_URL      = 'https://api.apify.com/v2/acts/apify~instagram-scraper/run-sync-get-dataset-items'
+SCRAPER_RUN_URL  = 'https://api.apify.com/v2/acts/apify~instagram-scraper/runs'
+APIFY_RUNS_BASE  = 'https://api.apify.com/v2/actor-runs'
 
 def apify_post(token, url_ator, payload, timeout=60, retries=3):
     url = f'{url_ator}?token={token}&timeout={timeout}'
@@ -82,7 +84,6 @@ def apify_post(token, url_ator, payload, timeout=60, retries=3):
             resp.raise_for_status()
             return resp.json()
         except requests.exceptions.HTTPError as e:
-            # Erros 4xx sao permanentes - nao retentar
             if e.response is not None and 400 <= e.response.status_code < 500:
                 raise
             log.warning(f'  Apify erro HTTP {e.response.status_code if e.response else "?"} (tentativa {tentativa}/{retries}): {e}')
@@ -98,6 +99,36 @@ def apify_post(token, url_ator, payload, timeout=60, retries=3):
                 time.sleep(espera)
     raise RuntimeError(f'Apify falhou apos {retries} tentativas')
 
+def apify_async(token, payload, max_wait=1200, poll_interval=30):
+    """Dispara run async no Apify e faz polling ate concluir. Evita timeout de conexao HTTP."""
+    url = f'{SCRAPER_RUN_URL}?token={token}'
+    resp = requests.post(url, json=payload, timeout=30)
+    resp.raise_for_status()
+    run = resp.json().get('data', {})
+    run_id = run.get('id')
+    dataset_id = run.get('defaultDatasetId')
+    if not run_id:
+        raise RuntimeError('Apify nao retornou runId')
+    log.info(f'  Run iniciado: {run_id}. Aguardando conclusao (max {max_wait}s)...')
+    elapsed = 0
+    while elapsed < max_wait:
+        time.sleep(poll_interval)
+        elapsed += poll_interval
+        status_resp = requests.get(f'{APIFY_RUNS_BASE}/{run_id}?token={token}', timeout=30)
+        status_resp.raise_for_status()
+        status = status_resp.json().get('data', {}).get('status', '')
+        log.info(f'  [{elapsed}s] Status: {status}')
+        if status == 'SUCCEEDED':
+            items_resp = requests.get(
+                f'https://api.apify.com/v2/datasets/{dataset_id}/items?token={token}&clean=true',
+                timeout=60
+            )
+            items_resp.raise_for_status()
+            return items_resp.json()
+        if status in ('FAILED', 'ABORTED', 'TIMED-OUT'):
+            raise RuntimeError(f'Apify run {run_id} terminou com status: {status}')
+    raise RuntimeError(f'Apify run {run_id} nao concluiu em {max_wait}s')
+
 def buscar_perfil(token, ig_user):
     log.info(f'Buscando perfil @{ig_user}...')
     data = apify_post(token, SCRAPER_URL, {
@@ -110,26 +141,18 @@ def buscar_perfil(token, ig_user):
 
 def buscar_posts(token, ig_user):
     log.info(f'Buscando posts @{ig_user}...')
-    limite = 30
-    todos = []
-    for tentativa in range(1, 5):
-        log.info(f'  Tentativa {tentativa} — resultsLimit={limite}')
-        data = apify_post(token, SCRAPER_URL, {
-            'directUrls': [f'https://www.instagram.com/{ig_user}/'],
-            'resultsType': 'posts',
-            'resultsLimit': limite,
-        }, timeout=600)
-        if not data:
-            break
-        todos = data
-        visiveis = [p for p in data if p.get('likesCount', -1) != -1]
-        ocultos  = [p for p in data if p.get('likesCount', -1) == -1]
-        log.info(f'  {len(data)} posts — {len(visiveis)} com likes visiveis, {len(ocultos)} ocultos')
-        if len(visiveis) >= 30 or (len(data) >= 30 and len(ocultos) <= 5) or limite >= 100:
-            # Prioriza posts com likes visiveis
-            return visiveis[:30] + ocultos[:max(0, 30 - len(visiveis[:30]))]
-        limite = min(limite + 30, 100)
-    return todos[:30]
+    log.info('  Usando modo async (polling) para evitar timeout de conexao...')
+    data = apify_async(token, {
+        'directUrls': [f'https://www.instagram.com/{ig_user}/'],
+        'resultsType': 'posts',
+        'resultsLimit': 30,
+    }, max_wait=1200, poll_interval=30)
+    if not data:
+        raise ValueError('Apify nao retornou posts')
+    visiveis = [p for p in data if p.get('likesCount', -1) != -1]
+    ocultos  = [p for p in data if p.get('likesCount', -1) == -1]
+    log.info(f'  {len(data)} posts — {len(visiveis)} com likes visiveis, {len(ocultos)} ocultos')
+    return visiveis[:30] + ocultos[:max(0, 30 - len(visiveis[:30]))]
 
 def baixar_b64(url, desc=''):
     if not url:

@@ -1,0 +1,38 @@
+# 🎯 Performance por Fase — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Gasto total:** {{ total_spend | brl }} — **Conversões:** {{ total_results | num }}
+
+---
+
+## Tabela por fase
+
+| Fase | Gasto | Share | Impressões | CTR | CPA | ROAS | Conversões |
+|---|---|---|---|---|---|---|---|
+{% for f in fases -%}
+| **{{ f.label }}** | {{ f.spend | brl }} | {{ f.share_spend | pct }} | {{ f.impressions | num }} | {{ f.ctr | pct }} | {{ f.cpa | brl }} | {{ f.roas | num }}x | {{ f.results | num }} |
+{% endfor %}
+
+{% if melhor_cpa and pior_cpa and melhor_cpa.id != pior_cpa.id %}
+---
+
+## Leitura rápida
+
+- **Melhor CPA:** `{{ melhor_cpa.label }}` com {{ melhor_cpa.cpa | brl }} em {{ melhor_cpa.results | num }} conversões
+- **Pior CPA:** `{{ pior_cpa.label }}` com {{ pior_cpa.cpa | brl }} em {{ pior_cpa.results | num }} conversões
+- **Diferença:** {{ ((pior_cpa.cpa / melhor_cpa.cpa - 1) * 100) | pct }} — se o pior CPA continuar esticando, reveja oferta/criativo da fase
+{% endif %}
+
+---
+
+## Como ler
+
+- **Share alto** sem conversão proporcional → fase mal calibrada (budget desperdiçado)
+- **CPA crescendo por fase** mais quente é o esperado (quem chega em RMK custou mais)
+- **ROAS só na última fase** é normal — fases de topo alimentam as quentes
+- **Fase "Outros"** com gasto relevante → nomenclatura de campanha inconsistente; padronize
+
+---
+*Gerado por `trafego`*

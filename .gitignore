@@ -1,3 +1,35 @@
 electron/
 build/
 docs/
+
+
+# ══════════════════════════════════════════
+# Claude Code — arquivos de sessão/runtime
+# ══════════════════════════════════════════
+.claude/projects/
+.claude/plans/
+.claude/debug/
+.claude/settings.local.json
+.claude/file-history/
+.claude/shell-snapshots/
+.claude/ide/
+.claude/telemetry/
+.claude/backups/
+.claude/.credentials.json
+.claude/mcp.json
+.claude/mcp-needs-auth-cache.json
+.claude/worktrees/
+
+# Ferramentas binarias instaladas automaticamente pela skill /video-editar
+# (whisper.cpp + modelos — ~480 MB, instalados sob demanda)
+.claude/tools/
+
+# ══════════════════════════════════════════
+# Memória dos agentes (gerada localmente, cada aluno a sua)
+# A pasta e o README explicando a convenção sobem; o conteúdo
+# específico dos agentes (*.md) é local.
+# Ver .claude/agents-memory/README.md
+# ══════════════════════════════════════════
+.claude/agents-memory/*
+!.claude/agents-memory/.gitkeep
+!.claude/agents-memory/README.md

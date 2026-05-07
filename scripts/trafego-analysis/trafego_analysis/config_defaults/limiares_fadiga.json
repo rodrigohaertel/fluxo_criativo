@@ -1,0 +1,22 @@
+{
+  "_nota": "Thresholds default para detecção de fadiga criativa. Podem ser override por perfil em user_data/config/perfis.json.",
+  "freq_cold_perigo": 3.0,
+  "freq_rmk_perigo": 5.0,
+  "ctr_drop_wow_pct": 15.0,
+  "cpa_rise_vs_baseline_pct": 25.0,
+  "cpr_critico_multiplicador": 2.0,
+  "min_impressions_pra_flagrar": 1000,
+  "min_spend_pra_flagrar_brl": 50,
+  "pesos_sinais": {
+    "freq_alta": 1,
+    "ctr_drop": 1,
+    "cpa_drift": 1,
+    "rankings_below_average": 1,
+    "cpr_critico": 2
+  },
+  "veredicto": {
+    "score_minimo_fadiga": 2,
+    "score_pausa_imediata": 5,
+    "flag_critico_dispara_pausa": true
+  }
+}

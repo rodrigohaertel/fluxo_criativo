@@ -13,11 +13,27 @@ Detecta `RELATORIO_AUTH_MODO` no `.env` e usa o script correto:
 - `CLI`: `scripts/relatorio-ads-cli.py` (Python, cross-platform)
 - `MANUAL` ou nao definido: `scripts/relatorio-ads.ps1` (PowerShell, Windows)
 
+## PASSO 0. Verificar modo de conexão Meta
+
+Antes de qualquer coisa, leia `META_AUTH_MODO` no `.env` para decidir o caminho.
+
+- **Vazia ou ausente:** chame a skill `/meta-conexao` para o aluno escolher o modo. Quando ela terminar e gravar `META_AUTH_MODO`, retorne aqui.
+- **`META_AUTH_MODO=MCP_CONECTOR`:** o Passo 1.1 (credenciais Facebook) é pulado por completo. A conexão Meta foi validada via conector personalizado em `/meta-conexao` e não usa token no `.env`. Vá direto para o Passo 1.2 (canal de envio).
+- **`META_AUTH_MODO=APP`:** executar normalmente o Passo 1.1 e o Passo 1.2.
+
+> **Nota sobre as duas variáveis.** `META_AUTH_MODO` decide o caminho de autenticação com o Meta (MCP via Claude ou Token via App no `.env`). `RELATORIO_AUTH_MODO` decide o executor do relatório dentro do ramo App (Python CLI cross-platform ou PowerShell Windows). Não são redundantes, atuam em camadas diferentes.
+
+---
+
 ## PASSO 1. Verificar credenciais
+
+### 1.1 Credenciais Facebook (apenas modo APP)
+
+> Pular este sub-passo completo se `META_AUTH_MODO=MCP_CONECTOR`. No modo MCP não há token Facebook no `.env`.
 
 Leia `.env`.
 
-**Detectar o modo:**
+**Detectar o sub-modo de execução:**
 
 Se `RELATORIO_AUTH_MODO=CLI` (ou nao definido mas `ACCESS_TOKEN` existir):
 - Verificar `ACCESS_TOKEN` (ou fallback `FB_ACCESS_TOKEN_PERMANENTE` / `FB_ACCESS_TOKEN_TEMPORARIO`)
@@ -32,7 +48,7 @@ Se `RELATORIO_AUTH_MODO=MANUAL` (ou nao definido e `ACCESS_TOKEN` nao existir):
   - Se nao: execute a skill `criar-aplicativo-analise-ads`, depois `gerar-token-permanente-facebook-ads`
 - Se faltar `FB_AD_ACCOUNT_ID`: execute a skill `obter-id-conta-anuncios`
 
-**Canal de envio:**
+### 1.2 Canal de envio (sempre, independente do modo)
 - Se `RELATORIO_CANAL` nao existir no `.env`, pergunte:
 
 ```
@@ -106,7 +122,24 @@ Guarde `INICIO_ISO`, `FIM_ISO` e `LABEL_PERIODO`.
 
 ## PASSO 3. Executar busca de dados
 
-Use o script adequado ao modo configurado. Ambos le o `.env`, mascaram segredos nos logs e retornam os dados formatados.
+A busca varia conforme `META_AUTH_MODO`.
+
+### Se `META_AUTH_MODO=MCP_CONECTOR` (modo MCP)
+
+Identifique no namespace MCP a tool de insights da Meta exposta pelo conector personalizado adicionado no `/meta-conexao`. O nome exato depende do nome que o aluno deu ao conector. Estratégia:
+
+1. Listar tools com prefixo `mcp__*` cujo sufixo trate de insights/performance (ex: `mcp__Meta_Ads__ads_insights_advertiser_context`, `mcp__Meta_Ads__ads_insights_performance_trend`).
+2. Se a busca não for conclusiva, perguntar ao aluno o nome que ele deu ao MCP.
+
+Chame a tool de insights passando o intervalo de datas (`INICIO_ISO` a `FIM_ISO`) e os campos de métrica relevantes (gasto, alcance, impressões, cliques, CTR, CPM, CPC, ações de purchase/lead). O conector é responsável por decidir qual conta de anúncios usar (definido no OAuth feito em `/meta-conexao`).
+
+Guarde o JSON retornado na variável `data` para o Passo 4 montar a mensagem.
+
+> **Nota.** O modo MCP busca os dados, mas não envia mensagem. O envio (Telegram ou Z-API) é feito separadamente no Passo 6.
+
+### Se `META_AUTH_MODO=APP` (modo App via Facebook Developers)
+
+Use o script adequado ao sub-modo configurado em `RELATORIO_AUTH_MODO`. Ambos os scripts lêem o `.env`, mascaram segredos nos logs e já retornam os dados formatados E enviam pelo canal configurado de uma vez só.
 
 **Se `RELATORIO_AUTH_MODO=CLI`:**
 
@@ -131,6 +164,8 @@ powershell.exe -ExecutionPolicy Bypass -File "scripts/relatorio-ads.ps1"
 ```
 
 Nunca passe `ACCESS_TOKEN`, `ZAPI_TOKEN`, `TELEGRAM_BOT_TOKEN` ou qualquer chave pela URL, pelo chat ou por comando que possa aparecer no historico do terminal.
+
+> **Nota.** No modo APP, os scripts já fazem busca + envio juntos. O Passo 6 não precisa rodar de novo.
 
 ## PASSO 4. Montar a mensagem
 
@@ -193,7 +228,13 @@ Se opcao 2: encerre sem chamar nenhuma API de envio.
 
 ## PASSO 6. Enviar
 
-O script ja cuida do envio internamente. Basta executar o mesmo comando do Passo 3 se o usuario confirmar:
+O fluxo de envio depende do `META_AUTH_MODO`.
+
+### Se `META_AUTH_MODO=APP`
+
+O script já cuidou do envio internamente no Passo 3 (busca + envio integrados). Não há nada para refazer aqui — só conferir o resultado e passar para o Passo 7.
+
+Se por algum motivo o script no Passo 3 só buscou sem enviar (ex: aluno escolheu opção 2 "apenas exibir aqui" no Passo 5), execute o mesmo comando do Passo 3 para disparar de novo:
 
 **Se `RELATORIO_AUTH_MODO=CLI`:**
 ```bash
@@ -206,6 +247,48 @@ powershell.exe -ExecutionPolicy Bypass -File "scripts/relatorio-ads.ps1"
 ```
 
 Nao use `curl` manual com token em URL ou header escrito no comando.
+
+### Se `META_AUTH_MODO=MCP_CONECTOR`
+
+A tool MCP do Passo 3 só busca os dados, não envia. O envio precisa ser feito agora com a mensagem montada no Passo 4.
+
+**Se `RELATORIO_CANAL=TELEGRAM`:**
+
+Use Bash para chamar a API do Telegram. Leia `TELEGRAM_BOT_TOKEN` e `TELEGRAM_CHAT_ID` do `.env`. Salve a mensagem montada no Passo 4 num arquivo temporário para evitar problemas de escape e expor o token na linha de comando:
+
+```bash
+# Substitua {MENSAGEM} pelo texto montado no Passo 4
+TMPFILE=$(mktemp)
+cat > "$TMPFILE" <<'EOF'
+{MENSAGEM}
+EOF
+curl -s -X POST "https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage" \
+  --data-urlencode "chat_id=${TELEGRAM_CHAT_ID}" \
+  --data-urlencode "parse_mode=Markdown" \
+  --data-urlencode "text@${TMPFILE}"
+rm "$TMPFILE"
+```
+
+**Se `RELATORIO_CANAL=WHATSAPP`:**
+
+Use Bash para chamar a Z-API. Leia `ZAPI_INSTANCE_ID`, `ZAPI_TOKEN`, `ZAPI_CLIENT_TOKEN` e `RELATORIO_WHATSAPP_NUMERO` do `.env`:
+
+```bash
+TMPFILE=$(mktemp)
+cat > "$TMPFILE" <<'EOF'
+{
+  "phone": "${RELATORIO_WHATSAPP_NUMERO}",
+  "message": "{MENSAGEM}"
+}
+EOF
+curl -s -X POST "https://api.z-api.io/instances/${ZAPI_INSTANCE_ID}/token/${ZAPI_TOKEN}/send-text" \
+  -H "Content-Type: application/json" \
+  -H "Client-Token: ${ZAPI_CLIENT_TOKEN}" \
+  --data-binary "@${TMPFILE}"
+rm "$TMPFILE"
+```
+
+> **Atenção.** Não imprima o token no chat. Não passe credenciais como argumento da linha de comando (ficam no histórico). Sempre use variável de ambiente lida do `.env`. Apague os arquivos temporários ao final.
 
 ## PASSO 7. Resultado
 

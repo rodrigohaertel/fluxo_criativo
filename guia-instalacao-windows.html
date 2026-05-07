@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como instalar o Fluxo Criativo no Windows</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #0f0f13;
+    color: #e8e8f0;
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+  }
+  .container { max-width: 680px; margin: 0 auto; }
+
+  .header { text-align: center; margin-bottom: 40px; }
+  .logo {
+    font-size: 28px; font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+    background-clip: text; margin-bottom: 6px;
+  }
+  .subtitle { color: #6b7280; font-size: 14px; }
+
+  .why-box {
+    background: rgba(251,191,36,0.07);
+    border: 1px solid rgba(251,191,36,0.2);
+    border-radius: 12px; padding: 16px 20px;
+    margin-bottom: 36px;
+    display: flex; gap: 12px; align-items: flex-start;
+  }
+  .why-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+  .why-text { font-size: 13px; line-height: 1.6; color: #fde68a; }
+  .why-text strong { color: #fbbf24; }
+
+  .section-label {
+    font-size: 11px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .1em;
+    color: #4b5563; margin-bottom: 16px;
+  }
+
+  .step {
+    display: flex; gap: 16px;
+    margin-bottom: 28px; align-items: flex-start;
+  }
+  .step-num {
+    width: 36px; height: 36px; border-radius: 50%; flex-shrink: 0;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 800; font-size: 15px; color: #fff;
+    box-shadow: 0 0 14px rgba(124,58,237,0.35);
+  }
+  .step-body { flex: 1; padding-top: 4px; }
+  .step-title { font-size: 15px; font-weight: 700; color: #f3f4f6; margin-bottom: 4px; }
+  .step-desc { font-size: 13px; color: #9ca3af; line-height: 1.6; }
+  .step-desc strong { color: #e5e7eb; }
+
+  .mock {
+    background: #161622; border: 1px solid #2d2d40;
+    border-radius: 10px; padding: 16px 20px; margin-top: 12px;
+  }
+  .mock-bar {
+    display: flex; gap: 5px; margin-bottom: 14px; align-items: center;
+  }
+  .dot { width: 9px; height: 9px; border-radius: 50%; }
+  .dot-r { background: #ef4444; } .dot-y { background: #f59e0b; } .dot-g { background: #10b981; }
+  .mock-title { font-size: 11px; color: #4b5563; margin-left: 6px; }
+
+  .dialog {
+    background: #1e1e2e; border: 1px solid #3f3f56;
+    border-radius: 10px; padding: 18px 20px;
+    max-width: 320px; margin: 0 auto;
+  }
+  .dialog-header { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+  .shield { width: 40px; height: 40px; background: #1a2e4a; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+  .dialog-title { font-size: 13px; font-weight: 700; color: #93c5fd; }
+  .dialog-sub { font-size: 11px; color: #4b5563; margin-top: 2px; }
+  .dialog-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+  .btn-mock {
+    padding: 6px 14px; border-radius: 5px;
+    font-size: 12px; font-weight: 600; border: none; cursor: default;
+  }
+  .btn-blue { background: #2563eb; color: #fff; }
+  .btn-gray { background: #27272a; color: #71717a; border: 1px solid #3f3f46; }
+  .btn-link { background: transparent; color: #60a5fa; font-size: 12px;
+    font-weight: 600; padding: 6px 2px; text-decoration: underline; cursor: default; }
+
+  .tag-cta {
+    display: inline-flex; align-items: center; gap: 5px;
+    background: rgba(251,191,36,0.12); border: 1px solid rgba(251,191,36,0.3);
+    border-radius: 5px; padding: 3px 9px; font-size: 11px;
+    color: #fbbf24; font-weight: 600; margin-top: 10px;
+  }
+
+  .divider { border: none; border-top: 1px solid #1a1a2e; margin: 32px 0; }
+
+  .alt-box {
+    background: rgba(96,165,250,0.06); border: 1px solid rgba(96,165,250,0.15);
+    border-radius: 12px; padding: 18px 20px; margin-bottom: 28px;
+  }
+  .alt-title { font-size: 14px; font-weight: 700; color: #93c5fd; margin-bottom: 6px; }
+  .alt-desc { font-size: 13px; color: #6b7280; line-height: 1.6; }
+  .alt-desc strong { color: #9ca3af; }
+
+  .success {
+    background: rgba(16,185,129,0.07); border: 1px solid rgba(16,185,129,0.2);
+    border-radius: 12px; padding: 20px; text-align: center; margin-top: 36px;
+  }
+  .success-icon { font-size: 32px; margin-bottom: 8px; }
+  .success-title { font-size: 16px; font-weight: 700; color: #34d399; margin-bottom: 4px; }
+  .success-desc { font-size: 13px; color: #4b5563; line-height: 1.6; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">Fluxo Criativo</div>
+    <div class="subtitle">Guia de instalação para Windows</div>
+  </div>
+
+  <div class="why-box">
+    <div class="why-icon">⚠️</div>
+    <div class="why-text">
+      <strong>Por que o Windows mostra um aviso?</strong><br>
+      O Windows bloqueia apps que ainda não têm certificado de publicadora registrado. O Fluxo Criativo é seguro. Siga os passos abaixo para instalar sem problemas.
+    </div>
+  </div>
+
+  <div class="section-label">Opção 1 — Instalador (.exe)</div>
+
+  <div class="step">
+    <div class="step-num">1</div>
+    <div class="step-body">
+      <div class="step-title">Abra o instalador</div>
+      <div class="step-desc">Dê dois cliques no arquivo <strong>Workshop-IA-Setup.exe</strong>. O Windows vai mostrar a tela abaixo.</div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="mock-title">Windows protegeu seu computador</div>
+        </div>
+        <div class="dialog">
+          <div class="dialog-header">
+            <div class="shield">🛡️</div>
+            <div>
+              <div class="dialog-title">O Windows Defender SmartScreen impediu</div>
+              <div class="dialog-sub">Um aplicativo não reconhecido pode colocar seu PC em risco.</div>
+            </div>
+          </div>
+          <div class="dialog-btns">
+            <button class="btn-mock btn-link">Mais informações</button>
+            <button class="btn-mock btn-gray">Não executar</button>
+          </div>
+          <div class="tag-cta">👆 Clique em "Mais informações"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">2</div>
+    <div class="step-body">
+      <div class="step-title">Clique em "Mais informações"</div>
+      <div class="step-desc">A tela vai atualizar e mostrar o botão <strong>"Executar mesmo assim"</strong>.</div>
+      <div class="mock">
+        <div class="mock-bar">
+          <div class="dot dot-r"></div><div class="dot dot-y"></div><div class="dot dot-g"></div>
+          <div class="mock-title">Windows protegeu seu computador</div>
+        </div>
+        <div class="dialog">
+          <div class="dialog-header">
+            <div class="shield">🛡️</div>
+            <div>
+              <div class="dialog-title">O Windows Defender SmartScreen impediu</div>
+              <div class="dialog-sub">Aplicativo: Workshop-IA-Setup.exe &nbsp;|&nbsp; Publicador: desconhecido</div>
+            </div>
+          </div>
+          <div class="dialog-btns">
+            <button class="btn-mock btn-blue">Executar mesmo assim</button>
+            <button class="btn-mock btn-gray">Não executar</button>
+          </div>
+          <div class="tag-cta">👆 Clique em "Executar mesmo assim"</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="step">
+    <div class="step-num">3</div>
+    <div class="step-body">
+      <div class="step-title">Instalação concluída</div>
+      <div class="step-desc">O instalador vai abrir, concluir em segundos e criar um atalho na área de trabalho. Abra o Fluxo Criativo pelo atalho.</div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="section-label">Opção 2 — ZIP portátil (sem instalador)</div>
+
+  <div class="alt-box">
+    <div class="alt-title">Prefere não usar instalador?</div>
+    <div class="alt-desc">
+      Baixe o arquivo <strong>Workshop-IA-win-x64.zip</strong> na aba de downloads, extraia em qualquer pasta e abra o <strong>Fluxo Criativo.exe</strong> diretamente. O Windows ainda pode mostrar o aviso, mas o processo é mais simples: basta clicar em <strong>"Mais informações" &rarr; "Executar mesmo assim"</strong> uma única vez.
+    </div>
+  </div>
+
+  <div class="success">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Pronto, pode usar.</div>
+    <div class="success-desc">Esse aviso aparece apenas na primeira vez. Nas próximas aberturas o Fluxo Criativo abre normalmente.</div>
+  </div>
+
+</div>
+</body>
+</html>

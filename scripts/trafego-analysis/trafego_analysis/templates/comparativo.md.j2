@@ -1,0 +1,70 @@
+# 📈 Comparativo Período a Período — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**{{ comparison.label }}**
+
+| Janela | Início | Fim | Dias |
+|---|---|---|---|
+| **Atual** | {{ comparison.current.since.strftime('%d/%m/%Y') }} | {{ comparison.current.until.strftime('%d/%m/%Y') }} | {{ comparison.current.days }} |
+| **Anterior** | {{ comparison.previous.since.strftime('%d/%m/%Y') }} | {{ comparison.previous.until.strftime('%d/%m/%Y') }} | {{ comparison.previous.days }} |
+
+**Gerado em:** {{ now.strftime('%d/%m/%Y %H:%M') }}
+
+---
+
+## Resumo
+
+- **Métricas evoluindo positivamente:** {{ positivos_count }}
+- **Métricas em alerta:** {{ negativos_count }}
+
+---
+
+## Tabela comparativa completa
+
+| Métrica | Atual | Anterior | Δ abs | Δ % | Status |
+|---|---|---|---|---|---|
+{% for d in deltas -%}
+| **{{ d.nome }}** |
+{%- if d.unidade == 'R$' %} {{ d.valor_atual | brl }} | {{ d.valor_anterior | brl }} | {{ d.delta_abs | brl }}
+{%- elif d.unidade == '%' %} {{ d.valor_atual | pct }} | {{ d.valor_anterior | pct }} | {{ d.delta_abs | pct }}
+{%- elif d.unidade == 'x' %} {{ d.valor_atual | num }}x | {{ d.valor_anterior | num }}x | {{ d.delta_abs | num }}
+{%- else %} {{ d.valor_atual | num }} | {{ d.valor_anterior | num }} | {{ d.delta_abs | num }}
+{%- endif %} | {{ d.delta_pct | delta }} |
+{%- if d.tipo.value == 'POSITIVO' %} POSITIVO
+{%- elif d.tipo.value == 'NEGATIVO' %} ALERTA
+{%- else %} —
+{%- endif %} |
+{% endfor %}
+
+---
+
+## Destaques
+
+{% if positivos_count > 0 %}
+### Melhoras relevantes
+
+{% for d in deltas if d.tipo.value == 'POSITIVO' -%}
+- **{{ d.nome }}** evoluiu {{ d.delta_pct | delta }} ({% if d.unidade == 'R$' %}{{ d.valor_anterior | brl }} → {{ d.valor_atual | brl }}{% elif d.unidade == '%' %}{{ d.valor_anterior | pct }} → {{ d.valor_atual | pct }}{% else %}{{ d.valor_anterior | num }} → {{ d.valor_atual | num }}{% endif %})
+{% endfor %}
+{% endif %}
+
+{% if negativos_count > 0 %}
+### Pontos de atenção
+
+{% for d in deltas if d.tipo.value == 'NEGATIVO' -%}
+- **{{ d.nome }}** piorou {{ d.delta_pct | delta }} ({% if d.unidade == 'R$' %}{{ d.valor_anterior | brl }} → {{ d.valor_atual | brl }}{% elif d.unidade == '%' %}{{ d.valor_anterior | pct }} → {{ d.valor_atual | pct }}{% else %}{{ d.valor_anterior | num }} → {{ d.valor_atual | num }}{% endif %})
+{% endfor %}
+{% endif %}
+
+---
+
+## Como interpretar
+
+- **CPA subindo** + **CTR estável** → fadiga criativa provável → rodar `trafego fadiga`
+- **CPA caindo** + **ROAS subindo** → momento de escalar → rodar `trafego top-performers`
+- **Frequency subindo 20%+** → audiência saturando → ampliar interesses/lookalikes
+- **CTR caindo** com **impressões subindo** → algoritmo distribuiu pra audiência menos qualificada
+
+---
+*Gerado por `trafego`*

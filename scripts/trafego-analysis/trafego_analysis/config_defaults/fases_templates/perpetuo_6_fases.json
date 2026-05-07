@@ -1,0 +1,20 @@
+{
+  "nome_template": "Perpétuo — 6 fases",
+  "descricao": "Modelo detalhado para operação always-on: descoberta a remarketing.",
+  "fases": [
+    {"id": "desc",      "label": "Descoberta",              "cor": "#22c55e", "ordem": 1},
+    {"id": "rel_prosp", "label": "Relacionamento Prospect", "cor": "#84cc16", "ordem": 2},
+    {"id": "cv_lead",   "label": "Captura de Lead",         "cor": "#eab308", "ordem": 3},
+    {"id": "rel_lead",  "label": "Relacionamento Lead",     "cor": "#f97316", "ordem": 4},
+    {"id": "cv",        "label": "Conversão",               "cor": "#ef4444", "ordem": 5},
+    {"id": "rmk",       "label": "Remarketing",             "cor": "#b91c1c", "ordem": 6}
+  ],
+  "regex_match": {
+    "desc":      ["desc", "descoberta", "awareness"],
+    "rel_prosp": ["rel.?prosp", "relacionamento.?prospect"],
+    "cv_lead":   ["cv.?lead", "captura.?lead", "cpl"],
+    "rel_lead":  ["rel.?lead", "relacionamento.?lead"],
+    "cv":        ["^cv[\\s_-]", "conversao", "venda"],
+    "rmk":       ["rmk", "remarketing", "retarget"]
+  }
+}

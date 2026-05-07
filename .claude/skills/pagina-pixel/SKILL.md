@@ -21,9 +21,9 @@ Instala o Meta Pixel em uma página HTML existente. Não regenera nada da copy, 
 
 ### 1. Contexto
 
-Leia `entregas/.ativo` e `entregas/{ativo}/perfil.md`.
+Leia `meus-produtos/.ativo` e `meus-produtos/{ativo}/perfil.md`.
 
-Verifique se o produto já tem Pixel ID salvo em `entregas/{ativo}/.pixel-id`. Se tiver, use direto. Se não tiver, peça.
+Leia o `.env` da raiz do projeto e verifique `META_PIXEL_ID`. Se já estiver preenchido, use direto e confirme com o aluno antes de seguir. Se estiver vazio ou ausente, peça na pergunta 2.
 
 ### 2. Coletar dados (uma pergunta por vez)
 
@@ -34,7 +34,14 @@ Verifique se o produto já tem Pixel ID salvo em `entregas/{ativo}/.pixel-id`. S
 **Pergunta 2. Qual o ID do Pixel da Meta?**
 (ex: 1234567890987654, são 15 ou 16 dígitos)
 
-Quando o usuário colar, valide que tem só dígitos e tem entre 15 e 16 caracteres. Salve em `entregas/{ativo}/.pixel-id` para reaproveitar nas próximas páginas.
+Pular esta pergunta se `META_PIXEL_ID` já estiver preenchido no `.env`. Nesse caso, mostrar o ID atual e perguntar:
+```
+Encontrei o Pixel ID {valor} salvo no .env.
+1. Usar este Pixel
+2. Trocar por outro
+```
+
+Quando o usuário colar um Pixel novo, valide que tem só dígitos e entre 15 e 16 caracteres. Salve em `META_PIXEL_ID` no `.env` da raiz do projeto. Se a chave já existir vazia, atualize o valor; se não existir, adicione a linha. Nunca duplicar a chave. O mesmo Pixel é reaproveitado por `/trafego-criar-campanha`.
 
 **Pergunta 3. Qual o tipo dessa página?**
 1. Página de vendas (PageView + ViewContent + InitiateCheckout no clique do CTA)
@@ -47,7 +54,7 @@ Quando o usuário colar, valide que tem só dígitos e tem entre 15 e 16 caracte
 1. Não, só o pixel no navegador (padrão pra começar)
 2. Sim, tenho Access Token
 
-Se 2, peça o Access Token e o Test Event Code (opcional). Salve em `.pixel-capi`.
+Se 2, peça o Access Token e o Test Event Code (opcional). Salve no `.env` como `META_PIXEL_CAPI_TOKEN` e `META_PIXEL_TEST_EVENT_CODE`. Confirme antes que o `.env` está no `.gitignore` (token é sensível). Se já houver valores nessas chaves, mostre os atuais e pergunte se quer sobrescrever.
 
 ### 3. Gerar o snippet
 
@@ -130,18 +137,18 @@ Antes de salvar, gere backup em `entregas/{ativo}/paginas/.backup-pixel-{timesta
 
 ### 6. Conversions API (opcional)
 
-Se o usuário escolheu CAPI no passo 4, gere também um arquivo de referência em `entregas/{ativo}/paginas/CAPI-SETUP.md` explicando que o CAPI precisa ser configurado no servidor (Hotmart, plataforma de checkout, ou backend próprio) e cole o template com Pixel ID, Access Token e Test Event Code. Não tente fazer chamada server-side daqui.
+Se o usuário escolheu CAPI no passo 4, gere também um arquivo de referência em `meus-produtos/{ativo}/entregas/paginas/CAPI-SETUP.md` explicando que o CAPI precisa ser configurado no servidor (Hotmart, plataforma de checkout, ou backend próprio). No template, referencie as variáveis do `.env` (`META_PIXEL_ID`, `META_PIXEL_CAPI_TOKEN`, `META_PIXEL_TEST_EVENT_CODE`) e oriente como carregar essas envs no backend. Não cole o token em texto plano dentro do arquivo, só o nome da variável. Não tente fazer chamada server-side daqui.
 
 ### 7. Resumo final
 
 ```
 Pronto. Pixel instalado.
 
-Página:    entregas/{ativo}/paginas/{nome}.html
-Pixel ID:  {id}
+Página:    meus-produtos/{ativo}/entregas/paginas/{nome}.html
+Pixel ID:  {id} (salvo em .env como META_PIXEL_ID)
 Eventos:   PageView, {outros eventos da página}
 CAPI:      {sim/não}
-Backup:    entregas/{ativo}/paginas/.backup-pixel-{timestamp}.html
+Backup:    meus-produtos/{ativo}/entregas/paginas/.backup-pixel-{timestamp}.html
 
 Como testar:
 1. Abra a página no Chrome
@@ -149,9 +156,9 @@ Como testar:
 3. Clique no ícone, deve mostrar 1 pixel ativo e os eventos disparando
 
 Próximo passo sugerido:
-- /pagina-checkout  (preparar integração de checkout)
-- /pagina-lovable   (publicar online)
-- /copy-anuncio     (criar anúncios pra rodar tráfego)
+- /pagina-checkout         (preparar integração de checkout)
+- /pagina-lovable          (publicar online)
+- /trafego-criar-campanha  (subir campanha de tráfego, vai reaproveitar o Pixel ID do .env)
 ```
 
 ## Regras
@@ -160,5 +167,5 @@ Próximo passo sugerido:
 - Nunca inclua eventos sem que façam sentido pro tipo de página. Sem evento "Purchase" em página de vendas, por exemplo.
 - Nunca duplique pixel sem perguntar.
 - Sempre gere backup antes de sobrescrever.
-- Pixel ID é dado público, pode ficar salvo em arquivo. Access Token é sensível, salvar só em `.pixel-capi` que já está no .gitignore por padrão (se não estiver, avisar o usuário pra adicionar).
+- Pixel ID e Access Token ficam no `.env` da raiz do projeto. O `.env` precisa estar no `.gitignore` (se não estiver, avisar o usuário antes de salvar o token). O Pixel ID é público, mas o `META_PIXEL_CAPI_TOKEN` é sensível e nunca deve ser commitado. Ao gravar, usar a forma `CHAVE=VALOR` numa única linha, sem aspas e sem espaços ao redor do `=`. Se a chave já existir no `.env`, atualizar o valor existente (não duplicar a linha).
 - Não use travessão em nenhum texto exibido ao usuário.

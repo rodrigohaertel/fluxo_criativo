@@ -1112,6 +1112,10 @@ def montar_dados(secao: str, produto_dir: Path, slug: str) -> tuple[dict, str]:
         return parse_comercial_playbook(slug, produto_dir), nome_produto
     if secao == "dashboards":
         return parse_dashboards(produto_dir), nome_produto
+    if secao == "analise-trafego":
+        # Conteúdo gerenciado pelo painel-trafego.py. Retorna dict vazio
+        # para que render_analise_trafego entregue o placeholder inicial.
+        return {}, nome_produto
     raise ValueError(f"Secao desconhecida: {secao}")
 
 
@@ -1222,6 +1226,11 @@ def main() -> int:
         action="store_true",
         help="Marca secao identidade-consumidor como 'Gerando...' (usado enquanto agente background roda)",
     )
+    parser.add_argument(
+        "--open",
+        action="store_true",
+        help="Abre o painel no navegador apos gerar",
+    )
     args = parser.parse_args()
 
     slug = args.slug or ler_ativo()
@@ -1294,6 +1303,13 @@ def main() -> int:
         print(f"Painel criado em {caminho_rel}")
     print(f"Secao atualizada: {args.secao}")
     print(f"Caminho: {caminho_rel}")
+
+    if args.open:
+        import webbrowser, urllib.request
+        url = painel_path.resolve().as_uri() + "#sala-dos-agentes"
+        webbrowser.open(url)
+        print(f"Painel aberto no navegador.")
+
     return 0
 
 

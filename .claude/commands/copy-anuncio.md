@@ -254,13 +254,15 @@ Use a Mandala de 18 Tipos (skill vtsd-completo):
 **Visual da variação. NÃO escreva direção criativa nesta skill.** Após apresentar as 3 variações de copy e o aluno aprovar, **acione automaticamente a skill `criativo-estatico`** (uma vez por variação) passando o headline, o gancho e o tom de cada variação como contexto. A `criativo-estatico` é responsável por gerar o prompt visual final pronto para colar no ChatGPT (ou outra IA escolhida pelo aluno). A `copy-anuncio` cuida só da copy. nunca duplica o trabalho de prompt visual.
 
 **CTAs por fase:**
-| Fase | CTA típico |
-| --- | --- |
-| Descoberta | Seguir, curtir, comentar, compartilhar |
-| Relacionamento | Comentar, DM, salvar, lives |
-| Captura / Aquecimento | Quero participar, garantir minha vaga, me inscrever |
-| Conversão / Venda | Comprar agora, garantir vaga, quero começar |
-| Remarketing | Comprar agora, retomar oferta, última chance |
+| Fase | CTA típico (texto na copy) | Botão Meta Ads (default) |
+| --- | --- | --- |
+| Descoberta | Seguir, curtir, comentar, compartilhar | LEARN_MORE (Saiba mais) |
+| Relacionamento | Comentar, DM, salvar, lives | LEARN_MORE (Saiba mais) |
+| Captura / Aquecimento | Quero participar, garantir minha vaga, me inscrever | SIGN_UP (Cadastre-se) |
+| Conversão / Venda | Saiba mais, conheça o método, ver oferta | LEARN_MORE (Saiba mais) |
+| Remarketing | Saiba mais, retomar oferta, última chance | LEARN_MORE (Saiba mais) |
+
+**Default obrigatório do botão Meta Ads:** `LEARN_MORE` (Saiba mais). Esse é o CTA padrão para todas as fases salvo Captura/Aquecimento (que usa `SIGN_UP`). Não usar `SHOP_NOW` por default. O aluno pode trocar manualmente se quiser, mas a skill nunca sugere outro CTA sem ser perguntada.
 
 **Estrutura de todo anúncio VTSD (texto/legenda). padrão de profundidade obrigatório:**
 - **GANCHO:** premissa não óbvia. NUNCA uma pergunta, NUNCA algo óbvio para quem já está no nicho. 1. 2 frases fortes.

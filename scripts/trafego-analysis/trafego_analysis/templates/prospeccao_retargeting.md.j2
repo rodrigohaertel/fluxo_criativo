@@ -1,0 +1,39 @@
+# 🎯 Prospecção vs. Retargeting — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Fase VTSD:** `{{ fase }}`
+
+---
+
+## Mix Atual vs. Ideal
+
+| Temperatura | Atual | Ideal ({{ fase }}) | CPL |
+|---|---|---|---|
+| 🔥 HOT | {{ mix.hot_pct | pct }} | {{ ideal['HOT'][0] }}-{{ ideal['HOT'][1] }}% | {{ mix.hot_cpl | brl }} |
+| ❄️ COLD | {{ mix.cold_pct | pct }} | {{ ideal['COLD'][0] }}-{{ ideal['COLD'][1] }}% | {{ mix.cold_cpl | brl }} |
+| 🧊 SUPERCOLD | {{ mix.supercold_pct | pct }} | {{ ideal['SUPERCOLD'][0] }}-{{ ideal['SUPERCOLD'][1] }}% | {{ mix.supercold_cpl | brl }} |
+{% if mix.indefinido_pct > 0 %}
+| ❓ Indefinido | {{ mix.indefinido_pct | pct }} | — | — |
+{% endif %}
+
+---
+
+## 🎯 Diagnóstico VTSD
+
+{% for d in diagnostico %}
+- {{ d }}
+{% endfor %}
+
+---
+
+## Leitura
+
+- **HOT** converte mais barato, mas esgota rápido. Base para Pico.
+- **COLD** bem segmentado é o motor de escala sustentável em Evergreen.
+- **SUPERCOLD** (público aberto) é baixa fricção para o algoritmo achar Identidade do Consumidor sozinho. Subestimado.
+- **Dependência de HOT** em Evergreen = risco: se a lista quente cair, a conta cai.
+
+---
+*Sofia · Método VTSD · Ready To Go*

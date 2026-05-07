@@ -1,0 +1,59 @@
+# ⚡ Revisão Advantage+ — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Campanhas Advantage+ identificadas:** {{ total_campanhas_ap }}
+
+---
+
+{% if observacoes_gerais %}
+## Observações gerais
+
+{% for o in observacoes_gerais %}
+- {{ o }}
+{% endfor %}
+{% endif %}
+
+{% if diagnosticos %}
+{% for d in diagnosticos %}
+## Campanha: `{{ d.campanha }}`
+
+{% if d.pontos_positivos %}
+**✅ Pontos positivos:**
+{% for p in d.pontos_positivos %}
+- {{ p }}
+{% endfor %}
+{% endif %}
+
+{% if d.pontos_atencao %}
+**⚠️ Pontos de atenção:**
+{% for p in d.pontos_atencao %}
+- {{ p }}
+{% endfor %}
+{% endif %}
+
+{% if d.recomendacoes %}
+**🎯 Recomendações:**
+{% for r in d.recomendacoes %}
+{{ loop.index }}. {{ r }}
+{% endfor %}
+{% endif %}
+
+---
+{% endfor %}
+{% endif %}
+
+## Como o VTSD encara Advantage+
+
+**A+ é confiar na Meta para achar Identidade do Consumidor sozinha.** O trabalho vira 100% **criativo**:
+
+- **Mandala diversa** (6-8 tipos) dentro da mesma campanha → Meta testa e descobre o que converte
+- **Audiência ampla** (sem lookalike salvo, sem interesses manuais) → deixa o A+ fazer o job
+- **Budget suficiente pra aprender** → abaixo de R$ 150/dia o A+ não sai da fase de exploração
+- **Criativos com DNA variado** (formato, hook, paleta) → quanto mais variedade, melhor o A+ otimiza
+
+**Armadilha comum:** gente trata A+ como campanha tradicional, aí enche de adsets, coloca LAL salva, corta audiência. Fica o pior dos dois mundos.
+
+---
+*Sofia · Método VTSD · Ready To Go*

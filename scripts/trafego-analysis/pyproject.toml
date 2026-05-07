@@ -1,0 +1,107 @@
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "trafego-analysis"
+version = "0.1.0"
+description = "Skill standalone de análise de tráfego pago Meta Ads — fadiga criativa, top performers, funil, galeria visual e mais."
+readme = "README.md"
+# Recomendado: Python 3.12 (melhor compatibilidade com facebook-business SDK).
+# 3.11 funciona; 3.13+ pode ter edge cases nas deps. Ver docs/INSTALACAO.md.
+requires-python = ">=3.11,<3.14"
+license = { text = "MIT" }
+authors = [
+    { name = "trafegopaid" }
+]
+keywords = ["meta-ads", "facebook-ads", "trafego-pago", "marketing", "analytics", "hotmart", "infoproduto"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Office/Business",
+]
+
+dependencies = [
+    "facebook-business>=22.0.0",
+    "pandas>=2.1",
+    "pydantic>=2.5",
+    "jinja2>=3.1",
+    "rich>=13.7",
+    "tabulate>=0.9",
+    "httpx>=0.27",
+    "pillow>=10.2",
+    "platformdirs>=4.2",
+    "python-dotenv>=1.0",
+    "click>=8.1",
+]
+
+[project.optional-dependencies]
+web = [
+    "streamlit>=1.32",
+    "plotly>=5.20",
+]
+vision = [
+    "opencv-python-headless>=4.9",
+]
+google = [
+    "google-ads>=24.0",
+]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=4.1",
+    "vcrpy>=6.0",
+    "ruff>=0.3",
+    "mypy>=1.8",
+]
+all = [
+    "trafego-analysis[web,vision,google,dev]",
+]
+
+[project.urls]
+Homepage = "https://github.com/trafegopaid/skill-analise"
+Repository = "https://github.com/trafegopaid/skill-analise"
+Issues = "https://github.com/trafegopaid/skill-analise/issues"
+Documentation = "https://github.com/trafegopaid/skill-analise/tree/main/docs"
+
+[project.scripts]
+trafego = "trafego_analysis.cli:main"
+
+[tool.setuptools]
+packages = { find = { include = ["trafego_analysis*"] } }
+include-package-data = true
+
+[tool.setuptools.package-data]
+trafego_analysis = [
+    "config_defaults/**/*.json",
+    "templates/*.j2",
+    "templates/*.html.j2",
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP"]
+ignore = [
+    "E501",   # line too long — respeitado via formatação manual
+    "E741",   # ambiguous variable name (usamos `l` = leads em vários lugares)
+    "B007",   # unused loop variable — idiomático em for (i, x) enumerate
+]
+
+[tool.pytest.ini_options]
+minversion = "8.0"
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.11"
+strict = false
+ignore_missing_imports = true

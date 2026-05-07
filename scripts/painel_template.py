@@ -69,6 +69,9 @@ SECOES: list[dict] = [
     {"id": "dashboards", "grupo": "DADOS", "titulo": "Redes Sociais", "ix": "11",
      "subtitulo": "Metricas das redes sociais. Instagram, TikTok e YouTube em abas.",
      "proxima": "Sera preenchido ao rodar /dashboard-social."},
+    {"id": "analise-trafego", "grupo": "DADOS", "titulo": "Análise de Tráfego", "ix": "12",
+     "subtitulo": "Histórico de análises narradas do Meta Ads. Geradas via /trafego-analise.",
+     "proxima": "Sera preenchido ao salvar um output em /trafego-analise."},
 ]
 
 SECOES_RENDERIZAVEIS = {
@@ -179,6 +182,9 @@ button{font-family:inherit;}
 .status-dot{display:inline-flex;align-items:center;gap:var(--s-2);font-family:var(--font-mono);font-size:9px;color:var(--text-faint);letter-spacing:.14em;text-transform:uppercase;font-weight:300;}
 .status-dot .dot{width:5px;height:5px;border-radius:50%;background:var(--neon);animation:pulse 2s ease-in-out infinite;}
 @keyframes pulse{0%,100%{opacity:1;}50%{opacity:.5;}}
+.btn-refresh{width:100%;margin-top:var(--s-3);padding:6px var(--s-3);background:transparent;border:1px solid var(--line-2);border-radius:var(--r-md);color:var(--text-dim);font-family:var(--font-mono);font-size:9px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;transition:color 120ms,border-color 120ms;display:flex;align-items:center;gap:6px;font-weight:300;}
+.btn-refresh:hover{color:var(--neon);border-color:var(--neon-deep);}
+.btn-refresh svg{flex-shrink:0;}
 
 /* Mobile tabstrip */
 .tabstrip{display:none;overflow-x:auto;padding:var(--s-3) var(--s-5);gap:var(--s-2);background:var(--ink-0);}
@@ -793,6 +799,10 @@ def build_shell(nome_produto: str, owner: str = "", timestamp: str = "") -> str:
       <div class="product" id="sidebar-product">{_escape(nome_produto)}</div>
       {owner_html}
       <select class="product-select" id="product-select" title="Trocar produto"></select>
+      <button class="btn-refresh" onclick="location.reload()" title="Recarregar painel com dados atualizados">
+        <svg width="11" height="11" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M13.5 8A5.5 5.5 0 1 1 10 3.07"/><polyline points="10 1 13.5 3.07 10 5.14"/></svg>
+        Atualizar Dados
+      </button>
     </div>
     <nav class="nav">
 {_sidebar_items()}
@@ -2294,6 +2304,16 @@ def render_dashboards(dados: dict) -> str:
     )
 
 
+def render_analise_trafego(dados: dict) -> str:
+    # O conteúdo real é injetado pelo script painel-trafego.py após cada export.
+    # Aqui entregamos apenas o placeholder inicial com os marcadores de seção.
+    return (
+        "<!-- SECTION:analise-trafego -->\n"
+        + _placeholder("Sera preenchido ao salvar um output em /trafego-analise.")
+        + "\n<!-- /SECTION:analise-trafego -->"
+    )
+
+
 RENDERS = {
     "quadro": render_quadro,
     "furadeira": render_furadeira,
@@ -2306,4 +2326,5 @@ RENDERS = {
     "copy-pagina": render_copy_pagina,
     "comercial-playbook": render_comercial_playbook,
     "dashboards": render_dashboards,
+    "analise-trafego": render_analise_trafego,
 }

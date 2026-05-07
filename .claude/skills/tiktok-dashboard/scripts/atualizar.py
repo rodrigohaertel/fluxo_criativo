@@ -34,7 +34,7 @@ except ImportError:
 ATOR_APIFY = "clockworks~tiktok-scraper"
 API_BASE = "https://api.apify.com/v2"
 TIMEOUT_SYNC = 300
-MAX_VIDEOS = 30
+MAX_VIDEOS = 28
 WORKERS_DOWNLOAD = 5
 
 HEADERS_TIKTOK = {

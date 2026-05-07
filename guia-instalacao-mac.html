@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Como instalar o Fluxo Criativo no Mac</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, 'SF Pro Display', 'Helvetica Neue', Arial, sans-serif;
+    background: #0f0f13;
+    color: #e8e8f0;
+    min-height: 100vh;
+    padding: 40px 20px 60px;
+  }
+
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+  }
+
+  .header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    font-size: 32px;
+    font-weight: 800;
+    background: linear-gradient(135deg, #a78bfa, #60a5fa);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 8px;
+  }
+
+  .subtitle {
+    color: #9ca3af;
+    font-size: 15px;
+  }
+
+  .alert-box {
+    background: rgba(251, 191, 36, 0.1);
+    border: 1px solid rgba(251, 191, 36, 0.3);
+    border-radius: 12px;
+    padding: 18px 22px;
+    margin-bottom: 40px;
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .alert-icon { font-size: 22px; flex-shrink: 0; margin-top: 1px; }
+
+  .alert-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: #fde68a;
+  }
+
+  .alert-text strong { color: #fbbf24; }
+
+  .steps-title {
+    font-size: 13px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: #6b7280;
+    margin-bottom: 20px;
+  }
+
+  .step {
+    display: flex;
+    gap: 20px;
+    margin-bottom: 32px;
+    align-items: flex-start;
+  }
+
+  .step-number {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, #7c3aed, #2563eb);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 16px;
+    flex-shrink: 0;
+    color: #fff;
+    box-shadow: 0 0 16px rgba(124, 58, 237, 0.4);
+  }
+
+  .step-content { flex: 1; padding-top: 6px; }
+
+  .step-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #f3f4f6;
+    margin-bottom: 6px;
+  }
+
+  .step-desc {
+    font-size: 14px;
+    color: #9ca3af;
+    line-height: 1.6;
+  }
+
+  .step-desc strong { color: #e5e7eb; font-weight: 600; }
+
+  .screen-mock {
+    background: #1e1e2e;
+    border: 1px solid #2d2d40;
+    border-radius: 12px;
+    padding: 20px 24px;
+    margin-top: 14px;
+  }
+
+  .window-bar {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 16px;
+  }
+
+  .dot { width: 10px; height: 10px; border-radius: 50%; }
+  .dot-red { background: #ef4444; }
+  .dot-yellow { background: #f59e0b; }
+  .dot-green { background: #10b981; }
+
+  .window-title {
+    font-size: 12px;
+    color: #6b7280;
+    margin-left: 8px;
+  }
+
+  .mac-dialog {
+    background: rgba(30, 30, 46, 0.95);
+    border: 1px solid #3f3f56;
+    border-radius: 14px;
+    padding: 24px;
+    text-align: center;
+    max-width: 340px;
+    margin: 0 auto;
+  }
+
+  .mac-icon { font-size: 48px; margin-bottom: 12px; }
+
+  .mac-dialog-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #f3f4f6;
+    margin-bottom: 8px;
+  }
+
+  .mac-dialog-sub {
+    font-size: 13px;
+    color: #9ca3af;
+    line-height: 1.5;
+    margin-bottom: 18px;
+  }
+
+  .mac-btn-row {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+  }
+
+  .mac-btn {
+    padding: 7px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    border: none;
+    cursor: default;
+  }
+
+  .mac-btn-cancel {
+    background: #27272a;
+    color: #a1a1aa;
+    border: 1px solid #3f3f46;
+  }
+
+  .mac-btn-open {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .highlight-arrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: rgba(251, 191, 36, 0.15);
+    border: 1px solid rgba(251, 191, 36, 0.35);
+    border-radius: 6px;
+    padding: 3px 10px;
+    font-size: 12px;
+    color: #fbbf24;
+    font-weight: 600;
+    margin-top: 12px;
+  }
+
+  .context-menu-mock {
+    background: #2a2a3e;
+    border: 1px solid #3f3f56;
+    border-radius: 8px;
+    padding: 6px 0;
+    width: 200px;
+    margin: 12px auto 0;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+  }
+
+  .menu-item {
+    padding: 7px 16px;
+    font-size: 13px;
+    color: #d1d5db;
+  }
+
+  .menu-item.highlighted {
+    background: #2563eb;
+    color: #fff;
+  }
+
+  .menu-divider {
+    border-top: 1px solid #3f3f56;
+    margin: 4px 0;
+  }
+
+  .tip-box {
+    background: rgba(96, 165, 250, 0.08);
+    border: 1px solid rgba(96, 165, 250, 0.2);
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-top: 14px;
+    font-size: 13px;
+    color: #93c5fd;
+    line-height: 1.6;
+  }
+
+  .tip-box strong { color: #60a5fa; }
+
+  .divider {
+    border: none;
+    border-top: 1px solid #1f1f2e;
+    margin: 36px 0;
+  }
+
+  .success-box {
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.25);
+    border-radius: 12px;
+    padding: 20px 24px;
+    text-align: center;
+    margin-top: 40px;
+  }
+
+  .success-icon { font-size: 36px; margin-bottom: 10px; }
+
+  .success-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #34d399;
+    margin-bottom: 6px;
+  }
+
+  .success-desc {
+    font-size: 14px;
+    color: #6b7280;
+    line-height: 1.6;
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="header">
+    <div class="logo">Fluxo Criativo</div>
+    <div class="subtitle">Guia de instalação para Mac</div>
+  </div>
+
+  <div class="alert-box">
+    <div class="alert-icon">⚠️</div>
+    <div class="alert-text">
+      <strong>Por que esse aviso aparece?</strong><br>
+      O Mac exibe esse aviso para aplicativos baixados da internet que ainda não passaram pela verificação automática da Apple (Gatekeeper). O Fluxo Criativo é seguro. Siga os 3 passos abaixo para abrir normalmente.
+    </div>
+  </div>
+
+  <div class="steps-title">Passo a passo</div>
+
+  <!-- Passo 1 -->
+  <div class="step">
+    <div class="step-number">1</div>
+    <div class="step-content">
+      <div class="step-title">Abra o arquivo .dmg que você baixou</div>
+      <div class="step-desc">
+        Dê dois cliques no arquivo <strong>Workshop-IA.dmg</strong>. Uma janela vai abrir mostrando o ícone do app. Arraste o ícone para a pasta Aplicativos conforme indicado na janela.
+      </div>
+      <div class="tip-box">
+        Se o Mac mostrar o aviso "não pode ser aberto porque o desenvolvedor não pode ser verificado", não clique em OK ainda. Vá para o Passo 2.
+      </div>
+    </div>
+  </div>
+
+  <!-- Passo 2 -->
+  <div class="step">
+    <div class="step-number">2</div>
+    <div class="step-content">
+      <div class="step-title">Clique com o botão direito no app</div>
+      <div class="step-desc">
+        Na pasta Aplicativos (ou no Launchpad), clique com o <strong>botão direito do mouse</strong> (ou segure <strong>Control</strong> e clique) sobre o ícone do Fluxo Criativo. Um menu vai aparecer.
+      </div>
+      <div class="screen-mock">
+        <div class="window-bar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="window-title">Aplicativos</div>
+        </div>
+        <div class="context-menu-mock">
+          <div class="menu-item highlighted">Abrir</div>
+          <div class="menu-divider"></div>
+          <div class="menu-item">Obter informações</div>
+          <div class="menu-item">Renomear</div>
+          <div class="menu-item">Duplicar</div>
+        </div>
+        <div style="text-align:center">
+          <div class="highlight-arrow">👆 Clique em "Abrir" no menu</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Passo 3 -->
+  <div class="step">
+    <div class="step-number">3</div>
+    <div class="step-content">
+      <div class="step-title">Confirme clicando em "Abrir"</div>
+      <div class="step-desc">
+        O Mac vai mostrar um diálogo perguntando se você tem certeza. Clique em <strong>Abrir</strong> para confirmar.
+      </div>
+      <div class="screen-mock">
+        <div class="window-bar">
+          <div class="dot dot-red"></div>
+          <div class="dot dot-yellow"></div>
+          <div class="dot dot-green"></div>
+          <div class="window-title">Aviso do sistema</div>
+        </div>
+        <div class="mac-dialog">
+          <div class="mac-icon">🖥️</div>
+          <div class="mac-dialog-title">"Fluxo Criativo" é de um desenvolvedor não identificado.</div>
+          <div class="mac-dialog-sub">Tem certeza de que deseja abri-lo? Ao abrir este app, você substituirá a proteção de segurança do macOS.</div>
+          <div class="mac-btn-row">
+            <button class="mac-btn mac-btn-cancel">Cancelar</button>
+            <button class="mac-btn mac-btn-open">Abrir</button>
+          </div>
+        </div>
+        <div style="text-align:center">
+          <div class="highlight-arrow">👆 Clique em "Abrir"</div>
+        </div>
+      </div>
+      <div class="tip-box" style="margin-top:14px">
+        <strong>Dica:</strong> esse procedimento é necessário apenas na primeira vez. Nas próximas vezes, o app abre normalmente com dois cliques.
+      </div>
+    </div>
+  </div>
+
+  <hr class="divider">
+
+  <div class="success-box">
+    <div class="success-icon">✅</div>
+    <div class="success-title">Pronto, pode usar!</div>
+    <div class="success-desc">
+      O Fluxo Criativo está instalado e liberado no seu Mac. Abra pelo Launchpad ou pela pasta Aplicativos sempre que quiser.
+    </div>
+  </div>
+
+</div>
+</body>
+</html>

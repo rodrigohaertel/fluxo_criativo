@@ -1,0 +1,46 @@
+# 🚨 Alertas Prioritários — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Total de alertas:** {{ total }}
+
+---
+
+{% if total == 0 %}
+## ✅ Nenhum alerta crítico detectado
+
+Conta operando sem problemas estruturais graves. Foco em **evolução** (escala, novos criativos, otimização) em vez de **correção**.
+{% endif %}
+
+{% for a in alertas %}
+## {% if a.severidade == 'critica' %}🔴 CRÍTICA{% elif a.severidade == 'alta' %}🟠 ALTA{% else %}🟡 MÉDIA{% endif %} — {{ a.titulo }}
+
+**Categoria:** {{ a.categoria }}
+
+{{ a.descricao }}
+
+**Ação:** {{ a.acao }}
+
+{% if a.recursos %}
+**Recursos afetados (top 5):**
+{% for r in a.recursos %}
+- `{{ r }}`
+{% endfor %}
+{% endif %}
+
+---
+{% endfor %}
+
+{% if total > 0 %}
+## 🎯 Ordem VTSD de ataque
+
+1. **Críticas primeiro** — queima de budget é o inimigo #1
+2. **Altas em 24h** — cada hora adiando vira R$ desperdiçado
+3. **Médias na semana** — não urgentes, mas acumulam se ignoradas
+
+Depois de executar todas, rode `trafego health` pra confirmar que o score subiu.
+{% endif %}
+
+---
+*Sofia · Método VTSD · Ready To Go*

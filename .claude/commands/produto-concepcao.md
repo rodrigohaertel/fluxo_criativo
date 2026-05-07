@@ -85,6 +85,37 @@ A partir daí, cada bloco aprovado substitui o conteúdo abaixo do seu H2, sem m
 
 ## O Que Fazer
 
+### 0. Abrir o painel no navegador (primeira ação obrigatória)
+
+Antes de qualquer pergunta, abra o painel no navegador do aluno. Esta é a primeira ação visual da concepção. A partir daqui o aluno vai acompanhar a Sala dos Agentes e o painel de entregas sendo preenchido bloco a bloco.
+
+**Pré-requisito:** leia `meus-produtos/.ativo`. Se o arquivo não existir ou estiver vazio, **pare aqui e oriente o aluno a rodar `/produto-novo` primeiro**. Não abra o painel sem produto ativo.
+
+**Antes de abrir, garanta que o painel existe e o manifest está atualizado:**
+
+1. Verifique se `meus-produtos/{ativo}/painel-entregas.html` existe com o Read tool.
+   - Se não existir: rode `py -3 scripts/painel-incremental.py --secao quadro` para criá-lo.
+2. Rode `py -3 scripts/painel-atualizar.py` para garantir que o manifest está sincronizado.
+
+**Detecção de SO via Bash** (rode `uname -s 2>/dev/null || echo Windows`):
+- Se a saída contém `Darwin`: rode `open "meus-produtos/{ativo}/painel-entregas.html#sala-dos-agentes"`
+- Se a saída contém `Linux`: rode `xdg-open "meus-produtos/{ativo}/painel-entregas.html#sala-dos-agentes"`
+- Caso contrário (Windows): obtenha o caminho absoluto com `pwd` e rode `start "" "file:///{cwd}/meus-produtos/{ativo}/painel-entregas.html#sala-dos-agentes"` substituindo `{cwd}` pelo resultado do pwd com barras convertidas para `/`
+
+Não trave a skill se o comando falhar (sem display, ambiente headless, navegador não configurado). Em caso de falha, mostre em uma linha:
+
+```
+Não consegui abrir o painel automaticamente. Abra manualmente: meus-produtos/{ativo}/painel-entregas.html#sala-dos-agentes
+```
+
+**Mensagem ao aluno (uma linha, após o comando rodar):**
+
+```
+Abri o painel no navegador. Acompanhe a Sala dos Agentes e o painel de entregas enquanto a gente avança aqui no chat.
+```
+
+Siga para o passo 1.
+
 ### 1. Verificar perfil existente
 
 Leia `meus-produtos/.ativo` para obter o produto ativo. Leia `meus-produtos/{ativo}/perfil.md`. Se existir, mostre resumo e pergunte se quer atualizar.
@@ -263,14 +294,21 @@ Execute o fluxo completo do command `/furadeira-visual` conforme definido em `.c
 Registre no `perfil.md` ao final o caminho gerado:
 - `furadeira_prompt`: caminho do arquivo de prompt
 
-**BLOQUEIO OBRIGATÓRIO — aguardar a imagem PNG antes de avançar:**
+**Aguardar imagem ou opção de pular:**
 
-Após exibir o prompt para o aluno colar no ChatGPT, pare e aguarde. Não ofereça a opção de "continuar depois" ou "pular a imagem". Não avance para o Bloco 3 até que uma das condições abaixo seja atendida:
+Após exibir o prompt, mostre as opções ao aluno:
 
-1. O aluno cola a imagem no chat (arrastar o PNG para a conversa).
-2. O aluno salva manualmente em `meus-produtos/{ativo}/entregas/furadeira/furadeira.png` e diz "imagem salva".
+```
+Cole o prompt no ChatGPT, gere a imagem e arraste o PNG aqui no chat — ou salve direto em
+meus-produtos/{ativo}/entregas/furadeira/furadeira.png e me diga "imagem salva".
 
-Só após a imagem estar salva em disco, siga para o Bloco 2B/6 (Identidade do Comunicador).
+Se preferir, pode pular por agora:
+1. Tenho a imagem (vou colar ou salvar)
+2. Pular por enquanto (continuar sem a imagem)
+```
+
+- Se escolher **1**: aguarde o PNG. Só após a imagem estar salva em disco, siga para o Bloco 2B/6.
+- Se escolher **2**: registre `_png: não gerado` no `perfil.md`, informe ao aluno que o visual da Furadeira ficará em branco no painel até ser gerado via `/furadeira-visual`, e siga imediatamente para o Bloco 2B/6. Não repita a pergunta da imagem.
 
 **Salvar Furadeira (obrigatório, imediato):**
 

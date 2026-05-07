@@ -1,0 +1,88 @@
+# 🎓 Modo Demo — Cenário {{ cenario_id }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+>
+> ⚠️ **MODO DEMO ATIVO** — dados fictícios para fins didáticos. Padrões reais do mercado BR infoproduto.
+
+---
+
+## Cenário: {{ dados.nome }}
+
+| Dado | Valor |
+|---|---|
+| Ticket | {{ dados.ticket | brl }} |
+| Período | {{ dados.periodo_dias }} dias |
+| Investimento | {{ dados.investimento_total | brl }} |
+| Receita | {{ dados.receita | brl }} |
+| ROAS | **{{ dados.roas }}x** |
+
+---
+
+## 📊 Adsets (HOT / COLD / SUPERCOLD)
+
+| Adset | Temp | Spend | Leads | CPL | CPA | Freq |
+|---|---|---|---|---|---|---|
+{% for a in dados.adsets -%}
+| `{{ a.adset_name }}` | {{ a.temperatura }} | {{ a.spend | brl }} | {{ a.leads }} | {{ a.cpl | brl }} | {{ a.cpa | brl }} | {{ a.frequency }} |
+{% endfor %}
+
+---
+
+## 🎨 Criativos Ativos (Tier S/A/B/C/D)
+
+| Ad | Tipo Mandala | Hook | Hold | CTR | CPA | Freq | Tier |
+|---|---|---|---|---|---|---|---|
+{% for ad in dados.ads -%}
+| `{{ ad.ad_name }}` | {{ ad.tipo_mandala | replace('_', ' ') | title }} | {{ ad.hook_rate }}% | {{ ad.hold_rate }}% | {{ ad.ctr }}% | {{ ad.cpa | brl }} | {{ ad.frequency }} | **{{ ad.tier }}** |
+{% endfor %}
+
+---
+
+## 🔻 Funil Completo
+
+| Etapa | Volume | Taxa |
+|---|---|---|
+| Impressões | {{ dados.funil.impressoes | num }} | — |
+| 3s views | {{ dados.funil.thruplay_3s | num }} | **Hook Rate {{ dados.funil.hook_rate }}%** |
+| Cliques no link | {{ dados.funil.cliques_link | num }} | CTR {{ dados.funil.ctr }}% |
+| LP views | {{ dados.funil.lp_views | num }} | **LPVR {{ dados.funil.lpvr }}%** |
+| Leads | {{ dados.funil.leads }} | Opt-in {{ dados.funil.opt_in_rate }}% |
+| Checkout iniciado | {{ dados.funil.checkout_iniciado }} | **Offer Rate {{ dados.funil.offer_rate }}%** |
+| Compras | {{ dados.funil.compras }} | **Connect Rate {{ dados.funil.connect_rate }}%** |
+
+---
+
+## 🎯 Diagnóstico Sofia (VTSD)
+
+Cenário típico de conta em **fase Evergreen com operação moderada**. ROAS de {{ dados.roas }}x é funcional mas tem teto claro:
+
+1. **COLD é o motor** (Identidade do Consumidor via LAL funcionando), mas **SUPERCOLD caro** (R$ 91 CPL) sinaliza que a Meta ainda não "achou" o público aberto
+2. **AD04** (Curiosidade) com freq 4.6 e tier D → **pausar** (Identidade do Produto não conectou)
+3. **AD03** (Oportunidade) tier S → **escalar** (+25% budget no adset COLD)
+4. **Mandala** com 4 tipos ativos → faltam 14 portas; priorize Problema-Solução, Prova Social (que tá ruim), Contraste
+
+---
+
+## 📚 Ensine Isso (para gravação de aula)
+
+{% for e in ensine_isso %}
+### {{ e.conceito }}
+
+**Explicação simples:**
+> {{ e.explicacao_simples }}
+
+**Analogia:**
+> {{ e.analogia }}
+
+**Pergunta para fixar:**
+> {{ e.pergunta_fixacao }}
+
+---
+{% endfor %}
+
+---
+
+**Análise demo concluída.**
+Para aplicar em dados reais: `trafego [análise] --periodo last_7d`
+
+*Sofia · Método VTSD · Ready To Go*

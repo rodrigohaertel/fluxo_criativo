@@ -44,50 +44,7 @@ Porta de entrada do projeto. Detecta se já existe produto ativo, cria um produt
 > - `🔍 Próximo passo: criar a pasta do produto e salvar o tipo.md com o formato escolhido. Tempo estimado: cerca de 5 segundos.`
 > - `✅ Concluído: produto {nome} criado e ativado. Caminho: meus-produtos/{slug}/.`
 
-### Passo 0. MOSTRAR O LINK DO PAINEL DO ALUNO (obrigatório, ANTES de qualquer pergunta)
-
-🚨 **A primeira mensagem do chat sempre é o link do painel.** Mostrar esse texto no chat é OBRIGATÓRIO. Não importa se você consegue ou não rodar comandos no terminal nesta sessão. O texto abaixo precisa aparecer pro aluno antes de qualquer outra pergunta. Sem exceção.
-
-#### O. Mensagem obrigatória (copie e cole exatamente, ajustando só `{caminho}`)
-
-```
-🎬 Antes de começar, abra o Painel do Aluno no seu navegador.
-
-Cole este link na barra de endereço:
-
-  file://{caminho-absoluto-do-projeto}/painel/index.html
-
-Deixa essa aba aberta de lado. O painel já abre com a estrutura completa do produto (Visão Geral, Quadro, Furadeira, Decorados, Urgências, Identidades, Pesquisa, Copy, Anúncios, Vídeos), com cada seção marcada como "Em breve". Conforme a gente avança, os blocos vão sendo preenchidos sozinhos.
-
-Pra ver os agentes trabalhando em tempo real (mapa estilo videogame com 7 salas: PROD, COPY, PAG, AD, VID, SALES, DATA), clique em "Sala dos Agentes" no menu lateral do painel. Cada ferramenta que eu rodar, o boneco caminha até a estação certa e a bolha mostra o que estou fazendo.
-
-Quando estiver com a aba aberta, me responde a próxima pergunta. Vamos começar.
-```
-
-Para descobrir o `{caminho-absoluto-do-projeto}`, rode `git rev-parse --show-toplevel` no Bash. **Se a saída contiver `/.claude/worktrees/`, corte ali e use só a parte ANTES.** Worktrees são pastas internas do Claude Code que o aluno não acessa pelo navegador. O aluno só consegue abrir o caminho real do projeto.
-
-Exemplo: se a saída for `/Users/foo/Dev/workshop_inteligente/.claude/worktrees/abc-123`, o caminho que o aluno usa é `/Users/foo/Dev/workshop_inteligente`. Se a saída já for `/Users/foo/Dev/workshop_inteligente`, use ela direto.
-
-#### Sub-etapas opcionais (faça se conseguir, mas a mensagem acima é o que importa)
-
-A. **Resetar status para o template** (limpa eventos de sessões anteriores):
-   `cp .claude/agents-memory/agents-status.template.js .claude/agents-memory/agents-status.js`
-
-B. **Garantir o hook** em `.claude/settings.json`. Se não existir entrada com `node .claude/hooks/agent-status-writer.js` no array `hooks.PostToolUse`, adicione:
-   ```json
-   { "matcher": "Write|Edit|Bash|Agent|Task|WebFetch|WebSearch",
-     "hooks": [{ "type": "command", "command": "node .claude/hooks/agent-status-writer.js", "timeout": 5 }] }
-   ```
-
-C. **Abrir o painel direto** (Mac): `open "$(pwd)/painel/index.html"`
-
-Se essas sub-etapas falharem ou você optar por não executá-las, **a mensagem acima continua sendo obrigatória**. O aluno vai abrir o link manualmente.
-
-**Depois da mensagem mostrada**, siga para o Passo 1.
-
 ### Passo 1. Verificar produto ativo
-
-> ⚠️ Pré-requisito: o Passo 0 (PRIMEIRA AÇÃO OBRIGATÓRIA) já rodou. Se você ainda não executou as 4 sub-etapas do Passo 0, volte e execute antes de seguir.
 
 Antes de qualquer pergunta, leia `meus-produtos/.ativo`.
 
@@ -236,7 +193,7 @@ py -3 scripts/painel-atualizar.py
 
 #### Passo 9. Inicializar Painel de Entregas
 
-Antes de mostrar a mensagem final, execute obrigatoriamente a seção **"Inicialização do Painel de Entregas"** no fim deste arquivo. Ela gera o `painel-entregas.html` do produto com placeholders "Em breve" e atualiza o manifest. O painel global e a Sala dos Agentes já foram abertos no início da skill, então aqui é só ligar o painel específico do produto.
+Antes de mostrar a mensagem final, execute obrigatoriamente a seção **"Inicialização do Painel de Entregas"** no fim deste arquivo. Ela gera o `painel-entregas.html` do produto com placeholders "Em breve" e atualiza o manifest. O painel será aberto no navegador automaticamente quando o aluno rodar `/produto-concepcao`.
 
 #### Passo 10. Confirmar e sugerir próximo passo
 
@@ -369,7 +326,7 @@ py -3 scripts/painel-atualizar.py
 
 #### Passo 7. Inicializar Painel de Entregas
 
-Antes de mostrar a mensagem final, execute obrigatoriamente a seção **"Inicialização do Painel de Entregas"** no fim deste arquivo. Ela gera o `painel-entregas.html` do produto com placeholders "Em breve" (incluindo a seção de pesquisa, que já está pronta) e atualiza o manifest. O painel global e a Sala dos Agentes já foram abertos no início da skill, então aqui é só ligar o painel específico do produto.
+Antes de mostrar a mensagem final, execute obrigatoriamente a seção **"Inicialização do Painel de Entregas"** no fim deste arquivo. Ela gera o `painel-entregas.html` do produto com placeholders "Em breve" (incluindo a seção de pesquisa, que já está pronta) e atualiza o manifest. O painel será aberto no navegador automaticamente quando o aluno rodar `/produto-concepcao`.
 
 #### Passo 8. Confirmar e sugerir próximo passo
 
@@ -389,7 +346,7 @@ Próximo passo: partir para a concepção do produto (/produto-concepcao).
 
 ## Inicialização do Painel de Entregas
 
-> Bloco compartilhado pelos dois ramos. Roda **uma vez**, logo após o produto estar criado e ativado, antes da mensagem final ao aluno. O painel global e a Sala dos Agentes já foram abertos no início da skill (na seção "Antes de qualquer pergunta"); aqui ligamos apenas o painel de entregas específico do produto que acabou de ser criado.
+> Bloco compartilhado pelos dois ramos. Roda **uma vez**, logo após o produto estar criado e ativado, antes da mensagem final ao aluno. Gera o `painel-entregas.html` do produto com placeholders "Em breve", atualiza o manifest e abre o painel no navegador automaticamente.
 
 ### A. Anunciar a operação
 
@@ -423,14 +380,22 @@ Garanta que o manifest está atualizado pra que o painel global encontre o produ
 python3 scripts/painel-atualizar.py
 ```
 
-### D. Explicar ao aluno (mensagem obrigatória no chat)
+### D. Abrir o painel no navegador e mostrar caminho ao aluno
 
-Mostre exatamente este texto ao aluno, ajustando o nome do produto:
+Detecte o caminho absoluto da raiz do projeto a partir do diretório de trabalho atual (execute `pwd` no Bash para obter o valor).
+
+Monte o caminho absoluto completo: `{raiz}\meus-produtos\{slug}\painel-entregas.html`
+
+Em seguida, abra o arquivo no navegador rodando no terminal:
+
+- **Windows:** `start "" "{caminho-absoluto}"`
+- **Mac/Linux:** `open "{caminho-absoluto}"`
+
+Depois mostre ao aluno:
 
 ```
-✅ Concluído: painel de entregas do produto criado. Caminho: meus-produtos/{slug}/painel-entregas.html
+✅ Concluído: painel de entregas criado e aberto no navegador.
 
-Volte na aba do navegador onde abri o Painel do Aluno: agora a aba "Painel do produto" já mostra o painel de entregas do **{nome}**, com todas as seções marcadas como "Em breve". Cada bloco vai sendo preenchido sozinho conforme rodarmos os próximos comandos.
-
-A aba "Sala dos agentes", que você já viu no início, continua atualizando em tempo real. Pode acompanhar tudo de lá.
+Se não abrir automaticamente, copie e cole este caminho no navegador:
+{raiz}\meus-produtos\{slug}\painel-entregas.html
 ```

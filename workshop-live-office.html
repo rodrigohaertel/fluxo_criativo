@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Workshop IA · Sala dos Agentes</title>
+<title>Fluxo Criativo · Sala dos Agentes</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
@@ -2199,6 +2199,8 @@
     display: flex;
     flex-direction: column;
     min-height: 260px;
+    max-height: 260px;
+    overflow: hidden;
   }
   .panel-title {
     display: flex;
@@ -2307,10 +2309,12 @@
   .tool-tag.t-sk, .tool-tag.t-ag, .tool-tag.t-tk { color: #7aa8c9; border-color: #1a3045; background: rgba(122, 168, 201, 0.08); }
 
   /* ── Agentes ────────────────────────────────────────────────────────── */
-  #agent-status-list { display: flex; flex-direction: column; gap: 2px; flex: 1; }
+  #agent-status-list { display: flex; flex-direction: column; gap: 2px; flex: 1; overflow-y: auto; }
+  #agent-status-list::-webkit-scrollbar { width: 4px; }
+  #agent-status-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
   .agent-row {
     display: grid;
-    grid-template-columns: 12px 70px 1fr;
+    grid-template-columns: 12px max-content 1fr;
     align-items: center;
     gap: 10px;
     padding: 6px 6px;
@@ -2354,7 +2358,9 @@
   }
 
   /* ── Progresso ──────────────────────────────────────────────────────── */
-  #progress-list { display: flex; flex-direction: column; gap: 1px; flex: 1; }
+  #progress-list { display: flex; flex-direction: column; gap: 1px; flex: 1; overflow-y: auto; }
+  #progress-list::-webkit-scrollbar { width: 4px; }
+  #progress-list::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 2px; }
   .progress-row {
     display: grid;
     grid-template-columns: 16px 1fr auto;
@@ -2658,7 +2664,7 @@
       '/produto-consumidor':   { spot: { x: 5, y: 3 }, furnType: 'meeting-table-oval' },
       '/gerar-furadeira':      { spot: { x: 3, y: 2 }, furnType: 'kanban-tall' },
       '/furadeira-visual':     { spot: { x: 3, y: 2 }, furnType: 'kanban-tall' },
-      _default:                { spot: { x: 5, y: 3 }, furnType: 'meeting-table-oval' },
+      _default:                { spot: { x: 7, y: 3 }, furnType: 'writing-desk' },
     },
     copy: {
       '/copy-pagina':          { spot: { x: 14, y: 3 }, furnType: 'writing-desk' },
@@ -2673,9 +2679,9 @@
       _default:                { spot: { x: 14, y: 3 }, furnType: 'writing-desk' },
     },
     pag: {
-      '/pagina-visual':        { spot: { x: 19, y: 2 }, furnType: 'monitors-curved' },
-      '/pagina-ajuste':        { spot: { x: 19, y: 2 }, furnType: 'monitors-curved' },
-      '/pagina-de-vendas':     { spot: { x: 19, y: 2 }, furnType: 'monitors-curved' },
+      '/pagina-visual':        { spot: { x: 19, y: 3 }, furnType: 'monitors-curved' },
+      '/pagina-ajuste':        { spot: { x: 19, y: 3 }, furnType: 'monitors-curved' },
+      '/pagina-de-vendas':     { spot: { x: 19, y: 3 }, furnType: 'monitors-curved' },
       '/pagina-performance':   { spot: { x: 17, y: 2 }, furnType: 'tablet' },
       '/feedback-pagina':      { spot: { x: 17, y: 2 }, furnType: 'tablet' },
       '/feedback-low-ticket':  { spot: { x: 17, y: 2 }, furnType: 'tablet' },
@@ -2685,7 +2691,7 @@
       '/pagina-lovable':       { spot: { x: 17, y: 2 }, furnType: 'tablet' },
       '/pagina-vercel':        { spot: { x: 17, y: 2 }, furnType: 'tablet' },
       '/pagina-precheckout':   { spot: { x: 17, y: 2 }, furnType: 'tablet' },
-      _default:                { spot: { x: 19, y: 2 }, furnType: 'monitors-curved' },
+      _default:                { spot: { x: 19, y: 3 }, furnType: 'writing-desk' },
     },
     ad: {
       '/copy-anuncio':         { spot: { x: 20, y: 6 }, furnType: 'poster-wall' },
@@ -2732,28 +2738,29 @@
   const ROOMS = {
     prod: {
       x: 1, y: 1, w: 9, h: 4,
-      color: '#c4ff5e', name: 'PROD', role: 'produto', emblem: 'IDEA',
+      color: '#c4ff5e', name: 'ESTRATEGISTA', role: 'estratégia', emblem: 'IDEA',
       is2d: true,
       furniture: [
         // Kanban grande na parede norte (3 tiles, com 3 colunas e post-its)
         { type: 'kanban-tall',        x: 2, y: 1, w: 3, h: 1 },
         // Mesa de reunião oval no centro
         { type: 'meeting-table-oval', x: 4, y: 2, w: 3, h: 1 },
-        // 4 cadeiras ao redor da mesa
+        // Cadeiras ao redor da mesa de reunião
         { type: 'chair-25d',          x: 4, y: 3, w: 1, h: 1 },
         { type: 'chair-25d',          x: 6, y: 3, w: 1, h: 1 },
-        { type: 'chair-25d',          x: 7, y: 2, w: 1, h: 1 },
+        // Estação de trabalho pessoal do estrategista
+        { type: 'writing-desk',       x: 7, y: 2, w: 1, h: 1 },
         // Plantas nos cantos
         { type: 'plant-25d',          x: 1, y: 4, w: 1, h: 1 },
         { type: 'plant-25d',          x: 8, y: 4, w: 1, h: 1 },
       ],
-      workSpot:  { x: 5, y: 3 },
+      workSpot:  { x: 7, y: 3 },
       idleSpots: [{ x: 2, y: 3 }, { x: 8, y: 3 }, { x: 5, y: 4 }],
       plate:     { side: 'east', tile: 4 },
     },
     copy: {
       x: 10, y: 1, w: 6, h: 4,
-      color: '#ffffff', name: 'COPY', role: 'copy', emblem: 'TEXT',
+      color: '#ffffff', name: 'COPY', role: 'copywriting', emblem: 'TEXT',
       is2d: true,                          // sala em modo 2.5D (Gather Town-like)
       furniture: [
         // Estante alta encostada na parede norte (3 tiles, 4 prateleiras com livros)
@@ -2774,28 +2781,30 @@
     },
     pag: {
       x: 16, y: 1, w: 7, h: 4,
-      color: '#9ec947', name: 'PAG', role: 'páginas', emblem: 'PAGE',
+      color: '#9ec947', name: 'PÁGINAS', role: 'páginas', emblem: 'PAGE',
       is2d: true,
       furniture: [
         // 3 monitores curvos na parede norte
         { type: 'monitors-curved', x: 18, y: 1, w: 3, h: 1 },
         // Paleta de cores no canto da parede
         { type: 'palette-wall',    x: 22, y: 1, w: 1, h: 1 },
-        // Cadeira giratória
-        { type: 'swivel-chair',    x: 19, y: 3, w: 1, h: 1 },
+        // Mesa de trabalho do construtor (entre monitores e cadeira)
+        { type: 'writing-desk',    x: 19, y: 2, w: 1, h: 1 },
+        // Cadeira giratória (deslocada para liberar o espaço em frente à mesa)
+        { type: 'swivel-chair',    x: 20, y: 3, w: 1, h: 1 },
         // Tablet/mesa digitalizadora
         { type: 'tablet',          x: 16, y: 3, w: 1, h: 1 },
         // Plantas
         { type: 'plant-25d',       x: 16, y: 4, w: 1, h: 1 },
         { type: 'plant-25d',       x: 22, y: 4, w: 1, h: 1 },
       ],
-      workSpot:  { x: 19, y: 2 },
+      workSpot:  { x: 19, y: 3 },
       idleSpots: [{ x: 17, y: 2 }, { x: 21, y: 2 }, { x: 18, y: 3 }],
       plate:     { side: 'east', tile: 3 },
     },
     sales: {
       x: 1, y: 5, w: 6, h: 5,
-      color: '#cfcfcb', name: 'SALES', role: 'comercial', emblem: 'CALL',
+      color: '#cfcfcb', name: 'VENDAS', role: 'comercial', emblem: 'CALL',
       is2d: true,
       furniture: [
         // Gráfico de barras na parede norte
@@ -2804,9 +2813,11 @@
         { type: 'classic-phone',    x: 1, y: 5, w: 1, h: 1 },
         // Mesa redonda no centro
         { type: 'round-table-25d',  x: 3, y: 7, w: 2, h: 2 },
-        // Cadeiras ao redor da mesa
+        // 4 cadeiras ao redor da mesa redonda
         { type: 'chair-25d',        x: 3, y: 6, w: 1, h: 1 },
         { type: 'chair-25d',        x: 5, y: 7, w: 1, h: 1 },
+        { type: 'chair-25d',        x: 2, y: 7, w: 1, h: 1 },
+        { type: 'chair-25d',        x: 3, y: 9, w: 1, h: 1 },
         // Máquina de café alta no canto sul-oeste
         { type: 'coffee-machine',   x: 1, y: 9, w: 1, h: 1 },
         // Planta no canto sul-leste
@@ -2834,7 +2845,7 @@
     },
     vid: {
       x: 12, y: 5, w: 7, h: 5,
-      color: '#d97757', name: 'VID', role: 'vídeo', emblem: 'VID',
+      color: '#d97757', name: 'VÍDEO', role: 'vídeo', emblem: 'VID',
       is2d: true,
       furniture: [
         // Chroma como parede oeste (não bloqueia portas em (12,7)(12,8))
@@ -2842,6 +2853,8 @@
         { type: 'chroma-tall',     x: 12, y: 6, w: 1, h: 1 },
         // Ilha de edição com 2 monitores
         { type: 'edit-island-2m',  x: 14, y: 7, w: 2, h: 1 },
+        // Monitor dedicado à timeline de edição
+        { type: 'monitor-graph',   x: 13, y: 7, w: 1, h: 1 },
         // Microfone num pedestal vertical
         { type: 'mic-stand',       x: 17, y: 6, w: 1, h: 1 },
         // Fones em cima de outra mesa
@@ -2857,7 +2870,7 @@
     },
     ad: {
       x: 19, y: 5, w: 4, h: 2,
-      color: '#d4a24a', name: 'AD', role: 'anúncios', emblem: 'AD',
+      color: '#d4a24a', name: 'ANÚNCIOS', role: 'anúncios', emblem: 'AD',
       is2d: true,
       furniture: [
         // Mural de pôsteres ocupando toda a parede norte (4 tiles)
@@ -2871,7 +2884,7 @@
     },
     data: {
       x: 19, y: 7, w: 4, h: 3,
-      color: '#7aa8c9', name: 'DATA', role: 'dados', emblem: 'DATA',
+      color: '#7aa8c9', name: 'PESQUISADOR', role: 'pesquisa', emblem: 'DATA',
       is2d: true,
       furniture: [
         // Rack de servidores na parede norte (deixa (20,7) livre = porta AD↔DATA)
@@ -2910,13 +2923,13 @@
 
   // Mapeia agente → sala home.
   const AGENT_DEFS = [
-    { id: 'prod',  name: 'PROD'  },
-    { id: 'copy',  name: 'COPY'  },
-    { id: 'pag',   name: 'PAG'   },
-    { id: 'ad',    name: 'AD'    },
-    { id: 'vid',   name: 'VID'   },
-    { id: 'sales', name: 'SALES' },
-    { id: 'data',  name: 'DATA'  },
+    { id: 'prod',  name: 'ESTRATEGISTA' },
+    { id: 'copy',  name: 'COPY'      },
+    { id: 'pag',   name: 'PÁGINAS'  },
+    { id: 'ad',    name: 'ANÚNCIOS' },
+    { id: 'vid',   name: 'VÍDEO'    },
+    { id: 'sales', name: 'VENDAS'   },
+    { id: 'data',  name: 'PESQUISADOR'  },
   ];
 
 

@@ -1,0 +1,14 @@
+{
+  "nome_template": "TOFU / MOFU / BOFU",
+  "descricao": "Terminologia clássica de marketing digital.",
+  "fases": [
+    {"id": "tofu", "label": "TOFU", "cor": "#22c55e", "ordem": 1, "desc": "Top of Funnel"},
+    {"id": "mofu", "label": "MOFU", "cor": "#eab308", "ordem": 2, "desc": "Middle of Funnel"},
+    {"id": "bofu", "label": "BOFU", "cor": "#ef4444", "ordem": 3, "desc": "Bottom of Funnel"}
+  ],
+  "regex_match": {
+    "tofu": ["tofu", "top", "awareness"],
+    "mofu": ["mofu", "middle", "consideration"],
+    "bofu": ["bofu", "bottom", "conversion", "purchase"]
+  }
+}

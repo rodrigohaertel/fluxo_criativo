@@ -45,7 +45,7 @@ process.stdin.on('end', () => {
       { id: 'copywriter',                patterns: ['copy', 'headline', 'lead', 'roteiro-copy', 'bullet', 'cta'] },
       { id: 'construtor-de-paginas',     patterns: ['pagina', 'landing', 'hero', 'checkout', 'pv', 'workshop-live-office', '8d'] },
       { id: 'criador-de-campanhas',      patterns: ['campanha', 'ads', 'trafego', 'meta-ads', 'criativo', 'anuncio'] },
-      { id: 'estrategista-de-produto',   patterns: ['produto', 'vtsd', 'concepcao', 'idconsumidor', 'pesquisa-mercado', 'perfil.md', 'mercado', 'nicho'] },
+      { id: 'estrategista-de-produto',   patterns: ['produto', 'vtsd', 'concepcao', 'idconsumidor', 'pesquisa-mercado', 'perfil.md', 'mercado', 'nicho', 'painel', 'scripts/'] },
       { id: 'video-maker',               patterns: ['video', 'vsl', 'heygen', 'remotion', 'avatar'] },
       { id: 'consultor-comercial',       patterns: ['comercial', 'playbook', 'spin', 'objecao', 'fechamento', 'whatsapp'] },
       { id: 'estrategista-low-ticket',   patterns: ['low-ticket', 'lt-', 'tripwire', 'quiz', 'low ticket'] },
@@ -196,11 +196,23 @@ process.stdin.on('end', () => {
     }
 
     // Prioridade 2. Agent (subagente) pelo subagent_type
+    const subagentTaskMap = {
+      'pesquisa-mercado':           'pesquisando mercado (9 eixos)',
+      'gerador-decorados':          'gerando 50 Decorados',
+      'gerador-urgencias-ocultas':  'gerando 70 Urgencias Ocultas',
+      'gerador-idconsumidor':       'gerando Identidade do Consumidor',
+      'revisor-perfil':             'revisando perfil do produto',
+      'revisor-pesquisa':           'revisando pesquisa de mercado',
+      'revisor-idconsumidor':       'revisando identidade do consumidor',
+    }
     if (!activeAgent && (toolName === 'Agent' || toolName === 'Task') && toolInput.subagent_type) {
       const sub = toolInput.subagent_type
       if (agentPatterns.find(a => a.id === sub)) {
         activeAgent = sub
         directTaskDesc = 'agente em campo'
+      } else if (subagentTaskMap[sub]) {
+        activeAgent = 'estrategista-de-produto'
+        directTaskDesc = subagentTaskMap[sub]
       }
     }
 
@@ -221,8 +233,8 @@ process.stdin.on('end', () => {
       if (agentPatterns.find(a => a.id === memFile)) activeAgent = memFile
     }
 
-    // Fallback. Agente padrão se nada detectou
-    if (!activeAgent) activeAgent = 'copywriter'
+    // Fallback. Usa o último agente ativo em vez de fixar copywriter
+    if (!activeAgent) activeAgent = prevMeta.lastActive || 'estrategista-de-produto'
 
     const toolDescriptions = {
       Write: 'escrevendo',
@@ -337,12 +349,31 @@ process.stdin.on('end', () => {
               return fs.readdirSync(dir).filter(f => /\.(md|html|mp4|json)$/i.test(f)).length
             } catch (e) { return 0 }
           }
+          // Verifica se uma seção do perfil.md tem conteúdo real (> 3 linhas não-vazias após o heading)
+          const hasSection = (heading) => {
+            try {
+              const perfilPath = path.join(productDir, 'perfil.md')
+              if (!fs.existsSync(perfilPath)) return false
+              const lines = fs.readFileSync(perfilPath, 'utf8').split('\n')
+              let inside = false, count = 0
+              for (const line of lines) {
+                if (line.startsWith('## ') && line.includes(heading)) { inside = true; continue }
+                if (inside && line.startsWith('## ')) break
+                if (inside && line.trim().length > 2) count++
+              }
+              return count >= 3
+            } catch (e) { return false }
+          }
           const ent = path.join(productDir, 'entregas')
           progress = {
             perfil: fs.existsSync(path.join(productDir, 'perfil.md')),
             pesquisa: fs.existsSync(path.join(productDir, 'pesquisa-mercado.md')),
             idconsumidor: fs.existsSync(path.join(productDir, 'idconsumidor.md')),
             furadeira: fs.existsSync(path.join(ent, 'furadeira-visual.html')),
+            comunicador: hasSection('Identidade do Comunicador'),
+            decorados: hasSection('Decorados'),
+            urgencias: hasSection('Urgências Ocultas'),
+            argumentos: hasSection('Argumentos Incontestáveis'),
             paginas: countMd(path.join(ent, 'paginas')),
             anuncios: countMd(path.join(ent, 'anuncios')),
             emails: countMd(path.join(ent, 'emails')),
@@ -386,12 +417,26 @@ process.stdin.on('end', () => {
       'youtube-dashboard':          'data',
       'dashboard-social':           'data',
       'pesquisa-mercado-instagram': 'data',
+      'pesquisa-mercado':           'data',
       'lt-otimizar':                'data',
       'ads-relatorio':              'data',
       'enviar-relatorio-ads':       'data',
     }
+    // Sub-agentes de concepção que devem aparecer como Pesquisador (data)
+    const subagentCategoryMap = {
+      'pesquisa-mercado':           'data',
+      'gerador-decorados':          'data',
+      'gerador-urgencias-ocultas':  'data',
+      'gerador-idconsumidor':       'data',
+      'revisor-perfil':             'data',
+      'revisor-pesquisa':           'data',
+      'revisor-idconsumidor':       'data',
+    }
     const skillId = (toolName === 'Skill' && toolInput.skill) ? toolInput.skill : ''
+    const subType = ((toolName === 'Agent' || toolName === 'Task') && toolInput.subagent_type) ? toolInput.subagent_type : ''
     const activeCategory = skillCategoryOverride[skillId]
+      || subagentCategoryMap[subType]
+      || subagentCategoryMap[activeAgent]
       || agentCategoryMap[activeAgent]
       || 'prod'
 

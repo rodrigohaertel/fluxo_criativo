@@ -1,0 +1,47 @@
+# 💸 Caixa Rápido Health Check — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Ticket:** {{ ticket | brl }}
+
+---
+
+## Status: `{{ resultado.status | upper }}`
+
+| Métrica | Valor | Threshold Caixa Rápido |
+|---|---|---|
+| **ROAS** | {{ resultado.roas | num }}x | ≥ 3.0x ideal · ≥ 2.0x sobrevivência |
+| **CPA** | {{ resultado.cpa | brl }} | — |
+| **CPA vs. ticket** | {{ resultado.cpa_pct_ticket | pct }} | ≤ 25% ideal · ≤ 40% máximo |
+| **CTR** | {{ resultado.ctr | pct }} | > 2% saudável |
+| **Connect Rate** | {{ resultado.connect_rate | pct }} | > 3% ideal |
+
+---
+
+## 🎯 Diagnóstico VTSD
+
+{{ resultado.diagnostico }}
+
+---
+
+## Próximos passos
+
+{% for p in resultado.proximos_passos %}
+{{ loop.index }}. {{ p }}
+{% endfor %}
+
+---
+
+## Como o VTSD enxerga o Caixa Rápido
+
+**Caixa Rápido é a linha de frente da monetização.** Ticket baixo, conversão rápida, validação de que o produto/público tá certo antes de subir ticket alto.
+
+Se **ROAS < 2x**: a Oferta não tá clara ou o público tá errado. **Não é problema de criativo** — é problema de **alinhamento Oferta ↔ Identidade do Consumidor**.
+
+Se **ROAS 2-3x**: operação sobrevivendo mas sem folga pra escalar. Otimizar antes de subir.
+
+Se **ROAS > 3x**: semáforo verde. O conjunto Oferta + Decorados + Furadeira tá convertendo — agora é escala respeitando saturação.
+
+---
+*Sofia · Método VTSD · Ready To Go*

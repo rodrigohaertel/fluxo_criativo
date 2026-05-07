@@ -1,0 +1,65 @@
+# 🎨 Mandala VTSD — Gap Finder — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+
+## Cobertura: {{ cobertura_atual }}/{{ cobertura_total }} tipos
+
+{% if cobertura_atual < 6 %}
+**⚠️ Baixa diversidade criativa.** Menos de 1/3 da Mandala coberta — conta depende de poucos ângulos. Risco alto de fadiga simultânea.
+{% elif cobertura_atual < 10 %}
+**🟡 Diversidade média.** Algum ar — mas ainda há espaço para explorar ângulos ausentes.
+{% else %}
+**🟢 Boa diversidade.** A conta está comunicando o produto de múltiplos ângulos.
+{% endif %}
+
+---
+
+## ✅ Tipos Presentes ({{ tipos_presentes | length }})
+
+| Tipo | Criativos | Gasto | Resultados |
+|---|---|---|---|
+{% for tid, info in tipos_presentes.items() -%}
+| **{{ info.nome }}** | {{ info.count }} | {{ info.spend | brl }} | {{ info.results | num }} |
+{% endfor %}
+
+---
+
+## ❌ Tipos Ausentes ({{ tipos_ausentes | length }})
+
+> Cada tipo ausente é uma **porta fechada** para um perfil diferente de Identidade do Consumidor.
+
+{% for t in tipos_ausentes %}
+- **{{ t.nome }}** — {{ t.caract }}
+{% endfor %}
+
+---
+
+## 🎯 Próximos criativos — priorize por impacto
+
+1. **Criar pelo menos 1 criativo** para cada tipo ausente entre os 5 mais potentes:
+   **Problema-Solução · Prova Social · Oportunidade · Contraste · Curiosidade**
+2. **Se tem winner em um tipo específico**, crie variações (hook, ângulo) dentro do **mesmo tipo** — aproveita o aprendizado
+3. **Mantém o DNA dos Winners** (ver `trafego criativos`) — muda o tipo da Mandala, não a paleta/formato
+
+---
+
+## No VTSD
+
+A Mandala é a **gramática criativa** do método. Cada tipo ativa uma camada diferente do público:
+- **Problema-Solução** fala com quem tem dor consciente
+- **Curiosidade** com quem tem dor inconsciente
+- **Prova Social** com quem precisa de validação
+- **Oportunidade** com quem precisa de gatilho
+
+Conta que só tem 3-4 tipos ativos = conta que só conversa com 3-4 estados psicológicos. Diversificar é expandir **Identidade do Consumidor** sem precisar mexer em segmentação.
+
+{% if sem_copy > 0 %}
+---
+
+⚠️ **Nota:** {{ sem_copy }} criativos sem copy acessível para classificação (provavelmente imagens sem caption ou creative removida). Análise feita sobre os criativos com texto disponível.
+{% endif %}
+
+---
+*Sofia · Método VTSD · Ready To Go*

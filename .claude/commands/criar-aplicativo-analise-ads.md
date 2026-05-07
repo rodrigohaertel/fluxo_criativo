@@ -20,11 +20,20 @@ Acesse developers.facebook.com e faca login com a conta de admin do negocio. Cli
 - Email de contato: ja vem preenchido com o email do Facebook, pode deixar como esta
 - Clique em "Avancar"
 
-**Etapa 2. Casos de uso**
+**Etapa 2. Casos de uso (passo crítico)**
 - A tela abre com o filtro "Em Destaque" selecionado, mostrando apenas 6 opcoes
 - Troque o filtro para "Tudo" para ver todas as opcoes disponiveis
-- Localize e selecione "Mensurar dados de desempenho do anuncio com a API de Marketing"
+- Selecione TODOS os 7 casos de uso abaixo (marcar o checkbox de cada um):
+  1. Criar e gerenciar anúncios com a API de Marketing
+  2. Mensurar dados de desempenho do anúncio com a API de Marketing
+  3. Capturar e gerenciar leads de anúncios com a API de Marketing
+  4. Criar e gerenciar anúncios de apps com o Gerenciador de Anúncios da Meta
+  5. Anuncie no seu app com o Meta Audience Network
+  6. Gerenciar mensagens e conteúdo no Instagram
+  7. Gerenciar tudo na sua Página
 - Clique em "Avancar"
+
+> **Atenção, marque os 7.** Os 4 primeiros (com a palavra "Marketing") liberam a Marketing API que é o que permite puxar métricas e gerar relatórios. Os 3 últimos (Audience Network, Instagram, Página) liberam endpoints adicionais que skills futuras vão precisar (postagem programada no Instagram, leitura de página, monetização). Se faltar algum, depois precisa recriar o App, então marca todos agora.
 
 **Etapa 3. Empresa**
 - Selecione o Portfolio Empresarial (Business Manager) que contem a conta de anuncios que voce quer monitorar
@@ -59,16 +68,9 @@ Acesse developers.facebook.com e faca login com a conta de admin do negocio. Cli
 
 ## Apos criar o App: gerar o token de acesso
 
-Execute a skill `gerar-token-permanente-facebook-ads`. Ela guia o usuario pelo processo completo de criacao do Usuario do Sistema e geracao do token permanente.
+Execute a skill `gerar-token-permanente-facebook-ads`. Ela guia o usuario pelo processo completo de criacao do Usuario do Sistema, atribuicao de ativos (conta de anuncios, App, Pagina, Instagram), geracao do token permanente e validacao com 3 testes na Graph API.
 
----
-
-## Como encontrar o ID da conta de anuncios
-
-- Acesse o Gerenciador de Anuncios (facebook.com/adsmanager)
-- O ID aparece no canto superior esquerdo: `Conta: XXXXXXXXXX`
-- Ou olhe na URL: o numero apos `act=`
-- Copie so os numeros (sem "act_")
+Ao final, ela ja encadeia em `obter-id-conta-anuncios` para localizar e salvar o ID da conta de anuncios em `FB_AD_ACCOUNT_ID` no `.env`.
 
 ---
 
