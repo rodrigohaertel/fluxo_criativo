@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Entregas</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --sidebar-bg: #ffffff;
+  --sidebar-border: #e5e7eb;
+  --main-bg: #f8f9fb;
+  --surface: #ffffff;
+  --primary: #22c55e;
+  --primary-dark: #16a34a;
+  --primary-light: #dcfce7;
+  --highlight-bg: #f0fdf4;
+  --highlight-border: #bbf7d0;
+  --text-1: #111827;
+  --text-2: #374151;
+  --text-3: #6b7280;
+  --border: #e5e7eb;
+  --border-2: #f3f4f6;
+  --badge-green-bg: #dcfce7; --badge-green-text: #16a34a;
+  --badge-blue-bg: #dbeafe; --badge-blue-text: #1d4ed8;
+  --badge-indigo-bg: #e0e7ff; --badge-indigo-text: #4338ca;
+  --badge-purple-bg: #ede9fe; --badge-purple-text: #7c3aed;
+  --badge-violet-bg: #f3e8ff; --badge-violet-text: #9333ea;
+  --badge-pink-bg: #fce7f3; --badge-pink-text: #db2777;
+  --badge-orange-bg: #fef3c7; --badge-orange-text: #d97706;
+  --badge-dark-bg: #1f2937; --badge-dark-text: #ffffff;
+  --badge-neutral-bg: #f3f4f6; --badge-neutral-text: #374151;
+  --sidebar-w: 220px;
+  --r: 10px; --r2: 8px;
+  --sh1: 0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --sh2: 0 4px 16px rgba(0,0,0,.08), 0 1px 4px rgba(0,0,0,.04);
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Inter',sans-serif;background:var(--main-bg);color:var(--text-1)}
+.sidebar{position:fixed;top:0;left:0;width:var(--sidebar-w);height:100vh;background:var(--sidebar-bg);border-right:1px solid var(--sidebar-border);overflow-y:auto;padding:24px 0;z-index:100}
+.sidebar-title{font-size:14px;font-weight:700;color:var(--text-1);padding:0 20px;margin-bottom:4px}
+.sidebar-product{font-size:11px;color:var(--text-3);padding:0 20px;margin-bottom:24px;line-height:1.4}
+.nav-group{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:1px;padding:0 20px;margin:16px 0 4px}
+.nav-item{display:block;padding:7px 20px;font-size:13px;color:var(--text-2);text-decoration:none;border-left:3px solid transparent;cursor:pointer}
+.nav-item:hover{color:var(--primary-dark)}
+.nav-item.active{color:var(--primary-dark);font-weight:600;border-left:3px solid var(--primary)}
+.sidebar-export{position:fixed;bottom:20px;left:0;width:var(--sidebar-w);padding:0 20px}
+.btn-export{display:block;width:100%;background:var(--primary);color:#fff;border:none;border-radius:var(--r2);padding:10px 0;font-size:13px;font-weight:600;text-align:center;cursor:pointer}
+.btn-export:hover{background:var(--primary-dark)}
+.mobile-tabs{display:none;position:sticky;top:0;z-index:99;background:var(--surface);border-bottom:1px solid var(--border);overflow-x:auto;white-space:nowrap}
+.mobile-tab{display:inline-block;padding:10px 16px;font-size:13px;color:var(--text-3);cursor:pointer;border-bottom:2px solid transparent}
+.mobile-tab.active{color:var(--primary-dark);font-weight:600;border-bottom:2px solid var(--primary)}
+.main{margin-left:var(--sidebar-w);min-height:100vh;padding:32px 40px}
+.breadcrumb{font-size:13px;color:var(--text-3);margin-bottom:8px}
+.section-title{font-size:26px;font-weight:700;color:var(--text-1);margin-bottom:4px}
+.section-sub{font-size:13px;color:var(--text-3);margin-bottom:24px}
+.panel{display:none;animation:fadeIn .2s ease}
+.panel.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:24px;box-shadow:var(--sh1)}
+.card:hover{box-shadow:var(--sh2);transition:box-shadow .2s}
+.card-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:8px}
+.card-value{font-size:15px;font-weight:600;color:var(--text-1)}
+.card-sub{font-size:13px;color:var(--text-3);margin-top:4px}
+.card-highlight{background:var(--highlight-bg);border:1px solid var(--highlight-border);border-radius:var(--r);padding:20px 24px}
+.card-highlight .card-label{color:var(--primary)}
+.card-highlight .card-value{font-size:18px;font-weight:700;color:var(--primary-dark);line-height:1.4}
+.grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+.divider{height:1px;background:var(--border);margin:24px 0}
+.badge{border-radius:9999px;font-size:11px;font-weight:700;padding:3px 10px;white-space:nowrap;display:inline-block}
+.badge-green{background:var(--badge-green-bg);color:var(--badge-green-text)}
+.badge-blue{background:var(--badge-blue-bg);color:var(--badge-blue-text)}
+.badge-indigo{background:var(--badge-indigo-bg);color:var(--badge-indigo-text)}
+.badge-purple{background:var(--badge-purple-bg);color:var(--badge-purple-text)}
+.badge-violet{background:var(--badge-violet-bg);color:var(--badge-violet-text)}
+.badge-pink{background:var(--badge-pink-bg);color:var(--badge-pink-text)}
+.badge-orange{background:var(--badge-orange-bg);color:var(--badge-orange-text)}
+.badge-dark{background:var(--badge-dark-bg);color:var(--badge-dark-text)}
+.badge-neutral{background:var(--badge-neutral-bg);color:var(--badge-neutral-text)}
+.status-card{display:flex;align-items:center;flex-wrap:wrap;gap:10px;font-size:13px;color:var(--text-2)}
+.status-dot{width:8px;height:8px;border-radius:50%;background:var(--primary);display:inline-block;margin-right:6px}
+.status-sep{color:var(--text-3);margin:0 4px}
+.timeline{list-style:none}
+.timeline-item{display:flex;gap:16px;padding-bottom:20px;position:relative}
+.timeline-item:last-child{padding-bottom:0}
+.timeline-item:not(:last-child)::before{content:'';position:absolute;left:15px;top:32px;bottom:0;width:2px;background:var(--primary-light)}
+.tl-num{width:32px;height:32px;border-radius:50%;background:var(--primary);color:#fff;font-size:14px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.tl-body{flex:1;padding-top:4px}
+.tl-title{font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:4px}
+.tl-desc{font-size:13px;color:var(--text-3);line-height:1.6}
+.accordion{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);margin-bottom:8px;box-shadow:var(--sh1);overflow:hidden}
+.accordion-header{display:flex;align-items:center;gap:12px;padding:14px 20px;cursor:pointer;user-select:none}
+.accordion-label{font-size:14px;color:var(--text-1);font-weight:500;flex:1}
+.accordion-arrow{color:var(--text-3);font-size:12px;transition:transform .2s;margin-left:auto}
+.accordion.open .accordion-arrow{transform:rotate(180deg)}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .3s cubic-bezier(.4,0,.2,1)}
+.accordion.open .accordion-body{max-height:3000px}
+.accordion-list{padding:0 20px 16px;list-style:none}
+.accordion-list li{font-size:13px;color:var(--text-2);line-height:1.7;padding-left:14px;position:relative}
+.accordion-list li::before{content:'\2022';color:var(--primary);position:absolute;left:0;font-weight:700}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:var(--r2);padding:9px 20px;font-size:13px;font-weight:600;display:inline-flex;align-items:center;gap:6px;cursor:pointer;text-decoration:none;margin-top:16px}
+.btn-primary:hover{background:var(--primary-dark)}
+.bullet-list{list-style:none;padding:0}
+.bullet-list li{font-size:13px;color:var(--text-2);line-height:1.7;padding-left:16px;position:relative;margin-bottom:4px}
+.bullet-list li::before{content:'\2022';color:var(--primary);position:absolute;left:0;font-weight:700}
+.pill-cloud{display:flex;flex-wrap:wrap;gap:6px}
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:11px;text-transform:uppercase;letter-spacing:1px;color:var(--text-3);font-weight:700;padding:10px 12px;text-align:left}
+td{font-size:13px;color:var(--text-2);padding:10px 12px}
+tr{border-bottom:1px solid var(--border-2)}
+.kpi-value{font-size:28px;font-weight:800;color:var(--text-1);margin:4px 0}
+.kpi-trend{font-size:12px;font-weight:600;display:flex;align-items:center;gap:4px;margin-top:4px}
+.trend-up{color:#16a34a}
+.trend-neutral{color:var(--text-3)}
+.complaint-row{margin-bottom:10px}
+.complaint-label{font-size:13px;color:var(--text-2);margin-bottom:4px;display:flex;justify-content:space-between}
+.complaint-bar-bg{height:6px;background:var(--border-2);border-radius:3px}
+.complaint-bar-fill{height:6px;background:var(--primary);border-radius:3px}
+.opp-list{list-style:none}
+.opp-item{display:flex;gap:14px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--border-2)}
+.opp-item:last-child{border-bottom:none}
+.opp-num{width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-size:13px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.opp-text{font-size:14px;color:var(--text-2);line-height:1.6}
+.circ-wrap{display:flex;align-items:center;gap:24px}
+.circ-label{font-size:13px;color:var(--text-3);margin-top:6px;text-align:center}
+.comp-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--border-2)}
+.comp-row:last-child{border-bottom:none}
+.comp-avatar{width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#fff;flex-shrink:0}
+.comp-info{flex:1}
+.comp-name{font-size:14px;font-weight:600;color:var(--text-1)}
+.comp-links{display:flex;gap:8px;margin-top:2px}
+.comp-links a{font-size:11px;color:var(--primary);text-decoration:none}
+.comp-price{margin-left:auto;align-self:flex-start;margin-top:2px}
+.sources-grid{columns:2;gap:16px}
+.source-item{font-size:12px;color:var(--text-2);margin-bottom:6px;break-inside:avoid}
+.source-item a{color:var(--primary);text-decoration:none}
+.alert-card{background:#fffbeb;border:1px solid #fde68a;border-radius:var(--r);padding:20px 24px}
+.alert-title{font-size:11px;font-weight:700;color:#d97706;text-transform:uppercase;letter-spacing:.8px;margin-bottom:12px}
+.yt-video-card{margin-bottom:10px;border:1px solid var(--border-2);border-radius:var(--r);overflow:hidden}
+.yt-video-header{display:flex;align-items:flex-start;gap:14px;padding:12px 16px;cursor:pointer;background:var(--bg-card)}
+.yt-video-header:hover{background:#f9fafb}
+.yt-rank{width:28px;height:28px;border-radius:50%;background:var(--primary-light);color:var(--primary-dark);font-weight:700;font-size:12px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:3px}
+.yt-thumb{width:90px;height:50px;border-radius:5px;display:flex;align-items:center;justify-content:center;color:#fff;font-size:8px;font-weight:700;text-align:center;flex-shrink:0;padding:4px;line-height:1.3}
+.yt-info{flex:1;min-width:0}
+.yt-title{font-size:13px;font-weight:600;color:var(--text-1);line-height:1.4;margin-bottom:3px}
+.yt-canal{font-size:11px;color:var(--text-3);margin-bottom:4px}
+.yt-meta{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.yt-toggle{color:var(--text-3);font-size:11px;flex-shrink:0;transition:transform .2s;margin-top:5px}
+.yt-open .yt-toggle{transform:rotate(180deg)}
+.yt-detail{display:none;padding:10px 16px 14px 58px;border-top:1px solid var(--border-2);background:#fafbfd}
+.yt-open .yt-detail{display:block}
+.yt-section-title{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:.7px;margin:10px 0 5px}
+.yt-section-title:first-child{margin-top:0}
+.yt-comment{font-size:12px;color:var(--text-2);font-style:italic;padding:4px 0;border-bottom:1px solid var(--border-2);line-height:1.5}
+.yt-comment:last-of-type{border-bottom:none;padding-bottom:0}
+.yt-insight{font-size:12px;color:var(--primary-dark,#166534);background:var(--primary-light,#dcfce7);border-radius:5px;padding:6px 10px;line-height:1.5;margin-bottom:4px}
+.yt-thumb-detail{font-size:12px;color:var(--text-2);line-height:1.8}
+.arg-block{border-left:3px solid var(--primary);background:#fafbfd;border-radius:var(--r2);padding:10px 14px;margin-bottom:12px}
+.arg-title{font-weight:700;font-size:13px;color:var(--text-1);margin-bottom:6px}
+.arg-text{font-size:13px;color:var(--text-2);line-height:1.7}
+@media(max-width:768px){
+  .sidebar{display:none}
+  .mobile-tabs{display:block}
+  .main{margin-left:0;padding:20px 16px}
+  .grid-3,.grid-2,.grid-4{grid-template-columns:1fr}
+}
+@media print{
+  .sidebar,.mobile-tabs,.sidebar-export{display:none}
+  .main{margin-left:0;padding:16px}
+  .panel{display:block!important}
+  .accordion-body{max-height:none!important;overflow:visible!important}
+  .accordion-arrow{display:none}
+}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<nav class="sidebar">
+  <div class="sidebar-title">Painel de Entregas</div>
+  <div class="sidebar-product">{{ nome_produto }}<br>{{ nome_comunicador }}</div>
+  <div class="nav-group">Produto</div>
+  <span class="nav-item active" onclick="showPanel('visao-geral')">Vis&atilde;o Geral</span>
+  <span class="nav-item" onclick="showPanel('quadro')">Quadro</span>
+  <span class="nav-item" onclick="showPanel('furadeira')">Furadeira</span>
+  <span class="nav-item" onclick="showPanel('decorados')">Decorados</span>
+  <span class="nav-item" onclick="showPanel('urgencias')">Urg&ecirc;ncias Ocultas</span>
+  <div class="nav-group">Identidades</div>
+  <span class="nav-item" onclick="showPanel('id-produto')">Identidade do Produto</span>
+  <span class="nav-item" onclick="showPanel('id-consumidor')">Identidade do Consumidor</span>
+  <span class="nav-item" onclick="showPanel('id-comunicador')">Identidade do Comunicador</span>
+  <div class="nav-group">Pesquisa</div>
+  <span class="nav-item" onclick="showPanel('pesquisa')">Pesquisa de Mercado</span>
+  <div class="nav-group">Entregas</div>
+  <span class="nav-item" onclick="showPanel('copy-pagina')">Copy da P&aacute;gina</span>
+  <div class="sidebar-export">
+    <button class="btn-export" onclick="window.print()">Exportar PDF (Ctrl+P)</button>
+  </div>
+</nav>
+
+<!-- MOBILE TABS -->
+<div class="mobile-tabs">
+  <span class="mobile-tab active" onclick="showPanel('visao-geral')">Vis&atilde;o Geral</span>
+  <span class="mobile-tab" onclick="showPanel('quadro')">Quadro</span>
+  <span class="mobile-tab" onclick="showPanel('furadeira')">Furadeira</span>
+  <span class="mobile-tab" onclick="showPanel('decorados')">Decorados</span>
+  <span class="mobile-tab" onclick="showPanel('urgencias')">Urg&ecirc;ncias</span>
+  <span class="mobile-tab" onclick="showPanel('id-produto')">Produto</span>
+  <span class="mobile-tab" onclick="showPanel('id-consumidor')">Consumidor</span>
+  <span class="mobile-tab" onclick="showPanel('id-comunicador')">Comunicador</span>
+  <span class="mobile-tab" onclick="showPanel('pesquisa')">Pesquisa</span>
+  <span class="mobile-tab" onclick="showPanel('copy-pagina')">Copy da P&aacute;gina</span>
+</div>
+
+<main class="main">
+
+  <!-- ==================== TELA 1: VISAO GERAL ==================== -->
+  <div id="panel-visao-geral" class="panel active">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Vis&atilde;o Geral</div>
+    <div class="section-title">Vis&atilde;o Geral</div>
+    <div class="section-sub">Resumo do produto e informa&ccedil;&otilde;es principais.</div>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Nome do Produto</div>
+        <div class="card-value">{{ nome_produto }}</div>
+        <div class="card-sub">{{ subtitulo_produto }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Tipo</div>
+        <div class="card-value">{{ tipo_produto }}</div>
+        <div class="card-sub">{{ formato_produto }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Pre&ccedil;o</div>
+        <div class="card-value" style="font-size:24px;font-weight:700;color:var(--primary)">{{ preco }}</div>
+        <div class="card-sub">{{ posicionamento_preco }}</div>
+      </div>
+    </div>
+    <div class="card-highlight" style="margin-bottom:16px">
+      <div class="card-label">Quadro &mdash; Transforma&ccedil;&atilde;o Principal</div>
+      <div class="card-value">{{ quadro }}</div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Nicho</div>
+        <div class="card-value">{{ nicho }}</div>
+        <div class="card-sub">{{ nicho_subtitulo }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Diferencial</div>
+        <div class="card-value">{{ diferencial_titulo }}</div>
+        <div class="card-sub">{{ diferencial_descricao }}</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="status-card">
+        <span><span class="status-dot"></span><strong>Produto ativo</strong></span>
+        <span class="status-sep">&middot;</span><span>{{ tipo_produto }}</span>
+        <span class="status-sep">&middot;</span><span>{{ preco }}</span>
+        <span class="status-sep">&middot;</span>
+        {{ badges_completude }}
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TELA 2: QUADRO ==================== -->
+  <div id="panel-quadro" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Quadro</div>
+    <div class="section-title">Quadro</div>
+    <div class="section-sub">A transforma&ccedil;&atilde;o principal que o produto entrega ao cliente.</div>
+    <div class="card-highlight" style="margin-bottom:16px">
+      <div class="card-label">Quadro Aprovado</div>
+      <div class="card-value">{{ quadro }}</div>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">Como Usar o Quadro</div>
+        <div class="card-value" style="font-size:14px;font-weight:500;line-height:1.7">O Quadro aparece em toda a comunica&ccedil;&atilde;o do produto: como headline da p&aacute;gina de vendas, primeira linha de emails, abertura de an&uacute;ncios e primeiro slide de carrossel. &Eacute; a promessa central que ancora toda a copy.</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Regra do Quadro</div>
+        <div class="card-value" style="font-size:14px;font-weight:500;line-height:1.7">Teste obrigat&oacute;rio: "O aluno pode dizer que isso aconteceu na vida dele ao final do produto?" Se sim, o Quadro est&aacute; correto. O Quadro sempre descreve o resultado final, nunca o processo ou os m&oacute;dulos.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TELA 3: FURADEIRA ==================== -->
+  <div id="panel-furadeira" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Furadeira</div>
+    <div class="section-title">Furadeira</div>
+    <div class="section-sub">O m&eacute;todo estruturado que torna vis&iacute;vel a efici&ecirc;ncia do produto.</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Nome do M&eacute;todo</div>
+      <div class="card-value">{{ nome_metodo }}</div>
+    </div>
+    <div class="card">
+      <div class="card-label">Trilha do M&eacute;todo</div>
+      <ul class="timeline" style="margin-top:16px">
+        {{ macroetapas_html }}
+      </ul>
+      {{ botao_furadeira_visual }}
+    </div>
+  </div>
+
+  <!-- ==================== TELA 4: DECORADOS ==================== -->
+  <div id="panel-decorados" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Decorados</div>
+    <div class="section-title">Decorados</div>
+    <div class="section-sub">50 benef&iacute;cios derivados do Quadro. Use para bullets de p&aacute;gina, scripts de venda e conte&uacute;do.</div>
+    {{ decorados_html }}
+  </div>
+
+  <!-- ==================== TELA 5: URGENCIAS OCULTAS ==================== -->
+  <div id="panel-urgencias" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Urg&ecirc;ncias Ocultas</div>
+    <div class="section-title">Urg&ecirc;ncias Ocultas</div>
+    <div class="section-sub">70 itens em 7 categorias. Use para temas de an&uacute;ncio, bullets de p&aacute;gina, ganchos de conte&uacute;do e linhas de email.</div>
+    {{ urgencias_html }}
+  </div>
+
+  <!-- ==================== TELA 6: IDENTIDADE DO PRODUTO ==================== -->
+  <div id="panel-id-produto" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Identidade do Produto</div>
+    <div class="section-title">Identidade do Produto</div>
+    <div class="section-sub">Como o produto se posiciona e se diferencia no mercado.</div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Diferencial Principal</div>
+        <div class="card-value" style="font-size:14px;font-weight:600;line-height:1.6">{{ diferencial_texto }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Formato</div>
+        <div class="card-value" style="font-size:14px;font-weight:600;line-height:1.6">{{ formato_texto }}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Argumentos Incontest&aacute;veis</div>
+      <ul class="bullet-list" style="margin-top:12px">
+        {{ argumentos_html }}
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-label">Quebra de Obje&ccedil;&otilde;es. Framework dos 7 argumentos</div>
+      <div class="card-sub" style="margin-top:6px;margin-bottom:14px">5 obje&ccedil;&otilde;es principais &times; 7 argumentos cada. Fonte usada por copy, an&uacute;ncio, email e call 1:1.</div>
+      {{ objecoes_html }}
+    </div>
+  </div>
+
+  <!-- ==================== TELA 7: IDENTIDADE DO CONSUMIDOR ==================== -->
+  <div id="panel-id-consumidor" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Identidade do Consumidor</div>
+    <div class="section-title">Identidade do Consumidor</div>
+    <div class="section-sub">Perfil detalhado do cliente ideal.</div>
+    <div class="card-highlight" style="margin-bottom:16px">
+      <div class="card-label">Para Quem &Eacute;</div>
+      <div class="card-value">{{ para_quem_e }}</div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Perfil Demogr&aacute;fico</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.8;margin-top:8px">
+          {{ perfil_demografico_html }}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-label">Comportamento e Canais</div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.8;margin-top:8px">
+          {{ comportamento_html }}
+        </div>
+      </div>
+    </div>
+    {{ paliativos_section }}
+    <div class="card">
+      <div class="card-label">Baldes de Para Quem &Eacute;</div>
+      {{ baldes_html }}
+    </div>
+  </div>
+
+  <!-- ==================== TELA 8: IDENTIDADE DO COMUNICADOR ==================== -->
+  <div id="panel-id-comunicador" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Identidade do Comunicador</div>
+    <div class="section-title">Identidade do Comunicador</div>
+    <div class="section-sub">Tom, posicionamento e linguagem do criador.</div>
+    <div class="grid-3" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Comunicador</div>
+        <div class="card-value">{{ comunicador_nome }}</div>
+        <div class="card-sub">{{ comunicador_especialidade }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Valores</div>
+        <div class="pill-cloud" style="margin-top:10px">{{ valores_pills }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Tonalidade Emocional</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px">{{ tonalidade_emocional }}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Mantras e Jarg&otilde;es Pr&oacute;prios</div>
+      <div style="margin-top:12px;display:grid;gap:8px">{{ mantras_html }}</div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Tom de Voz</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px">{{ tom_de_voz }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Posicionamento Pessoal</div>
+        <div style="font-size:14px;color:var(--text-2);line-height:1.7;margin-top:8px">{{ posicionamento }}</div>
+      </div>
+    </div>
+    <div class="grid-2" style="margin-bottom:16px">
+      <div class="card">
+        <div class="card-label">Formatos que Combinam</div>
+        <ul class="bullet-list" style="margin-top:12px">{{ formatos_html }}</ul>
+      </div>
+      <div class="card">
+        <div class="card-label">Estilo Visual Recomendado</div>
+        <div class="pill-cloud" style="margin-top:12px">{{ estilo_visual_pills }}</div>
+      </div>
+    </div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="card-label">Refer&ecirc;ncias Comunicacionais</div>
+      <ul class="bullet-list" style="margin-top:12px">{{ referencias_html }}</ul>
+    </div>
+    <div class="grid-2">
+      <div class="card">
+        <div class="card-label">Palavras que Conectam</div>
+        <div class="pill-cloud" style="margin-top:12px">{{ palavras_conectam_pills }}</div>
+      </div>
+      <div class="card">
+        <div class="card-label">Palavras que Afastam</div>
+        <div class="pill-cloud" style="margin-top:12px">{{ palavras_afastam_pills }}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== TELA 9: PESQUISA DE MERCADO ==================== -->
+  <div id="panel-pesquisa" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Pesquisa de Mercado</div>
+    <div class="section-title">Pesquisa de Mercado</div>
+    <div class="section-sub">Dashboard de intelig&ecirc;ncia de mercado. Use para argumentos, copy e posicionamento.</div>
+    {{ pesquisa_completa_html }}
+  </div><!-- /panel-pesquisa -->
+
+  <!-- ==================== TELA 10: COPY DA PAGINA ==================== -->
+  <div id="panel-copy-pagina" class="panel">
+    <div class="breadcrumb">Painel de Entregas &rsaquo; Copy da P&aacute;gina</div>
+    <div class="section-title">Copy da P&aacute;gina</div>
+    <div class="section-sub">16 blocos da p&aacute;gina de vendas 8D. Aprove um bloco por vez em /copy-pagina.</div>
+    {{ quiz_card }}
+    {{ copy_pagina_html }}
+  </div><!-- /panel-copy-pagina -->
+
+</main>
+
+<script>
+function showPanel(id) {
+  document.querySelectorAll('.panel').forEach(function(p){p.classList.remove('active')});
+  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active')});
+  document.querySelectorAll('.mobile-tab').forEach(function(t){t.classList.remove('active')});
+  var panel = document.getElementById('panel-' + id);
+  if (panel) panel.classList.add('active');
+  document.querySelectorAll('.nav-item, .mobile-tab').forEach(function(el) {
+    if (el.getAttribute('onclick') && el.getAttribute('onclick').indexOf("'" + id + "'") !== -1) {
+      el.classList.add('active');
+    }
+  });
+}
+function toggleAccordion(header) {
+  header.closest('.accordion').classList.toggle('open');
+}
+document.addEventListener('DOMContentLoaded', function(){showPanel('visao-geral')});
+</script>
+</body>
+</html>

@@ -1,0 +1,73 @@
+# 🎨 Análise de Criativos — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Criativos analisados:** {{ ranking | length }}
+
+---
+
+## Fórmula do score (0-100)
+
+Cada criativo pontua em 4 dimensões:
+
+| Peso | Métrica | Elemento VTSD |
+|---|---|---|
+| 40% | Hook Rate (percentil no sample) | **Urgência Oculta** |
+| 30% | Hold Rate (percentil no sample) | **Decorados + Furadeira** |
+| 20% | CTR link (percentil no sample) | **Identidade do Produto** |
+| 10% | CPA invertido (percentil) | **Conjunto VTSD** |
+
+**Tier:** S (85+) · A (70-84) · B (55-69) · C (40-54) · D (<40)
+
+---
+
+## Ranking Top {{ top | length }}
+
+| # | Ad | Campanha | Gasto | Hook | Hold | CTR | CPA | Score | Tier |
+|---|---|---|---|---|---|---|---|---|---|
+{% for c in top -%}
+| {{ c.rank }} | `{{ c.ad_name }}` | {{ c.campaign_name }} | {{ c.spend | brl }} | {{ c.hook_rate | pct }} | {{ c.hold_rate | pct }} | {{ c.ctr | pct }} | {{ c.cpa | brl }} | **{{ '%.0f'|format(c.score) }}** | **{{ c.ranking_quality }}** |
+{% endfor %}
+
+{% if tem_dna %}
+---
+
+## 🧬 DNA dos Winners (Top 3)
+
+Os padrões que aparecem **juntos** nos top 3 — pauta para a próxima rodada de criativos:
+
+{% if dna.formato.valor %}
+- **Formato dominante:** `{{ dna.formato.valor }}` ({{ dna.formato.count }}/{{ dna.formato.total }})
+{% endif %}
+{% if dna.luminosidade.valor %}
+- **Luminosidade visual:** `{{ dna.luminosidade.valor }}` ({{ dna.luminosidade.count }}/{{ dna.luminosidade.total }})
+{% endif %}
+{% if dna.cta.valor %}
+- **CTA dominante:** `{{ dna.cta.valor }}` ({{ dna.cta.count }}/{{ dna.cta.total }})
+{% endif %}
+- **Tamanho médio do título:** {{ dna.title_len_medio }} caracteres
+- **Tamanho médio do body:** {{ dna.body_len_medio }} caracteres
+- **Copy com pergunta:** {{ dna.copy_com_pergunta_n }}/{{ dna.n_winners }} (ativa Urgência Oculta)
+- **Copy com números:** {{ dna.copy_com_numero_n }}/{{ dna.n_winners }} (reforça Decorados)
+- **Copy com emoji:** {{ dna.copy_com_emoji_n }}/{{ dna.n_winners }}
+
+### 🎯 No VTSD, isso significa
+
+O padrão acima revela a **Identidade do Comunicador** que está conectando com a **Identidade do Consumidor** no seu nicho agora. Replique esse esqueleto na próxima rodada — varie **hook e ângulo** dentro do padrão, não o padrão inteiro.
+{% endif %}
+
+---
+
+## Ação recomendada
+
+1. **🏅 Tier S** — duplicar como base de escala → rode `trafego top-performers`
+2. **✅ Tier A** — manter e monitorar fadiga semanal → rode `trafego fadiga`
+3. **🟡 Tier B** — testar nova variação de CTA ou ângulo
+4. **🟠 Tier C** — dar 7 dias; se não subir, pausar
+5. **🔴 Tier D** — pausar agora e investigar por que falhou (Urgência Oculta? Identidade do Produto? Oferta?)
+
+Produção da próxima leva deve seguir o **DNA dos winners** — mantém o padrão que está convertendo, varia o que está secundário.
+
+---
+*Sofia · Método VTSD · Ready To Go*

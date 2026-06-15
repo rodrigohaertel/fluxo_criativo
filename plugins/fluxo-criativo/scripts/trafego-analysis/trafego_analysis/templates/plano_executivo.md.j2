@@ -1,0 +1,94 @@
+# 📋 Plano de Otimização Executivo — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período analisado:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+
+---
+
+# {{ health.emoji }} Status Geral: {{ '%.0f'|format(health.score_total) }}/100 — {{ health.classificacao | upper }}
+
+{{ health.resumo_sofia }}
+
+---
+
+## 🚨 Top Alertas (próximos {{ top_alertas | length }})
+
+{% if top_alertas %}
+{% for a in top_alertas %}
+**{{ loop.index }}. {{ a.titulo }}** ({{ a.severidade | upper }})
+→ {{ a.acao }}
+
+{% endfor %}
+{% else %}
+Sem alertas críticos.
+{% endif %}
+
+---
+
+## 🚀 Top Oportunidades de Escala
+
+{% if top_escala %}
+| # | Ad | CPA | Freq | Incremento sugerido |
+|---|---|---|---|---|
+{% for c in top_escala -%}
+| {{ loop.index }} | `{{ c.ad_name }}` | {{ c.cpa | brl }} | {{ c.frequency | num }} | **{{ c.increment_label }}** |
+{% endfor %}
+
+Potencial de budget adicional: **{{ economia_escala_potencial | brl }}/dia**
+{% else %}
+Sem oportunidades claras no período — consolidar antes de escalar.
+{% endif %}
+
+---
+
+## 🛑 Pausas Recomendadas
+
+{% if top_pausas %}
+| # | Nível | Alvo | Economia/dia |
+|---|---|---|---|
+{% for p in top_pausas -%}
+| {{ loop.index }} | **{{ p.nivel | upper }}** | `{{ p.alvo }}` | {{ p.economia_estimada | brl }} |
+{% endfor %}
+
+Economia total se pausar tudo: **{{ economia_pausas | brl }}/dia**
+{% else %}
+Sem pausas recomendadas.
+{% endif %}
+
+---
+
+## 🗺️ Plano de Ação (próximos 7 dias)
+
+| # | Prazo | Urgência | Ação |
+|---|---|---|---|
+{% for p in plano -%}
+| {{ p.ordem }} | {{ p.prazo }} | **{{ p.urgencia }}** | {{ p.acao }} |
+{% endfor %}
+
+---
+
+## 🎯 Leitura Sofia
+
+{% if health.score_total >= 85 %}
+Conta tá girando. Foco essa semana é **escalar com calma** e manter a Mandala viva. Não tira o pé do acelerador — mas também não sobe budget 2x achando que a lua é o limite.
+{% elif health.score_total >= 70 %}
+Conta tá num "bom mas não ótimo". As otimizações acima vão empurrar pra 85+. Depois de 7 dias, rodar o plano de novo e confirmar evolução.
+{% elif health.score_total >= 50 %}
+Conta tá com problemas específicos. **Executar as pausas primeiro** libera budget pra realocar em winners. Escalar agora com score 55 é queimar dinheiro.
+{% else %}
+Conta tá em crise. Não é hora de escala, é hora de **diagnosticar profundamente**. Olhar oferta, produto, público — raramente é só tráfego.
+{% endif %}
+
+---
+
+**Para mergulhar em cada dimensão, rode:**
+- `trafego health` — detalhamento por dimensão
+- `trafego alertas` — todos os alertas (não só top 3)
+- `trafego top-performers` — escalada detalhada
+- `trafego pausar` — recomendação hierárquica completa
+- `trafego mandala` — gap da diversidade criativa
+- `trafego funil` — onde o funil tá furando
+
+---
+*Sofia · Método VTSD · Ready To Go*

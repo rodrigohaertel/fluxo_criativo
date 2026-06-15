@@ -1,0 +1,68 @@
+# 🏥 Health Score da Conta — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Ticket de referência:** {{ ticket | brl }}
+
+---
+
+# {{ health.emoji }} SCORE: {{ '%.0f'|format(health.score_total) }}/100 — {{ health.classificacao | upper }}
+
+---
+
+## Dimensões
+
+| Dimensão | Peso | Score | Comentário |
+|---|---|---|---|
+{% for d in health.dimensoes -%}
+| {{ d.nome }} | {{ d.peso_pct }}% | **{{ '%.0f'|format(d.score) }}/100** | {{ d.comentario }} |
+{% endfor %}
+
+---
+
+## 🎯 Leitura Sofia
+
+{{ health.resumo_sofia }}
+
+---
+
+## Próximos passos recomendados
+
+{% if health.score_total >= 85 %}
+1. **Escalar winners** — rode `trafego top-performers` e aplique os incrementos sugeridos
+2. **Manter Mandala viva** — 1-2 criativos novos por semana, em tipos ausentes
+3. **Acompanhar health semanalmente** — queda em qualquer dimensão pede ação
+{% elif health.score_total >= 70 %}
+1. **Atacar a dimensão mais baixa da tabela** acima — ali está a alavanca
+2. **Rodar `trafego fadiga`** para identificar criativos travando
+3. **Aguardar score passar de 85** antes de escalar agressivamente
+{% elif health.score_total >= 50 %}
+1. **Pausar o que está queimando** — rode `trafego auditoria` e execute as críticas
+2. **Diagnóstico por etapa** — rode `trafego funil` para achar o gargalo real
+3. **Nada de escalar** até as dimensões críticas voltarem ao verde
+{% else %}
+1. **CONGELAR budget atual** — não subir nada
+2. **Rodar diagnóstico completo:** `trafego auditoria` + `trafego fadiga` + `trafego funil`
+3. **Pausar conjuntos com ZERO conversão** hoje
+4. **Revisar Oferta + Furadeira + Decorados** (problema raramente é só de tráfego)
+{% endif %}
+
+---
+
+## Fórmula
+
+```
+Score = Σ (dimensão × peso)
+
+Diversidade Criativa (Mandala) × 20%
++ Saúde de Públicos × 20%
++ Eficiência de Funil × 25%
++ Performance Financeira × 25%
++ Consistência Temporal × 10%
+```
+
+**Classificação:** 🟢 85+ Excelente · 🟡 70-84 Boa · 🟠 50-69 Regular · 🔴 <50 Crítica
+
+---
+*Sofia · Método VTSD · Ready To Go*

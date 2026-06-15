@@ -1,0 +1,55 @@
+# 🛑 Pausa Hierárquica — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Recomendações:** {{ total }}
+**Economia diária estimada ao pausar tudo:** {{ economia_total_diaria | brl }}
+
+---
+
+{% if total == 0 %}
+## ✅ Nenhuma pausa necessária agora
+
+Conta está sem recursos ruins claros pela heurística VTSD. Continuar otimizando criativos e monitorar fadiga.
+{% endif %}
+
+{% for r in recomendacoes %}
+## {% if r.nivel == 'campaign' %}🔴 PAUSAR CAMPANHA{% elif r.nivel == 'adset' %}🟠 PAUSAR ADSET{% else %}🟡 PAUSAR AD{% endif %} — `{{ r.alvo }}`
+
+- **Nível da pausa:** {{ r.nivel | upper }}
+- **Ads afetados:** {{ r.ads_afetados }}
+- **Economia estimada:** {{ r.economia_estimada | brl }}/dia
+
+**Justificativa:** {{ r.justificativa }}
+
+---
+{% endfor %}
+
+## 🎯 Lógica da Pausa Hierárquica (VTSD)
+
+Pausar no **nível certo** economiza tempo e não quebra winners:
+
+| Situação | Pausar em |
+|---|---|
+| Campanha com 2+ adsets e TODOS ads ruins | **Campanha inteira** (1 clique resolve) |
+| Adset com todos ads ruins dentro de campanha saudável | **Adset** (outros adsets continuam rodando) |
+| 1 ou 2 ads ruins dentro de campanha/adset saudáveis | **Apenas os ads** |
+
+**Por quê hierárquico?** Se você pausar só 10 ads individuais numa campanha inteira ruim, perde tempo. Se você pausar a campanha inteira quando só 1 adset está ruim, mata ads saudáveis dos outros adsets.
+
+**Critério de "ruim":**
+- Gasto > R$ 50 e ZERO conversão
+- OU CPA > 2× o mediano da conta + frequency > 4.0 + rankings ruins
+
+---
+
+## Rotina sugerida
+
+1. Rodar `trafego pausa-hierarquica` 2-3× por semana
+2. Executar as pausas em ordem (prioridade 1 → 3)
+3. Não voltar pra conferir nos primeiros 3 dias — deixar o algoritmo redistribuir
+4. No 4º dia, `trafego health` pra ver se o score subiu
+
+---
+*Sofia · Método VTSD · Ready To Go*

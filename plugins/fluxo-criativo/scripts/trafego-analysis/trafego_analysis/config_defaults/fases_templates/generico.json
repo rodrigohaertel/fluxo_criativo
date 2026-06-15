@@ -1,0 +1,14 @@
+{
+  "nome_template": "Genérico (3 fases)",
+  "descricao": "Template simples de 3 etapas de funil.",
+  "fases": [
+    {"id": "topo",  "label": "Topo",  "cor": "#22c55e", "ordem": 1},
+    {"id": "meio",  "label": "Meio",  "cor": "#eab308", "ordem": 2},
+    {"id": "fundo", "label": "Fundo", "cor": "#ef4444", "ordem": 3}
+  ],
+  "regex_match": {
+    "topo":  ["topo", "awareness", "cold", "prospecting", "desc"],
+    "meio":  ["meio", "consideration", "mid"],
+    "fundo": ["fundo", "conversion", "hot", "retarget", "rmk", "venda"]
+  }
+}

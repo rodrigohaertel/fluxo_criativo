@@ -1,0 +1,76 @@
+# 🚀 Top Performers & Escalada — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+**Perfil de escalada:** `{{ perfil.nome }}`
+**Ads analisados:** {{ total_ads_analisados | num }}
+**Candidatos identificados:** {{ candidatos | length }}
+{% if cpa_mediano %}
+**CPA mediano dos candidatos:** {{ cpa_mediano | brl }}
+{% endif %}
+
+---
+
+## Critérios VTSD para escalar
+
+Para escalar sem quebrar o winner, ele precisa provar 4 coisas ao mesmo tempo:
+
+- **CPA ≤ {{ perfil.escalada.cpa_max_pct_media }}% do mediano** do produto (eficiência confirmada)
+- **Frequency < {{ perfil.escalada.freq_max_pra_escalar }}** (Identidade do Consumidor ainda não saturada)
+- **Volume mínimo: {{ perfil.escalada.min_conversoes | num }} conversões** (dado robusto, não sorte)
+- **Spend suficiente** pra confiar no resultado (não é ad novo com 3 vendas)
+
+{% if candidatos %}
+## Candidatos (melhor CPA → pior)
+
+| # | Ad | Campanha | Gasto | Resultados | CPA | Freq | CTR | Budget/dia | Sugestão |
+|---|---|---|---|---|---|---|---|---|---|
+{% for c in candidatos -%}
+| {{ loop.index }} | `{{ c.ad_name }}` | {{ c.campaign_name }} | {{ c.spend | brl }} | {{ c.results | num }} | {{ c.cpa | brl }} | {{ c.frequency | num }} | {{ c.ctr | pct }} | {{ c.budget_atual_estimado | brl }} | **{{ c.increment_label }}** → {{ c.budget_sugerido | brl }} |
+{% endfor %}
+
+## Detalhamento dos Top 5
+
+{% for c in candidatos[:5] %}
+### {{ loop.index }}. `{{ c.ad_name }}`
+
+- **Campanha:** {{ c.campaign_name }}
+- **Performance:** {{ c.results | num }} conversões a {{ c.cpa | brl }} (CTR {{ c.ctr | pct }})
+- **Escalada:** {{ c.increment_label }} — de {{ c.budget_atual_estimado | brl }}/dia para {{ c.budget_sugerido | brl }}/dia
+- **Razões:**
+{% for r in c.razoes %}  - {{ r }}
+{% endfor %}
+{% endfor %}
+
+---
+
+## 🎯 No VTSD, isso significa
+
+Esses ads estão com todas as identidades alinhadas: **Consumidor** certo (freq saudável), **Produto** claro (CTR) e **Comunicador** no tom (hook/hold que resultam em CPA baixo). É o momento de escalar — mas com respeito à curva, não em todo o budget de uma vez.
+
+## Como escalar sem quebrar
+
+1. **Suba em etapas:** aplique o incremento sugerido e espere **3-4 dias** antes de outra rodada
+2. **Monitore CPA + frequency:** se CPA subir >15% em 72h, **recue** o incremento
+3. **Nunca dobre de um dia pro outro:** o algoritmo da Meta perde o sinal aprendido — winners morrem
+4. **Fresh audience preparada:** se frequency está perto do teto ({{ perfil.escalada.freq_max_pra_escalar }}), expanda lookalike/SUPERCOLD **antes** de subir budget
+5. **Criativos reserva:** tenha 1-2 variações da mesma Mandala prontas pra girar se fadiga aparecer
+
+{% else %}
+## Nenhum candidato identificado no período
+
+Razões possíveis (em ordem de probabilidade):
+
+1. **Identidade do Consumidor saturada** — frequência média alta em todos vencedores. Amplie audiência antes de tentar escalar.
+2. **Mandala incompleta** — poucos tipos de ad ativos. CPA "bate" em um teto porque falta diversidade criativa.
+3. **Volume baixo** — período curto ou budget baixo demais. Aguarde acumular {{ perfil.escalada.min_conversoes | num }}+ conversões.
+4. **CPAs todos na média** — sem outlier positivo. Isso pode ser sinal de que a conta está em "modo descoberta" — foco em **criativos novos** antes de pensar em escalar.
+
+**Próximos passos:**
+- Rode `trafego fadiga` pra ver se há winners escondidos sob ads fadigados
+- Rode `trafego criativos` pra ver gap na Mandala
+{% endif %}
+
+---
+*Sofia · Método VTSD · Ready To Go*

@@ -1,0 +1,52 @@
+# 🛒 Análise de Checkout — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período:** {{ periodo.since.strftime('%d/%m/%Y') }} a {{ periodo.until.strftime('%d/%m/%Y') }} ({{ periodo.days }} dias)
+
+---
+
+## Etapas Finais do Funil
+
+| Etapa | Volume | Taxa passagem | Status |
+|---|---|---|---|
+{% for e in resultado.etapas -%}
+| **{{ e.nome }}** | {{ e.volume | num }} |
+{%- if e.taxa_passagem is not none %} {{ e.taxa_passagem | pct }}
+{%- else %} —
+{%- endif %} | **{{ e.status }}** |
+{% endfor %}
+
+---
+
+## Abandono Diagnosticado
+
+| Tipo | Taxa |
+|---|---|
+| Antes do checkout (LPV → IC) | {{ resultado.abandono_pre_checkout | pct }} |
+| Durante checkout (IC → Compra) | {{ resultado.abandono_durante_checkout | pct }} |
+
+---
+
+## 🎯 Diagnóstico VTSD
+
+{{ resultado.diagnostico_vtsd }}
+
+---
+
+## Ações recomendadas
+
+{% for a in resultado.acoes %}
+{{ loop.index }}. {{ a }}
+{% endfor %}
+
+---
+
+## Como o VTSD vê essas 3 etapas
+
+- **LPV → IC** é onde a **Oferta** é testada. Se cai aqui: preço/valor/escassez não conectaram
+- **IC → Purchase** é onde o **Checkout** técnico é testado. UX ruim, forma de pagamento faltando, custo adicional aparecendo tarde
+- O **Quadro na Parede** (resultado final desejado) deve estar visível até o botão de compra — muitos perdem a venda por esquecerem de reforçar o PORQUÊ na página
+
+---
+*Sofia · Método VTSD · Ready To Go*

@@ -1,0 +1,30 @@
+# ⚡ Pico vs. Evergreen — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+---
+
+## Comparativo
+
+| Métrica | Pico ({{ periodo_pico.since.strftime('%d/%m') }}-{{ periodo_pico.until.strftime('%d/%m') }}) | Evergreen ({{ periodo_evergreen.since.strftime('%d/%m') }}-{{ periodo_evergreen.until.strftime('%d/%m') }}) | Δ |
+|---|---|---|---|
+| Gasto | {{ resultado.pico_spend | brl }} | {{ resultado.evergreen_spend | brl }} | — |
+| CPA | {{ resultado.pico_cpa | brl }} | {{ resultado.evergreen_cpa | brl }} | {{ resultado.delta_cpa_pct | delta }} |
+| ROAS | {{ resultado.pico_roas | num }}x | {{ resultado.evergreen_roas | num }}x | {{ resultado.delta_roas_pct | delta }} |
+
+---
+
+## 🎯 Conclusão VTSD
+
+{{ resultado.conclusao }}
+
+---
+
+## Leitura
+
+- **CPA Evergreen > CPA Pico em 50%+** = produto depende de urgência externa para converter
+- **CPA similar** = oferta e método (Furadeira + Decorados) estão claros o bastante para vender sem pressão
+- **Diferença inversa** (Evergreen mais barato) = raro, mas pode indicar que o perpétuo tem otimização acumulada do algoritmo
+
+---
+*Sofia · Método VTSD · Ready To Go*

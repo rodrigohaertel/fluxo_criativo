@@ -1,0 +1,39 @@
+---
+description: Regras de qualidade obrigatórias para copy e design — aplicar em todo material gerado
+alwaysApply: true
+---
+
+# Protocolo de Qualidade — Copy e Design
+
+## COPY — Varredura obrigatória antes de mostrar qualquer texto
+
+Percorra o texto frase por frase. Se qualquer item abaixo falhar, reescreva antes de continuar:
+
+| # | Proibição | Como corrigir |
+|---|---|---|
+| 1 | Travessão (—) | Substitua por vírgula, ponto ou reescreva a frase |
+| 2 | Ponto de exclamação (!) | Substitua por ponto final ou reescreva |
+| 3 | Pergunta no gancho ou título | Transforme em afirmação direta e concreta |
+| 4 | Estrutura "Não é X. É Y." | Afirme diretamente o que é, sem a negação |
+| 5 | Promessa vaga sem dado concreto | Adicione número, prazo ou situação específica |
+| 6 | "mesmo que" ou "sem precisar" | Substitua por argumento real e direto |
+| 7 | Erros de português | Revise concordância verbal/nominal, acentuação e pontuação |
+
+**Exemplos de correção:**
+- ❌ "Transforme sua vida — sem esforço!" → ✅ "Veja como pessoas com rotina cheia reorganizaram suas finanças em 30 dias."
+- ❌ "Você quer parar de sofrer?" → ✅ "Existe um padrão que faz a maioria das pessoas sabotar seus resultados."
+- ❌ "Não é um curso. É uma transformação." → ✅ "É um programa de 8 semanas com acompanhamento individual."
+
+## DESIGN HTML — Leitura obrigatória antes de gerar qualquer página
+
+Antes de escrever UMA LINHA de HTML ou CSS, leia os dois arquivos:
+
+1. `.claude/skills/paginas/references/design-system-components.md`
+2. `.claude/skills/paginas/references/design-referencia-vtsd.md`
+
+Depois, confirme internamente:
+- Estou usando CSS variables do design system (não inventei cores, tamanhos ou espaçamentos)
+- Estou usando apenas componentes que existem nos arquivos de referência
+- Não há CSS inventado do zero
+
+**Proibido:** criar qualquer CSS ou componente que não esteja nos arquivos de referência.

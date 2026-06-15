@@ -1,0 +1,81 @@
+# 🔥 Fadiga Criativa — {{ produto }}
+
+> **Sofia — Analista de Performance RTG** · Método VTSD
+
+**Período analisado:** {{ periodo_atual.since.strftime('%d/%m/%Y') }} a {{ periodo_atual.until.strftime('%d/%m/%Y') }} ({{ periodo_atual.days }} dias)
+**Janela de comparação:** {{ periodo_anterior.since.strftime('%d/%m/%Y') }} a {{ periodo_anterior.until.strftime('%d/%m/%Y') }}
+**Perfil de análise:** `{{ perfil.nome }}` — baseline `{{ perfil.baseline }}`
+**CPA baseline:** {{ cpa_baseline | brl }}
+**Gerado em:** {{ now.strftime('%d/%m/%Y %H:%M') }}
+
+---
+
+## Resumo
+
+- **Total de ads analisados:** {{ total_ads_analisados | num }}
+- **Ads com sinal de fadiga (score ≥2):** {{ total_com_fadiga | num }}
+- **Taxa de fadiga:** {% if total_ads_analisados %}{{ (total_com_fadiga / total_ads_analisados * 100) | pct }}{% else %}N/A{% endif %}
+
+{% if grupos['PAUSAR IMEDIATO'] %}
+## 🛑 Pausar imediato ({{ grupos['PAUSAR IMEDIATO'] | length }})
+
+| Ad | Campanha | Gasto | CPA | Freq | CTR Δ WoW | Sinais |
+|---|---|---|---|---|---|---|
+{% for ad in grupos['PAUSAR IMEDIATO'] -%}
+| `{{ ad.ad_name }}` | {{ ad.campaign_name }} | {{ ad.spend | brl }} | {{ ad.cpa | brl }} | {{ ad.frequency | num }} | {% if ad.ctr_prev %}{{ ((ad.ctr - ad.ctr_prev) / ad.ctr_prev * 100) | delta }}{% else %}N/A{% endif %} | {{ ad.sinais | map(attribute='tipo') | join(', ') }} |
+{% endfor %}
+{% endif %}
+
+{% if grupos['SUBSTITUIR EM 48H'] %}
+## ⚠️ Substituir em 48h ({{ grupos['SUBSTITUIR EM 48H'] | length }})
+
+| Ad | Campanha | Gasto | CPA | Freq | Sinais |
+|---|---|---|---|---|---|
+{% for ad in grupos['SUBSTITUIR EM 48H'] -%}
+| `{{ ad.ad_name }}` | {{ ad.campaign_name }} | {{ ad.spend | brl }} | {{ ad.cpa | brl }} | {{ ad.frequency | num }} | {{ ad.sinais | map(attribute='descricao') | join('; ') }} |
+{% endfor %}
+{% endif %}
+
+{% if grupos['MONITORAR'] %}
+## 👀 Monitorar ({{ grupos['MONITORAR'] | length }})
+
+| Ad | Campanha | Gasto | CPA | Freq | Observação |
+|---|---|---|---|---|---|
+{% for ad in grupos['MONITORAR'] -%}
+| `{{ ad.ad_name }}` | {{ ad.campaign_name }} | {{ ad.spend | brl }} | {{ ad.cpa | brl }} | {{ ad.frequency | num }} | {{ ad.sinais | map(attribute='descricao') | join('; ') }} |
+{% endfor %}
+{% endif %}
+
+{% if grupos['SAUDÁVEL'] %}
+## ✅ Saudáveis ({{ grupos['SAUDÁVEL'] | length }})
+
+{{ grupos['SAUDÁVEL'] | length }} ads sem sinais relevantes de fadiga. Gasto total: {{ grupos['SAUDÁVEL'] | sum(attribute='spend') | brl }}.
+{% endif %}
+
+---
+
+## 🎯 No VTSD, isso significa
+
+Fadiga não é "problema do criativo" — é sinal de que algum elemento do método parou de funcionar. Cada sinal aponta para uma camada diferente:
+
+| Sinal | Interpretação VTSD | Onde agir |
+|---|---|---|
+| `freq_alta` | **Identidade do Consumidor** saturada | Ampliar audiência ou expandir com SUPERCOLD |
+| `ctr_drop` | **Identidade do Produto** deixou de chamar atenção | Trocar hook ou refazer criativo |
+| `cpa_drift` | **Oferta + Furadeira** deixaram de convencer | Revisitar a promessa e o método |
+| `rankings` (below_average) | Meta está penalizando relevância — múltiplas identidades falhando | Refazer criativo do zero |
+| `cpr_critico` | Combinação crítica — CPA dobrou vs. baseline | **Pausa imediata.** Não pensa, pausa. |
+
+**Score 0-1:** saudável · **2-3:** monitorar/substituir · **4+ ou CPR crítico:** pausa imediata
+
+---
+
+## Ação recomendada
+
+1. Executar os pausas da primeira tabela **hoje** — cada dia extra queima budget sem retorno
+2. Preparar substitutos para "Substituir em 48h" — preferencialmente de um tipo diferente da Mandala (rode `trafego criativos` para ver gap)
+3. Ads "Monitorar" — se piorarem 2 dias seguidos, viram "Substituir"
+4. Revisar Mandala: se a fadiga é geral, a conta provavelmente está com poucos tipos ativos — diversidade resolve
+
+---
+*Sofia · Método VTSD · Ready To Go*
