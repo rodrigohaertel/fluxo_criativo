@@ -143,3 +143,8 @@ inputs/
 
 package-lock.json
 package.json
+# Plugin do Cowork (gerado a partir das skills, vive no fork; nao versionar no repo do motor)
+plugins/
+sync-cowork-plugin.ps1
+sync-cowork-plugin.py
+.claude-plugin/
