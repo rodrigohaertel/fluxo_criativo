@@ -148,3 +148,18 @@ plugins/
 sync-cowork-plugin.ps1
 sync-cowork-plugin.py
 .claude-plugin/
+
+# Backups de .env (nunca versionar)
+.env.bak
+*.bak
+
+# --- Higiene (auditoria 14/07/2026) ---
+scripts/.tmp-*
+*.tmp
+.claude/settings.local-*
+.installed
+_to_delete/
+scripts/log-atualizacao-automatica.txt
+# Pasta antiga do site (migrada para C:\Users\rodri\dev\docustoaolucro)
+Do Custo ao Lucro - Restaurantes/
+_ARQUIVO-site-migrado/
