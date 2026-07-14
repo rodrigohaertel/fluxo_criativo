@@ -1,6 +1,7 @@
 ---
 name: workshop-marketing:trafego-analise
-description: Análise narrada de tráfego pago Meta Ads com terminologia VTSD (Mandala 18 tipos, Urgência Oculta, Quadro na Parede, Furadeira, Decorados, 3 Identidades, HOT/COLD/SUPERCOLD, Caixa Rápido, Pico vs Evergreen). 9 outputs narrativos: Diagnóstico Rápido, Performance & Funil, Criativos & Copy, Geo & Demografia, Timing & Sazonalidade, Investigação Profunda, Lifecycle & Histórico, Problemas Ocultos, Orçamento & Projeção. Busca dados diretamente na Graph API sem intermediários. Cada output entrega diagnóstico, causa provável, interpretação VTSD e ação recomendada com handoff para skill executora.
+description: >-
+  Análise narrada de tráfego pago Meta Ads com terminologia VTSD (Mandala 18 tipos, Urgência Oculta, Quadro na Parede, Furadeira, Decorados, 3 Identidades, HOT/COLD/SUPERCOLD, Caixa Rápido, Pico vs Evergreen). 9 outputs narrativos: Diagnóstico Rápido, Performance & Funil, Criativos & Copy, Geo & Demografia, Timing & Sazonalidade, Investigação Profunda, Lifecycle & Histórico, Problemas Ocultos, Orçamento & Projeção. Busca dados diretamente na Graph API sem intermediários. Cada output entrega diagnóstico, causa provável, interpretação VTSD e ação recomendada com handoff para skill executora.
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Skill, AskUserQuestion
 model: sonnet
 ---

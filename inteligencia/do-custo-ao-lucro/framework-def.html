@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Framework DEF — Descoberta, Encantamento, Fechamento</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Segoe UI', Arial, sans-serif;
+    background: #111;
+    color: #fff;
+    padding: 24px;
+    min-height: 100vh;
+  }
+
+  .page-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 24px;
+  }
+
+  .logo {
+    width: 36px;
+    height: 36px;
+    background: #4caf50;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 16px;
+    color: #fff;
+  }
+
+  .page-title {
+    font-size: 18px;
+    font-weight: 600;
+    letter-spacing: 1px;
+    color: #fff;
+  }
+
+  .page-subtitle {
+    font-size: 13px;
+    color: #888;
+    margin-top: 2px;
+  }
+
+  .toolbar {
+    display: flex;
+    gap: 8px;
+    margin-left: auto;
+  }
+
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    border: none;
+    transition: opacity 0.15s;
+  }
+
+  .btn:hover { opacity: 0.85; }
+
+  .btn-outline {
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.25);
+    color: #aaa;
+  }
+
+  .btn-green {
+    background: #4caf50;
+    color: #fff;
+  }
+
+  .btn-print {
+    background: #333;
+    color: #ccc;
+    border: 1px solid #444;
+  }
+
+  .canvas {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 20px;
+  }
+
+  .col { display: flex; flex-direction: column; gap: 12px; }
+
+  .col-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 4px;
+  }
+
+  .badge {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    background: #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 15px;
+    color: #fff;
+    flex-shrink: 0;
+  }
+
+  .col-title {
+    font-size: 17px;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #fff;
+  }
+
+  .col-inner {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .sub-col {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  /* Cards */
+  .card {
+    border-radius: 12px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .card-yellow { background: #f5c842; }
+  .card-white { background: #ffffff; }
+
+  .card-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+
+  .card-yellow .card-label { color: #7a5f00; }
+  .card-white .card-label { color: #888; }
+
+  /* Textareas */
+  textarea {
+    width: 100%;
+    border: none;
+    border-radius: 7px;
+    padding: 8px 10px;
+    font-size: 13px;
+    font-family: 'Segoe UI', Arial, sans-serif;
+    line-height: 1.5;
+    resize: vertical;
+    outline: none;
+    transition: background 0.15s, box-shadow 0.15s;
+  }
+
+  .card-yellow textarea {
+    background: rgba(0,0,0,0.1);
+    color: #1a1200;
+  }
+
+  .card-yellow textarea::placeholder { color: #9a7a00; }
+  .card-yellow textarea:focus {
+    background: rgba(0,0,0,0.15);
+    box-shadow: 0 0 0 2px rgba(0,0,0,0.2);
+  }
+
+  .card-white textarea {
+    background: #f0f0f0;
+    color: #111;
+  }
+
+  .card-white textarea::placeholder { color: #bbb; }
+  .card-white textarea:focus {
+    background: #e5e5e5;
+    box-shadow: 0 0 0 2px #4caf5055;
+  }
+
+  /* Sub-items com tag */
+  .sub-items { display: flex; flex-direction: column; gap: 6px; }
+
+  .tag-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+  }
+
+  .tag {
+    border-radius: 5px;
+    padding: 5px 8px;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-top: 1px;
+    letter-spacing: 0.3px;
+  }
+
+  .card-yellow .tag {
+    background: rgba(0,0,0,0.15);
+    color: #4a3800;
+  }
+
+  .card-white .tag {
+    background: #ebebeb;
+    color: #555;
+  }
+
+  .tag-row textarea { flex: 1; min-height: 32px; }
+
+  /* Fechamento layout */
+  .fechamento-wrapper {
+    display: flex;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .fechamento-left { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+  .fechamento-right { display: flex; flex-direction: column; gap: 12px; flex: 1; }
+
+  .objections-section {
+    display: flex;
+    gap: 8px;
+    flex: 1;
+  }
+
+  .objections-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    flex: 1;
+  }
+
+  .objections-label-vert {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    font-size: 9px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: #fff;
+    background: #4caf50;
+    border-radius: 8px;
+    padding: 10px 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  /* Bottom bar */
+  .bottom-bar {
+    margin-top: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  .bottom-info {
+    font-size: 12px;
+    color: #555;
+  }
+
+  .bottom-actions { display: flex; gap: 10px; }
+
+  /* Print */
+  @media print {
+    body { background: #fff; color: #000; padding: 10px; }
+    .toolbar, .bottom-bar { display: none; }
+    .col-title { color: #000; }
+    textarea {
+      border: 1px solid #ddd !important;
+      background: #fff !important;
+      color: #000 !important;
+    }
+    .card-yellow { background: #fde68a !important; }
+    .card-yellow textarea { background: rgba(0,0,0,0.05) !important; color: #000 !important; }
+    .objections-label-vert { background: #4caf50 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+    .badge { background: #4caf50 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  }
+
+  /* Salvo indicator */
+  #saved-msg {
+    font-size: 12px;
+    color: #4caf50;
+    opacity: 0;
+    transition: opacity 0.4s;
+  }
+</style>
+</head>
+<body>
+
+<div class="page-header">
+  <div class="logo">DEF</div>
+  <div>
+    <div class="page-title">Framework DEF</div>
+    <div class="page-subtitle">Descoberta · Encantamento · Fechamento</div>
+  </div>
+  <div class="toolbar">
+    <span id="saved-msg">Salvo automaticamente</span>
+    <button class="btn btn-print" onclick="window.print()">Imprimir / PDF</button>
+    <button class="btn btn-outline" onclick="limparTudo()">Limpar tudo</button>
+    <button class="btn btn-green" onclick="exportarTexto()">Exportar texto</button>
+  </div>
+</div>
+
+<div class="canvas">
+
+  <!-- ===== DESCOBERTA ===== -->
+  <div class="col">
+    <div class="col-header">
+      <div class="badge">D</div>
+      <span class="col-title">Descoberta</span>
+    </div>
+
+    <div class="col-inner">
+      <!-- Coluna esquerda -->
+      <div class="sub-col">
+        <div class="card card-yellow">
+          <div class="card-label">PUV</div>
+          <textarea id="puv" rows="3" placeholder="Proposta única de valor..."></textarea>
+        </div>
+
+        <div class="card card-yellow">
+          <div class="card-label">Inimigo comum</div>
+          <textarea id="inimigo" rows="2" placeholder="Qual é o inimigo em comum?"></textarea>
+        </div>
+
+        <div class="card card-yellow">
+          <div class="card-label">Dores / Desejos</div>
+          <textarea id="dores" rows="3" placeholder="Principais dores e desejos..."></textarea>
+        </div>
+
+        <div class="card card-yellow">
+          <div class="card-label">Objeções recorrentes</div>
+          <textarea id="objecoes" rows="3" placeholder="Objeções mais comuns..."></textarea>
+        </div>
+      </div>
+
+      <!-- Coluna direita -->
+      <div class="sub-col">
+        <div class="card card-yellow">
+          <div class="card-label">Recuo Estratégico</div>
+          <div class="sub-items">
+            <div class="tag-row">
+              <span class="tag">Jab 1</span>
+              <textarea id="jab1" rows="2" placeholder="..."></textarea>
+            </div>
+            <div class="tag-row">
+              <span class="tag">Jab 2</span>
+              <textarea id="jab2" rows="2" placeholder="..."></textarea>
+            </div>
+            <div class="tag-row">
+              <span class="tag">Jab 3</span>
+              <textarea id="jab3" rows="2" placeholder="..."></textarea>
+            </div>
+            <div class="tag-row">
+              <span class="tag">Direto</span>
+              <textarea id="direto" rows="2" placeholder="..."></textarea>
+            </div>
+          </div>
+        </div>
+
+        <div class="card card-yellow">
+          <div class="card-label">Perguntas Poderosas</div>
+          <textarea id="perguntas" rows="6" placeholder="Perguntas que abrem o cliente..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== ENCANTAMENTO ===== -->
+  <div class="col">
+    <div class="col-header">
+      <div class="badge">E</div>
+      <span class="col-title">Encantamento</span>
+    </div>
+
+    <div class="card card-yellow">
+      <div class="card-label">3 Pilares</div>
+      <div class="sub-items">
+        <div class="tag-row">
+          <span class="tag">Pilar 1</span>
+          <textarea id="pilar1" rows="2" placeholder="..."></textarea>
+        </div>
+        <div class="tag-row">
+          <span class="tag">Pilar 2</span>
+          <textarea id="pilar2" rows="2" placeholder="..."></textarea>
+        </div>
+        <div class="tag-row">
+          <span class="tag">Pilar 3</span>
+          <textarea id="pilar3" rows="2" placeholder="..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-white">
+      <div class="card-label">Estrutura de Diálogo</div>
+      <div class="sub-items">
+        <div class="tag-row">
+          <span class="tag">O quê</span>
+          <textarea id="oque" rows="2" placeholder="O que você entrega..."></textarea>
+        </div>
+        <div class="tag-row">
+          <span class="tag">Como</span>
+          <textarea id="como" rows="2" placeholder="Como funciona..."></textarea>
+        </div>
+        <div class="tag-row">
+          <span class="tag">O que ganha</span>
+          <textarea id="ganha" rows="2" placeholder="O que o cliente ganha..."></textarea>
+        </div>
+      </div>
+    </div>
+
+    <div class="card card-white">
+      <div class="card-label">Pergunta de Verificação</div>
+      <textarea id="verificacao" rows="3" placeholder="Pergunta para confirmar entendimento e interesse..."></textarea>
+    </div>
+
+    <div class="card card-white">
+      <div class="card-label">Isolamento de Variáveis</div>
+      <textarea id="isolamento" rows="3" placeholder="Se isso não fosse um problema, você avançaria? / O que ainda está travando a decisão?"></textarea>
+    </div>
+  </div>
+
+  <!-- ===== FECHAMENTO ===== -->
+  <div class="col">
+    <div class="col-header">
+      <div class="badge">F</div>
+      <span class="col-title">Fechamento</span>
+    </div>
+
+    <div class="fechamento-wrapper">
+      <div class="fechamento-left">
+        <div class="card card-white">
+          <div class="card-label">Ancoragem</div>
+          <textarea id="ancoragem" rows="3" placeholder="Ponto de ancoragem de valor..."></textarea>
+        </div>
+
+        <div class="objections-section">
+          <div class="objections-cards">
+            <div class="card card-white">
+              <div class="card-label">Empatia</div>
+              <textarea id="empatia" rows="2" placeholder="Como demonstrar empatia..."></textarea>
+            </div>
+            <div class="card card-white">
+              <div class="card-label">Escuta Ativa</div>
+              <textarea id="escuta" rows="2" placeholder="Técnica de escuta ativa..."></textarea>
+            </div>
+            <div class="card card-white">
+              <div class="card-label">Pergunta Reflexiva</div>
+              <textarea id="reflexiva" rows="2" placeholder="Pergunta que faz o cliente refletir..."></textarea>
+            </div>
+          </div>
+          <div class="objections-label-vert">Framework de Contorno de Objeções</div>
+        </div>
+      </div>
+
+      <div class="fechamento-right">
+        <div class="card card-white">
+          <div class="card-label">Revisão de CTA</div>
+          <textarea id="cta" rows="5" placeholder="Call to action principal..."></textarea>
+        </div>
+        <div class="card card-white">
+          <div class="card-label">Fechamento Presumido</div>
+          <textarea id="fechamento_presumido" rows="5" placeholder="Frase de fechamento presumido..."></textarea>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="bottom-bar">
+  <div class="bottom-info">Framework DEF — Do Custo ao Lucro Restaurantes</div>
+  <div class="bottom-actions">
+    <button class="btn btn-print" onclick="window.print()">Imprimir / Salvar PDF</button>
+  </div>
+</div>
+
+<script>
+  const campos = [
+    'puv','inimigo','dores','objecoes',
+    'jab1','jab2','jab3','direto','perguntas',
+    'pilar1','pilar2','pilar3',
+    'oque','como','ganha',
+    'verificacao','isolamento',
+    'ancoragem','empatia','escuta','reflexiva',
+    'cta','fechamento_presumido'
+  ];
+
+  // Salvar no localStorage automaticamente
+  function salvar() {
+    const dados = {};
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) dados[id] = el.value;
+    });
+    localStorage.setItem('framework_def', JSON.stringify(dados));
+    const msg = document.getElementById('saved-msg');
+    msg.style.opacity = '1';
+    setTimeout(() => msg.style.opacity = '0', 1800);
+  }
+
+  // Carregar ao abrir
+  function carregar() {
+    const raw = localStorage.getItem('framework_def');
+    if (!raw) return;
+    const dados = JSON.parse(raw);
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && dados[id]) el.value = dados[id];
+    });
+  }
+
+  // Limpar tudo
+  function limparTudo() {
+    if (!confirm('Tem certeza que quer limpar todos os campos?')) return;
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.value = '';
+    });
+    localStorage.removeItem('framework_def');
+  }
+
+  // Exportar como texto
+  function exportarTexto() {
+    const labels = {
+      puv: 'PUV',
+      inimigo: 'Inimigo Comum',
+      dores: 'Dores / Desejos',
+      objecoes: 'Objeções Recorrentes',
+      jab1: 'Recuo Estratégico — Jab 1',
+      jab2: 'Recuo Estratégico — Jab 2',
+      jab3: 'Recuo Estratégico — Jab 3',
+      direto: 'Recuo Estratégico — Direto',
+      perguntas: 'Perguntas Poderosas',
+      pilar1: 'Pilar 1',
+      pilar2: 'Pilar 2',
+      pilar3: 'Pilar 3',
+      oque: 'Estrutura de Diálogo — O quê',
+      como: 'Estrutura de Diálogo — Como',
+      ganha: 'Estrutura de Diálogo — O que ganha',
+      verificacao: 'Pergunta de Verificação',
+      isolamento: 'Isolamento de Variáveis',
+      ancoragem: 'Ancoragem',
+      empatia: 'Empatia',
+      escuta: 'Escuta Ativa',
+      reflexiva: 'Pergunta Reflexiva',
+      cta: 'Revisão de CTA',
+      fechamento_presumido: 'Fechamento Presumido'
+    };
+
+    let texto = 'FRAMEWORK DEF — PREENCHIMENTO\n';
+    texto += '='.repeat(40) + '\n\n';
+
+    let vazio = true;
+    campos.forEach(id => {
+      const el = document.getElementById(id);
+      if (el && el.value.trim()) {
+        texto += `${labels[id]}:\n${el.value.trim()}\n\n`;
+        vazio = false;
+      }
+    });
+
+    if (vazio) {
+      alert('Preencha pelo menos um campo antes de exportar.');
+      return;
+    }
+
+    // Criar arquivo e baixar
+    const blob = new Blob([texto], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'framework-def-preenchimento.txt';
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  // Inicializar
+  carregar();
+
+  // Auto-salvar ao digitar
+  document.querySelectorAll('textarea').forEach(ta => {
+    ta.addEventListener('input', salvar);
+  });
+</script>
+</body>
+</html>

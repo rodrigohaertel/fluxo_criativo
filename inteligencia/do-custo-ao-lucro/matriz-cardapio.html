@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Painel de Decisão</title>
+<style>
+  :root{
+    --azul:#4a9fe0;
+    --verde:#43b05c;
+    --laranja:#f08a3c;
+    --amarelo:#f6c344;
+    --ponto:#2536d4;
+    --texto:#2d3748;
+    --eixo:#4a5568;
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+    background:#f7f8fa;
+    color:var(--texto);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:32px 16px;
+    min-height:100vh;
+  }
+  h1{font-size:20px;font-weight:700;margin-bottom:24px;text-align:center;}
+  .grafico{
+    width:100%;
+    max-width:820px;
+    aspect-ratio:820/460;
+  }
+  .q-label{
+    font-size:16px;
+    font-weight:700;
+    fill:#ffffff;
+    text-anchor:middle;
+  }
+  .eixo-nivel{
+    font-size:14px;
+    font-weight:700;
+    fill:var(--eixo);
+    text-anchor:middle;
+  }
+  .eixo-titulo{
+    font-size:15px;
+    font-weight:700;
+    fill:var(--texto);
+    text-anchor:middle;
+  }
+  .icone{font-size:34px;text-anchor:middle;dominant-baseline:central;}
+  .ponto{fill:var(--ponto);stroke:#ffffff;stroke-width:2;}
+</style>
+</head>
+<body>
+  <h1>Painel de Decisão</h1>
+
+  <svg class="grafico" viewBox="0 0 820 460" xmlns="http://www.w3.org/2000/svg">
+    <!-- area do grafico: x de 150 a 740 (largura 590), y de 30 a 380 (altura 350) -->
+
+    <!-- quadrantes -->
+    <rect x="150" y="30" width="295" height="175" fill="var(--azul)"/>
+    <rect x="445" y="30" width="295" height="175" fill="var(--verde)"/>
+    <rect x="150" y="205" width="295" height="175" fill="var(--laranja)"/>
+    <rect x="445" y="205" width="295" height="175" fill="var(--amarelo)"/>
+
+    <!-- icones dos quadrantes -->
+    <text class="icone" x="297" y="105">❓</text>
+    <text class="icone" x="592" y="105">⭐</text>
+    <text class="icone" x="280" y="280">🍍</text>
+    <text class="icone" x="580" y="280">🥛</text>
+
+    <!-- rotulos dos quadrantes -->
+    <text class="q-label" x="297" y="160">Aposta do Chef</text>
+    <text class="q-label" x="592" y="160">Carro Chefe</text>
+    <text class="q-label" x="297" y="335">Vilão do Cardápio</text>
+    <text class="q-label" x="592" y="335">Pagador de Contas</text>
+
+    <!-- EIXO Y: Margem de Contribuicao Unitaria -->
+    <!-- titulo rotacionado -->
+    <text class="eixo-titulo" transform="translate(40,205) rotate(-90)">Margem de Contribuição Unitária</text>
+    <!-- niveis ALTA / BAIXA -->
+    <text class="eixo-nivel" transform="translate(85,117) rotate(-90)">ALTA</text>
+    <text class="eixo-nivel" transform="translate(85,292) rotate(-90)">BAIXA</text>
+
+    <!-- EIXO X: Quantidade Vendida -->
+    <text class="eixo-nivel" x="297" y="412">BAIXA</text>
+    <text class="eixo-nivel" x="592" y="412">ALTA</text>
+    <text class="eixo-titulo" x="445" y="445">Quantidade Vendida</text>
+
+    <!-- pontos (itens do cardapio) -->
+    <!-- Aposta do Chef -->
+    <circle class="ponto" cx="330" cy="48" r="6"/>
+
+    <!-- Vilao do Cardapio: cluster e base -->
+    <circle class="ponto" cx="210" cy="270" r="6"/>
+    <circle class="ponto" cx="226" cy="270" r="6"/>
+    <circle class="ponto" cx="242" cy="270" r="6"/>
+    <circle class="ponto" cx="258" cy="270" r="6"/>
+    <circle class="ponto" cx="340" cy="270" r="6"/>
+    <circle class="ponto" cx="420" cy="280" r="6"/>
+    <circle class="ponto" cx="198" cy="350" r="6"/>
+    <circle class="ponto" cx="230" cy="345" r="6"/>
+
+    <!-- Pagador de Contas -->
+    <circle class="ponto" cx="540" cy="258" r="6"/>
+    <circle class="ponto" cx="585" cy="278" r="6"/>
+    <circle class="ponto" cx="640" cy="258" r="6"/>
+  </svg>
+</body>
+</html>

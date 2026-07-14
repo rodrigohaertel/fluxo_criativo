@@ -1,0 +1,927 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Central do Dono 14% — Mockup</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://unpkg.com/lucide@latest"></script>
+<style>
+:root{
+  --bg-deep: hsl(165, 50%, 8%);
+  --bg-soft: hsl(165, 45%, 11%);
+  --bg-card: hsl(165, 40%, 14%);
+  --gold: hsl(36, 55%, 62%);
+  --gold-light: hsl(36, 60%, 68%);
+  --gold-deep: hsl(34, 60%, 48%);
+  --gold-lightest: hsl(38, 70%, 78%);
+  --cream: hsl(38, 35%, 92%);
+  --border: hsl(165, 30%, 20%);
+  --border-gold: hsla(36, 55%, 62%, 0.28);
+  --success: hsl(145, 50%, 50%);
+  --error: hsl(4, 70%, 55%);
+  --r: 12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{
+  font-family:'Inter',system-ui,sans-serif;
+  background:
+    radial-gradient(900px 500px at 90% -5%, hsla(36,55%,62%,0.10), transparent 60%),
+    radial-gradient(700px 500px at -10% 110%, hsla(36,55%,62%,0.06), transparent 60%),
+    var(--bg-deep);
+  color:var(--cream);
+  min-height:100vh;
+  line-height:1.6;
+}
+h1,h2,h3,h4{font-family:'Fraunces',Georgia,serif;letter-spacing:-0.02em;line-height:1.1}
+a{color:inherit;text-decoration:none}
+.gold-text{
+  background:linear-gradient(135deg,var(--gold-lightest) 0%,var(--gold) 50%,var(--gold-deep) 100%);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+  padding-right:.08em;
+}
+.eyebrow{
+  display:inline-flex;align-items:center;gap:6px;text-transform:uppercase;
+  font-size:.7rem;font-weight:600;letter-spacing:.14em;color:var(--gold);
+  border:1px solid var(--border-gold);border-radius:50px;padding:5px 14px;
+}
+.muted{color:hsla(38,35%,92%,0.62)}
+.muted-2{color:hsla(38,35%,92%,0.42)}
+
+/* ===== TOPBAR ===== */
+.topbar{
+  position:sticky;top:0;z-index:40;
+  background:hsla(165,55%,7%,0.86);backdrop-filter:blur(16px) saturate(140%);
+  border-bottom:1px solid var(--border);
+}
+.topbar-in{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:24px;padding:14px 24px}
+.brand{display:flex;align-items:center;gap:10px;font-family:'Fraunces';font-weight:700;font-size:1.05rem}
+.brand .dot{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;
+  background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));color:var(--bg-deep);font-weight:700}
+.nav{display:flex;gap:4px;margin-left:8px}
+.nav button{
+  font-family:'Inter';font-size:.9rem;font-weight:500;color:hsla(38,35%,92%,0.66);
+  background:transparent;border:none;cursor:pointer;padding:8px 14px;border-radius:8px;
+  display:flex;align-items:center;gap:7px;transition:.2s;
+}
+.nav button:hover{color:var(--cream);background:hsla(36,55%,62%,0.08)}
+.nav button.active{color:var(--bg-deep);background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));font-weight:600}
+.topbar .spacer{flex:1}
+.user-chip{display:flex;align-items:center;gap:10px;padding:5px 6px 5px 14px;border:1px solid var(--border);border-radius:50px}
+.user-chip .nm{font-size:.85rem;font-weight:500}
+.avatar{border-radius:50%;object-fit:cover;background:var(--bg-card);border:1px solid var(--border-gold)}
+.icon-btn{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--border);background:transparent;color:var(--cream);cursor:pointer}
+
+/* ===== PAGE ===== */
+.page{max-width:1200px;margin:0 auto;padding:40px 24px 96px}
+.view{display:none;animation:fade .4s cubic-bezier(.22,1,.36,1)}
+.view.active{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+.page-head{margin-bottom:28px}
+.page-head h1{font-size:clamp(1.8rem,3.5vw,2.5rem);font-weight:700}
+.page-head p{color:hsla(38,35%,92%,0.6);margin-top:6px}
+
+/* ===== CARD ===== */
+.card{
+  background:hsla(165,45%,11%,0.6);backdrop-filter:blur(20px) saturate(140%);
+  border:1px solid hsla(36,55%,62%,0.18);border-radius:16px;padding:24px;
+}
+
+/* ===== INÍCIO — Planos de Ação ===== */
+.section-title{display:flex;align-items:center;gap:10px;font-size:1.4rem;font-weight:700;margin:8px 0 4px}
+.section-sub{color:hsla(38,35%,92%,0.55);margin-bottom:20px;font-size:.95rem}
+.plan-list{display:flex;flex-direction:column;gap:16px}
+.plan{
+  position:relative;overflow:hidden;cursor:pointer;
+  background:hsla(165,45%,11%,0.6);border:1px solid hsla(36,55%,62%,0.16);border-radius:16px;
+  padding:24px 28px;transition:.3s cubic-bezier(.22,1,.36,1);
+}
+.plan:hover{transform:translateY(-3px);border-color:hsla(36,55%,62%,0.4);box-shadow:0 20px 60px -18px hsla(36,55%,62%,0.32)}
+.plan .num{
+  position:absolute;left:10px;top:50%;transform:translateY(-50%);
+  font-family:'Fraunces';font-weight:700;font-size:7rem;line-height:1;
+  color:hsla(36,55%,62%,0.07);pointer-events:none;user-select:none;
+}
+.plan-row{display:flex;align-items:flex-start;gap:16px;position:relative}
+.plan-row .lead{flex:1;min-width:0;display:flex;gap:16px;padding-left:74px}
+.plan-row .mentor{width:48px;height:48px;flex-shrink:0}
+.plan h3{font-size:1.3rem;font-weight:700}
+.plan .deliv{color:hsla(38,35%,92%,0.6);font-size:.92rem;margin-top:3px}
+.plan .right{text-align:right;flex-shrink:0}
+.pct{font-size:1.4rem;font-weight:700;font-family:'Fraunces'}
+.status-info{display:flex;align-items:center;gap:6px;justify-content:flex-end;color:var(--gold);font-size:.85rem;margin-bottom:6px}
+.badge{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;font-weight:500;padding:4px 12px;border-radius:50px;border:1px solid var(--border)}
+.badge.done{color:var(--success);border-color:hsla(145,50%,50%,0.4);background:hsla(145,50%,50%,0.1)}
+.progress{height:8px;border-radius:50px;background:hsla(165,30%,20%,0.8);margin:18px 0 10px;overflow:hidden}
+.progress > i{display:block;height:100%;border-radius:50px;background:linear-gradient(90deg,var(--success),hsl(120,55%,55%))}
+.ahead{color:var(--success);font-size:.85rem;font-weight:500;display:flex;align-items:center;gap:6px}
+
+/* Cursos */
+.course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:18px}
+.course{border:1px solid var(--border);border-radius:14px;overflow:hidden;background:hsla(165,45%,11%,0.5);transition:.3s;cursor:pointer}
+.course:hover{transform:translateY(-3px);border-color:var(--border-gold)}
+.course .thumb{height:120px;background:linear-gradient(135deg,hsl(165,40%,16%),hsl(165,50%,9%));display:grid;place-items:center;color:hsla(36,55%,62%,0.5)}
+.course .meta{padding:14px 16px}
+.course .meta h4{font-size:1rem;font-weight:600;font-family:'Inter'}
+.course .meta p{font-size:.82rem;color:hsla(38,35%,92%,0.5);margin-top:4px}
+
+/* ===== DETALHE DO PLANO ===== */
+.detail-grid{display:grid;grid-template-columns:1.55fr 1fr;gap:24px;align-items:start}
+.back-link{display:inline-flex;align-items:center;gap:6px;color:var(--gold);font-size:.9rem;margin-bottom:18px;cursor:pointer}
+.video-card{
+  position:relative;border-radius:16px;overflow:hidden;aspect-ratio:16/9;
+  background:linear-gradient(150deg,hsl(168,45%,18%),hsl(165,55%,9%));
+  border:1px solid var(--border-gold);display:flex;align-items:flex-end;padding:24px;
+}
+.video-card::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(420px 300px at 75% 20%,hsla(36,55%,62%,0.18),transparent 60%)}
+.video-card .vc-tag{position:absolute;top:22px;left:24px;font-size:.7rem;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:600}
+.video-card .vc-title{position:relative;font-family:'Fraunces';font-weight:700;font-size:1.3rem;max-width:70%}
+.video-card .vc-date{position:relative;display:inline-block;margin-top:10px;font-size:.78rem;color:hsla(38,35%,92%,0.7);background:hsla(165,55%,7%,0.5);padding:4px 12px;border-radius:50px}
+.play{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:66px;height:66px;border-radius:50%;
+  background:hsla(38,35%,92%,0.95);color:var(--bg-deep);display:grid;place-items:center;cursor:pointer;box-shadow:0 14px 40px -10px rgba(0,0,0,.5)}
+.mentors{position:absolute;right:24px;bottom:24px;display:flex}
+.mentors img{width:42px;height:42px;border:2px solid var(--bg-deep);margin-left:-12px}
+
+.kv-card{display:flex;gap:48px;flex-wrap:wrap}
+.kv .lbl{font-size:.78rem;color:hsla(38,35%,92%,0.5);text-transform:uppercase;letter-spacing:.08em}
+.kv .val{font-family:'Fraunces';font-weight:700;font-size:1.15rem;margin-top:2px}
+
+/* Timeline */
+.timeline{position:relative;padding-left:6px}
+.tl-item{position:relative;display:flex;gap:16px;padding-bottom:24px}
+.tl-item:not(:last-child)::before{content:"";position:absolute;left:19px;top:42px;bottom:-2px;width:2px;background:var(--border)}
+.tl-ico{width:40px;height:40px;border-radius:50%;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--border)}
+.tl-ico.blue{background:hsla(210,60%,55%,0.15);color:hsl(210,70%,68%)}
+.tl-ico.green{background:hsla(145,50%,50%,0.15);color:var(--success)}
+.tl-ico.gold{background:hsla(36,55%,62%,0.15);color:var(--gold)}
+.tl-ico.cyan{background:hsla(190,60%,50%,0.15);color:hsl(190,70%,62%)}
+.tl-body h4{font-size:.98rem;font-weight:600;font-family:'Inter'}
+.tl-body .dt{color:hsla(38,35%,92%,0.55);font-size:.88rem}
+.tl-body .see{display:inline-flex;align-items:center;gap:5px;color:var(--gold);font-size:.8rem;margin-top:4px;cursor:pointer}
+
+/* Entregáveis */
+.deliv-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px}
+.deliv-head h3{font-size:1.25rem;font-weight:700}
+.seg{display:flex;gap:4px;border:1px solid var(--border);border-radius:10px;padding:3px}
+.seg button{background:transparent;border:none;color:hsla(38,35%,92%,0.6);cursor:pointer;width:34px;height:30px;border-radius:7px;display:grid;place-items:center}
+.seg button.active{background:hsla(36,55%,62%,0.15);color:var(--gold)}
+.tabs2{display:flex;gap:8px;margin-bottom:16px}
+.tabs2 button{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;padding:10px;border-radius:50px;border:1px solid var(--border);background:transparent;color:hsla(38,35%,92%,0.7);cursor:pointer;font-size:.9rem;font-weight:500}
+.tabs2 button.active{background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));color:var(--bg-deep);border-color:transparent;font-weight:600}
+.tabs2 .cnt{background:hsla(165,55%,7%,0.25);border-radius:50px;padding:1px 9px;font-size:.78rem;font-weight:700}
+.tabs2 button:not(.active) .cnt{background:hsla(36,55%,62%,0.15);color:var(--gold)}
+.task-meta{font-size:.85rem;color:hsla(38,35%,92%,0.55);margin-bottom:14px}
+.task{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid hsla(165,30%,20%,0.6);cursor:pointer}
+.task:last-child{border-bottom:none}
+.chk{width:22px;height:22px;border-radius:6px;flex-shrink:0;display:grid;place-items:center;border:1px solid var(--border)}
+.chk.on{background:hsla(145,50%,50%,0.18);border-color:var(--success);color:var(--success)}
+.task .tx{flex:1;min-width:0}
+.task .tx .ti{font-size:.92rem;font-weight:500;display:flex;align-items:center;gap:6px}
+.task.done .ti{color:hsla(38,35%,92%,0.45);text-decoration:line-through}
+.task .tx .sub{font-size:.82rem;color:hsla(38,35%,92%,0.45);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.task .dt{font-size:.78rem;color:hsla(38,35%,92%,0.45);display:flex;align-items:center;gap:5px;flex-shrink:0}
+.mini-plans{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.mini-plan{position:relative;border-radius:14px;overflow:hidden;aspect-ratio:3/4;padding:14px;display:flex;flex-direction:column;justify-content:space-between;cursor:pointer;border:1px solid var(--border)}
+.mini-plan.p0{background:linear-gradient(160deg,hsl(95,45%,55%),hsl(150,55%,18%))}
+.mini-plan.p1{background:linear-gradient(160deg,hsl(265,40%,55%),hsl(260,45%,22%))}
+.mini-plan .mn{font-family:'Fraunces';font-weight:700;font-size:3.4rem;color:hsla(0,0%,100%,0.22)}
+.mini-plan .who{display:flex;align-items:center;gap:7px;font-size:.78rem;color:#fff;font-weight:500}
+.mini-plan .who img{width:24px;height:24px}
+
+/* ===== MODAL ===== */
+.modal-bg{position:fixed;inset:0;z-index:60;background:hsla(165,60%,4%,0.7);backdrop-filter:blur(4px);display:none;align-items:flex-start;justify-content:center;padding:40px 16px;overflow-y:auto}
+.modal-bg.open{display:flex}
+.modal{width:100%;max-width:760px;background:var(--bg-soft);border:1px solid var(--border-gold);border-radius:18px;padding:30px;animation:fade .3s}
+.modal-x{position:absolute;top:18px;right:18px;cursor:pointer;color:hsla(38,35%,92%,0.6)}
+.modal h2{font-size:1.5rem;font-weight:700;padding-right:30px}
+.modal-badges{display:flex;gap:10px;margin:14px 0 20px}
+.tg{display:inline-flex;align-items:center;gap:6px;font-size:.8rem;padding:5px 12px;border-radius:50px;border:1px solid var(--border)}
+.tg.dark{background:var(--bg-deep);border-color:var(--border-gold)}
+.modal-kv{display:flex;gap:60px;margin-bottom:22px}
+.tabs3{display:flex;border-bottom:1px solid var(--border);margin-bottom:20px}
+.tabs3 button{flex:1;background:transparent;border:none;color:hsla(38,35%,92%,0.55);cursor:pointer;padding:12px;font-size:.95rem;font-weight:500;border-bottom:2px solid transparent}
+.tabs3 button.active{color:var(--cream);border-bottom-color:var(--gold)}
+.m-pane{display:none}.m-pane.active{display:block}
+.m-pane p{margin-bottom:12px;color:hsla(38,35%,92%,0.85);font-size:.95rem}
+.m-pane ul{margin:0 0 12px 20px;color:hsla(38,35%,92%,0.85);font-size:.95rem}
+.link-row{display:flex;align-items:center;gap:10px;padding:12px 16px;border:1px solid var(--border);border-radius:10px;margin-bottom:10px;font-size:.88rem;color:var(--gold);word-break:break-all}
+.link-row.hl{background:var(--bg-deep);border-color:var(--border-gold)}
+
+/* ===== FORM ===== */
+.form-wrap{max-width:860px}
+.form-card{margin-bottom:24px}
+.form-card > .fc-head{display:flex;align-items:center;gap:10px;margin-bottom:20px}
+.form-card > .fc-head .ic{width:38px;height:38px;border-radius:10px;display:grid;place-items:center;background:hsla(36,55%,62%,0.12);color:var(--gold)}
+.form-card > .fc-head h3{font-size:1.2rem;font-weight:700}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px}
+.field{display:flex;flex-direction:column;gap:6px;margin-bottom:2px}
+.field.full{grid-column:1/-1}
+.field label{font-size:.82rem;font-weight:500;color:hsla(38,35%,92%,0.75)}
+.field label .req{color:var(--gold)}
+.field input,.field select,.field textarea{
+  font-family:'Inter';font-size:.92rem;color:var(--cream);
+  background:hsla(165,55%,7%,0.5);border:1px solid var(--border);border-radius:10px;padding:11px 13px;width:100%;transition:.2s;
+}
+.field textarea{resize:vertical;min-height:90px}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px hsla(36,55%,62%,0.12)}
+.field select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' fill='none' stroke='%23c9a25f' stroke-width='2'%3E%3Cpath d='M3 5l4 4 4-4'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 13px center}
+.photo-up{display:flex;align-items:center;gap:18px;margin-bottom:22px}
+.photo-circle{width:92px;height:92px;border-radius:50%;border:2px dashed var(--border-gold);display:grid;place-items:center;color:hsla(36,55%,62%,0.6);flex-shrink:0;background:hsla(165,55%,7%,0.4)}
+.photo-up .pu-txt h4{font-size:1rem;font-weight:600;font-family:'Inter'}
+.photo-up .pu-txt p{font-size:.82rem;color:hsla(38,35%,92%,0.5);margin:2px 0 8px}
+.btn-sm{font-size:.82rem;font-weight:600;border:1px solid var(--border-gold);background:transparent;color:var(--gold);padding:8px 14px;border-radius:8px;cursor:pointer}
+.atend-group{display:flex;gap:10px;flex-wrap:wrap}
+.atend{flex:1;min-width:140px;display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;cursor:pointer;transition:.2s}
+.atend:hover{border-color:var(--border-gold)}
+.atend.sel{border-color:var(--gold);background:hsla(36,55%,62%,0.08)}
+.atend .rd{width:18px;height:18px;border-radius:50%;border:2px solid var(--border);flex-shrink:0;display:grid;place-items:center}
+.atend.sel .rd{border-color:var(--gold)}
+.atend.sel .rd::after{content:"";width:8px;height:8px;border-radius:50%;background:var(--gold)}
+.atend span{font-size:.9rem;font-weight:500}
+.form-actions{display:flex;gap:12px;justify-content:flex-end;margin-top:8px}
+.btn-primary{font-family:'Inter';font-weight:700;font-size:.95rem;border:none;cursor:pointer;color:var(--bg-deep);
+  background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));padding:13px 28px;border-radius:9px;
+  box-shadow:0 14px 40px -14px hsla(36,55%,62%,0.45);display:inline-flex;align-items:center;gap:8px}
+.btn-primary:hover{transform:translateY(-1px);opacity:.94}
+.btn-ghost{font-family:'Inter';font-weight:600;font-size:.95rem;border:1px solid var(--border);background:transparent;color:var(--cream);padding:13px 24px;border-radius:9px;cursor:pointer}
+
+/* ===== ADMIN ===== */
+.mode-toggle{display:flex;gap:3px;border:1px solid var(--border);border-radius:50px;padding:3px}
+.mode-toggle button{background:transparent;border:none;color:hsla(38,35%,92%,0.6);cursor:pointer;font-size:.82rem;font-weight:600;padding:6px 13px;border-radius:50px;display:flex;align-items:center;gap:6px}
+.mode-toggle button.active{background:linear-gradient(135deg,var(--gold-light),var(--gold-deep));color:var(--bg-deep)}
+.admin-nav{display:none}
+
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:28px}
+.kpi{background:hsla(165,45%,11%,0.6);border:1px solid hsla(36,55%,62%,0.16);border-radius:14px;padding:18px 20px}
+.kpi .k-ic{width:40px;height:40px;border-radius:10px;display:grid;place-items:center;background:hsla(36,55%,62%,0.12);color:var(--gold);margin-bottom:12px}
+.kpi .k-val{font-family:'Fraunces';font-weight:700;font-size:1.9rem;line-height:1}
+.kpi .k-lbl{color:hsla(38,35%,92%,0.6);font-size:.85rem;margin-top:4px}
+.kpi .k-trend{font-size:.78rem;margin-top:8px;display:flex;align-items:center;gap:4px;color:hsla(38,35%,92%,0.5)}
+.kpi .k-trend.up{color:var(--success)}
+
+.panel-2col{display:grid;grid-template-columns:1.25fr 1fr;gap:24px;align-items:start}
+.queue-item{display:flex;align-items:center;gap:12px;padding:13px 0;border-bottom:1px solid hsla(165,30%,20%,0.5)}
+.queue-item:last-child{border-bottom:none}
+.queue-item img{width:38px;height:38px;flex-shrink:0}
+.queue-item .qi{flex:1;min-width:0}
+.queue-item .qi .qt{font-weight:600;font-size:.9rem}
+.queue-item .qi .qs{font-size:.8rem;color:hsla(38,35%,92%,0.5)}
+.agenda-item{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid hsla(165,30%,20%,0.5)}
+.agenda-item:last-child{border-bottom:none}
+.agenda-item .ad{width:48px;flex-shrink:0;text-align:center}
+.agenda-item .ad .d{font-family:'Fraunces';font-weight:700;font-size:1.3rem;line-height:1}
+.agenda-item .ad .m{font-size:.7rem;text-transform:uppercase;color:var(--gold);letter-spacing:.06em}
+
+.sec-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px;gap:16px;flex-wrap:wrap}
+
+.ent-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:34px}
+.ent{display:flex;align-items:center;gap:14px;padding:18px 20px}
+.ent-ic{width:46px;height:46px;border-radius:12px;display:grid;place-items:center;background:hsla(36,55%,62%,0.12);color:var(--gold);flex-shrink:0}
+.ent-lbl{font-size:.82rem;color:hsla(38,35%,92%,0.6)}
+.ent-val{font-family:'Fraunces';font-weight:700;font-size:1.35rem;line-height:1.15}
+.ent-sub{font-size:.8rem;color:hsla(38,35%,92%,0.5);margin-top:2px}
+.ent .btn-sm{margin-left:auto;flex-shrink:0}
+
+.tbl-wrap{overflow-x:auto}
+table.tbl{width:100%;border-collapse:collapse;font-size:.9rem}
+table.tbl th{text-align:left;font-size:.72rem;text-transform:uppercase;letter-spacing:.07em;color:hsla(38,35%,92%,0.5);font-weight:600;padding:12px 14px;border-bottom:1px solid var(--border);white-space:nowrap}
+table.tbl td{padding:13px 14px;border-bottom:1px solid hsla(165,30%,20%,0.45);white-space:nowrap}
+table.tbl tr:last-child td{border-bottom:none}
+table.tbl tr:hover td{background:hsla(36,55%,62%,0.04)}
+.cell-user{display:flex;align-items:center;gap:10px}
+.cell-user img{width:34px;height:34px}
+.cell-user .nm{font-weight:600}
+.cell-user .em{font-size:.76rem;color:hsla(38,35%,92%,0.5)}
+.mini-prog{height:6px;width:84px;border-radius:50px;background:hsla(165,30%,20%,0.8);overflow:hidden;display:inline-block;vertical-align:middle;margin-right:8px}
+.mini-prog>i{display:block;height:100%;background:linear-gradient(90deg,var(--success),hsl(120,55%,55%))}
+.pill{font-size:.74rem;padding:3px 10px;border-radius:50px;border:1px solid var(--border);display:inline-flex;align-items:center;gap:5px}
+.pill.green{color:var(--success);border-color:hsla(145,50%,50%,0.4);background:hsla(145,50%,50%,0.1)}
+.pill.gold{color:var(--gold);border-color:var(--border-gold);background:hsla(36,55%,62%,0.08)}
+.pill.red{color:var(--error);border-color:hsla(4,70%,55%,0.4);background:hsla(4,70%,55%,0.1)}
+.row-act{color:var(--gold);cursor:pointer;font-size:.82rem;display:inline-flex;align-items:center;gap:4px}
+
+.kanban{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.kcol{background:hsla(165,50%,8%,0.5);border:1px solid var(--border);border-radius:14px;padding:14px}
+.kcol .kh{display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:.92rem;margin-bottom:12px}
+.kcol .kh .cnt{font-size:.74rem;background:hsla(36,55%,62%,0.15);color:var(--gold);border-radius:50px;padding:1px 9px}
+.kcard{background:hsla(165,45%,11%,0.7);border:1px solid hsla(36,55%,62%,0.16);border-radius:11px;padding:13px;margin-bottom:10px;cursor:pointer;transition:.2s}
+.kcard:hover{border-color:var(--border-gold);transform:translateY(-2px)}
+.kcard .kt{font-weight:600;font-size:.9rem;margin-bottom:7px}
+.kcard .kmeta{display:flex;align-items:center;gap:7px;font-size:.78rem;color:hsla(38,35%,92%,0.55)}
+.kcard .kmeta img{width:20px;height:20px}
+.kcard .kfoot{display:flex;align-items:center;justify-content:space-between;margin-top:10px;padding-top:10px;border-top:1px solid hsla(165,30%,20%,0.5)}
+
+.builder-row{display:flex;gap:10px;align-items:center;margin-bottom:10px}
+.builder-row .bnum{width:26px;height:26px;border-radius:7px;background:hsla(36,55%,62%,0.12);color:var(--gold);display:grid;place-items:center;font-size:.8rem;font-weight:700;flex-shrink:0}
+.builder-row input{flex:1}
+.builder-row .del{cursor:pointer;color:hsla(38,35%,92%,0.45);flex-shrink:0}
+.builder-row .del:hover{color:var(--error)}
+.add-row{display:inline-flex;align-items:center;gap:7px;color:var(--gold);font-size:.85rem;font-weight:600;cursor:pointer;border:1px dashed var(--border-gold);border-radius:9px;padding:9px 14px;background:transparent;margin-top:4px}
+
+.dropzone{border:2px dashed var(--border-gold);border-radius:12px;padding:24px;text-align:center;color:hsla(38,35%,92%,0.6);background:hsla(165,55%,7%,0.3);cursor:pointer}
+.dropzone:hover{border-color:var(--gold);background:hsla(36,55%,62%,0.05)}
+.dropzone .dz-ic{color:var(--gold);margin-bottom:8px}
+.video-pending{display:flex;align-items:center;gap:12px;border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-top:12px}
+.video-pending .vp-ic{width:38px;height:38px;border-radius:8px;background:hsla(36,55%,62%,0.12);color:var(--gold);display:grid;place-items:center;flex-shrink:0}
+
+@media (max-width:880px){
+  .panel-2col{grid-template-columns:1fr}
+  .ent-grid{grid-template-columns:1fr}
+  .kanban{grid-template-columns:1fr}
+  .detail-grid{grid-template-columns:1fr}
+  .grid2,.grid3{grid-template-columns:1fr}
+  .nav button span.lbl{display:none}
+  .plan-row{flex-direction:column}
+  .plan-row .lead{padding-left:60px}
+  .plan .right{text-align:left}
+  .status-info,.ahead{justify-content:flex-start}
+  .user-chip .nm{display:none}
+}
+@media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== TOPBAR ===== -->
+<header class="topbar">
+  <div class="topbar-in">
+    <div class="brand"><span class="dot">14</span> Central do <span class="gold-text">Dono&nbsp;14%</span></div>
+    <div class="mode-toggle">
+      <button data-mode="client" class="active"><i data-lucide="user-round" style="width:14px"></i> Mentorado</button>
+      <button data-mode="admin"><i data-lucide="shield" style="width:14px"></i> Admin</button>
+    </div>
+    <nav class="nav client-nav">
+      <button data-go="inicio" class="active"><i data-lucide="home" style="width:16px"></i><span class="lbl">Início</span></button>
+      <button data-go="cadastro"><i data-lucide="user-round" style="width:16px"></i><span class="lbl">Meu Cadastro</span></button>
+    </nav>
+    <nav class="nav admin-nav">
+      <button data-go="painel" class="active"><i data-lucide="layout-dashboard" style="width:16px"></i><span class="lbl">Painel</span></button>
+      <button data-go="mentorados"><i data-lucide="users" style="width:16px"></i><span class="lbl">Mentorados</span></button>
+      <button data-go="planos"><i data-lucide="list-checks" style="width:16px"></i><span class="lbl">Planos de Ação</span></button>
+      <button data-go="entregas"><i data-lucide="inbox" style="width:16px"></i><span class="lbl">Entregas</span></button>
+    </nav>
+    <div class="spacer"></div>
+    <button class="icon-btn" title="Notificações"><i data-lucide="bell" style="width:18px"></i></button>
+    <div class="user-chip">
+      <span class="nm" id="userName">Lucas Andrade</span>
+      <img class="avatar" width="32" height="32" src="https://i.pravatar.cc/64?img=12" alt="">
+    </div>
+  </div>
+</header>
+
+<main class="page">
+
+<!-- ============ VIEW: INÍCIO ============ -->
+<section id="view-inicio" class="view active">
+  <div class="page-head">
+    <span class="eyebrow"><i data-lucide="sparkles" style="width:13px"></i> Bem-vindo de volta</span>
+    <h1 style="margin-top:14px">Olá, Lucas</h1>
+    <p>Seu lugar para acompanhar a mentoria, os planos de ação e suas entregas.</p>
+  </div>
+
+  <div class="ent-grid">
+    <div class="card ent">
+      <div class="ent-ic"><i data-lucide="calendar-clock" style="width:22px"></i></div>
+      <div>
+        <div class="ent-lbl">Reuniões de Engenheiro para Dono</div>
+        <div class="ent-val">Mensais</div>
+        <div class="ent-sub">Próxima: 30/06/2026 · com Rodrigo Haertel</div>
+      </div>
+    </div>
+    <div class="card ent">
+      <div class="ent-ic"><i data-lucide="wrench" style="width:22px"></i></div>
+      <div>
+        <div class="ent-lbl">Parada Técnica</div>
+        <div class="ent-val">2 disponíveis</div>
+        <div class="ent-sub">2 reuniões adicionais, além das mensais</div>
+      </div>
+      <button class="btn-sm"><i data-lucide="calendar-plus" style="width:13px;vertical-align:-2px"></i> Agendar</button>
+    </div>
+  </div>
+
+  <div class="section-title"><i data-lucide="list-checks" style="width:22px;color:var(--gold)"></i> Planos de Ação</div>
+  <p class="section-sub">Acompanhe seus planos de ação e entregas</p>
+
+  <div class="plan-list">
+
+    <!-- Plano 2 -->
+    <article class="plan" onclick="openDetail()">
+      <span class="num">2</span>
+      <div class="plan-row">
+        <div class="lead">
+          <img class="avatar mentor" src="https://i.pravatar.cc/96?img=33" alt="">
+          <div>
+            <h3>Plano de ação 2</h3>
+            <div class="deliv">7 de 7 entregas concluídas</div>
+          </div>
+        </div>
+        <div class="right">
+          <div class="status-info"><i data-lucide="info" style="width:15px"></i> Sua Reunião de Engenheiro para Dono 02 está agendada para 30/06/2026</div>
+          <div class="pct">100%</div>
+        </div>
+      </div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="ahead"><i data-lucide="check-circle-2" style="width:15px"></i> Entregue com 9 dias de antecedência</div>
+    </article>
+
+    <!-- Plano 1 -->
+    <article class="plan" onclick="openDetail()">
+      <span class="num">1</span>
+      <div class="plan-row">
+        <div class="lead">
+          <img class="avatar mentor" src="https://i.pravatar.cc/96?img=15" alt="">
+          <div>
+            <h3>Plano de ação 1</h3>
+            <div class="deliv">14 de 14 entregas concluídas</div>
+          </div>
+        </div>
+        <div class="right">
+          <div style="margin-bottom:8px"><span class="badge done"><i data-lucide="check" style="width:13px"></i> Concluído</span></div>
+          <div class="pct">100%</div>
+        </div>
+      </div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="ahead"><i data-lucide="check-circle-2" style="width:15px"></i> Entregue com 21 dias de antecedência</div>
+    </article>
+
+    <!-- Ajuste de velas -->
+    <article class="plan" onclick="openDetail()">
+      <span class="num">0</span>
+      <div class="plan-row">
+        <div class="lead">
+          <img class="avatar mentor" src="https://i.pravatar.cc/96?img=8" alt="">
+          <div>
+            <h3>Ajuste de velas</h3>
+            <div class="deliv">3 de 3 entregas concluídas</div>
+          </div>
+        </div>
+        <div class="right">
+          <div style="margin-bottom:8px"><span class="badge done"><i data-lucide="check" style="width:13px"></i> Concluído</span></div>
+          <div class="pct">100%</div>
+        </div>
+      </div>
+      <div class="progress"><i style="width:100%"></i></div>
+      <div class="ahead"><i data-lucide="check-circle-2" style="width:15px"></i> Entregue com 6 dias de antecedência</div>
+    </article>
+
+  </div>
+
+  <div class="section-title" style="margin-top:48px"><i data-lucide="graduation-cap" style="width:22px;color:var(--gold)"></i> Cursos Disponíveis</div>
+  <p class="section-sub">Conteúdos liberados para o seu nível na mentoria</p>
+  <div class="course-grid">
+    <div class="course"><div class="thumb"><i data-lucide="calculator" style="width:34px"></i></div><div class="meta"><h4>Precificação do Prato</h4><p>8 aulas · CMV e margem real</p></div></div>
+    <div class="course"><div class="thumb"><i data-lucide="layout-dashboard" style="width:34px"></i></div><div class="meta"><h4>Painel do Dono</h4><p>Implantação do sistema</p></div></div>
+    <div class="course"><div class="thumb"><i data-lucide="trending-down" style="width:34px"></i></div><div class="meta"><h4>Corte de Desperdício</h4><p>6 aulas · Ficha técnica</p></div></div>
+    <div class="course"><div class="thumb"><i data-lucide="users" style="width:34px"></i></div><div class="meta"><h4>Gestão de Equipe</h4><p>Escala e produtividade</p></div></div>
+  </div>
+</section>
+
+<!-- ============ VIEW: DETALHE DO PLANO ============ -->
+<section id="view-detalhe" class="view">
+  <div class="back-link" onclick="goView('inicio')"><i data-lucide="arrow-left" style="width:16px"></i> Voltar para os planos</div>
+  <div class="detail-grid">
+
+    <!-- COLUNA ESQUERDA -->
+    <div>
+      <h1 style="font-size:1.7rem;font-weight:700;margin-bottom:18px">Reunião de Engenheiro para Dono 01</h1>
+      <div class="video-card">
+        <div class="vc-tag">Dono 14% · Mentoria</div>
+        <div>
+          <div class="vc-title">Reunião de Engenheiro para Dono 01</div>
+          <span class="vc-date">28 de abr de 2026</span>
+        </div>
+        <div class="play"><i data-lucide="play" style="width:24px;margin-left:3px"></i></div>
+        <div class="mentors">
+          <img class="avatar" src="https://i.pravatar.cc/64?img=12" alt="">
+          <img class="avatar" src="https://i.pravatar.cc/64?img=33" alt="">
+          <img class="avatar" src="https://i.pravatar.cc/64?img=15" alt="">
+        </div>
+      </div>
+
+      <div class="card kv-card" style="margin-top:24px">
+        <div class="kv"><div class="lbl">Entregue em</div><div class="val">24 de abril de 2026</div>
+          <span class="badge" style="margin-top:10px;display:inline-flex"><i data-lucide="clock" style="width:13px"></i> 21 dias de antecedência</span></div>
+        <div class="kv"><div class="lbl">Prazo</div><div class="val">15 de maio de 2026</div></div>
+      </div>
+
+      <div class="card" style="margin-top:24px">
+        <h3 style="font-size:1.25rem;font-weight:700;margin-bottom:20px">Timeline do Plano</h3>
+        <div class="timeline">
+          <div class="tl-item"><div class="tl-ico blue"><i data-lucide="rocket" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Liberado em</h4><div class="dt">11 de março de 2026</div></div></div>
+          <div class="tl-item"><div class="tl-ico green"><i data-lucide="check-circle-2" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Entregue em</h4><div class="dt">24 de abril de 2026</div><div class="see"><i data-lucide="eye" style="width:14px"></i> Ver detalhes</div></div></div>
+          <div class="tl-item"><div class="tl-ico gold"><i data-lucide="star" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Avaliação do navegador</h4><div class="dt">24 de abril de 2026</div><div class="see"><i data-lucide="eye" style="width:14px"></i> Ver detalhes</div></div></div>
+          <div class="tl-item"><div class="tl-ico blue"><i data-lucide="calendar" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Agendas liberadas em</h4><div class="dt">24 de abril de 2026</div></div></div>
+          <div class="tl-item"><div class="tl-ico cyan"><i data-lucide="calendar-check" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Reunião de Engenheiro para Dono 01 agendada</h4><div class="dt">28 de abril de 2026</div><div class="dt muted-2" style="font-size:.78rem">Agendada em 24 de abril de 2026</div></div></div>
+          <div class="tl-item"><div class="tl-ico gold"><i data-lucide="star" style="width:18px"></i></div>
+            <div class="tl-body"><h4>Avaliação da reunião</h4><div class="dt">29 de abril de 2026</div><div class="see"><i data-lucide="eye" style="width:14px"></i> Ver detalhes</div></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- COLUNA DIREITA -->
+    <div>
+      <div class="card">
+        <div class="deliv-head">
+          <h3>Entregáveis</h3>
+          <div class="seg"><button class="active"><i data-lucide="list" style="width:16px"></i></button><button><i data-lucide="grid-3x3" style="width:16px"></i></button></div>
+        </div>
+        <div class="tabs2">
+          <button class="active"><img class="avatar" width="20" height="20" src="https://i.pravatar.cc/40?img=12"> Analisados <span class="cnt">14</span></button>
+          <button><img class="avatar" width="20" height="20" src="https://i.pravatar.cc/40?img=33"> Ações <span class="cnt">7</span></button>
+        </div>
+        <div style="font-weight:600;margin-bottom:2px">Tarefas</div>
+        <div class="task-meta">7 de 7 tarefas concluídas (100%)</div>
+
+        <div class="task done" onclick="openTask()">
+          <div class="chk on"><i data-lucide="check" style="width:14px"></i></div>
+          <div class="tx"><div class="ti"><span style="opacity:.6">1.</span> Rodrigo, comece por aqui</div><div class="sub">Oi, Rodrigo! Espero que esteja tudo bem...</div></div>
+          <div class="dt"><i data-lucide="clock" style="width:13px"></i> 06 mai</div>
+        </div>
+        <div class="task done" onclick="openTask()">
+          <div class="chk on"><i data-lucide="check" style="width:14px"></i></div>
+          <div class="tx"><div class="ti"><span style="opacity:.6">2.</span> Bônus exclusivos desbloqueados</div><div class="sub">Cada plano de ação concluído...</div></div>
+          <div class="dt"><i data-lucide="clock" style="width:13px"></i> 06 mai</div>
+        </div>
+        <div class="task done" onclick="openTask()">
+          <div class="chk on"><i data-lucide="check" style="width:14px"></i></div>
+          <div class="tx"><div class="ti"><span style="opacity:.6">3.</span> Monte a oferta da venda do produto</div><div class="sub">Estruture a oferta principal...</div></div>
+          <div class="dt"><i data-lucide="clock" style="width:13px"></i> 12 mai</div>
+        </div>
+        <div class="task done" onclick="openTask()">
+          <div class="chk on"><i data-lucide="check" style="width:14px"></i></div>
+          <div class="tx"><div class="ti"><span style="opacity:.6">4.</span> Escrever 3 anúncios de conversão</div><div class="sub">Urgência oculta · Mandala de anúncios</div></div>
+          <div class="dt"><i data-lucide="clock" style="width:13px"></i> 15 mai</div>
+        </div>
+        <div class="task done" onclick="openTask()">
+          <div class="chk on"><i data-lucide="check" style="width:14px"></i></div>
+          <div class="tx"><div class="ti"><span style="opacity:.6">5.</span> Ajuste de CMV no cardápio</div><div class="sub">Revisar ficha técnica dos 10 pratos...</div></div>
+          <div class="dt"><i data-lucide="clock" style="width:13px"></i> 15 mai</div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:20px">
+        <h3 style="font-size:1.15rem;font-weight:700;margin-bottom:14px">Planos de Ação</h3>
+        <div class="mini-plans">
+          <div class="mini-plan p0" onclick="openDetail()"><span class="mn">0</span><div class="who"><img class="avatar" src="https://i.pravatar.cc/40?img=8"> Ajuste de velas</div></div>
+          <div class="mini-plan p1" onclick="openDetail()"><span class="mn">1</span><div class="who"><img class="avatar" src="https://i.pravatar.cc/40?img=15"> Plano de ação 1</div></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<!-- ============ VIEW: CADASTRO ============ -->
+<section id="view-cadastro" class="view">
+  <div class="page-head">
+    <span class="eyebrow"><i data-lucide="id-card" style="width:13px"></i> Cadastro do Mentorado</span>
+    <h1 style="margin-top:14px">Meu Cadastro</h1>
+    <p>Preencha seus dados para personalizarmos a sua jornada na mentoria Dono 14%.</p>
+  </div>
+
+  <div class="form-wrap">
+
+    <!-- DADOS PESSOAIS -->
+    <div class="card form-card">
+      <div class="fc-head"><div class="ic"><i data-lucide="user-round" style="width:20px"></i></div><h3>Dados Pessoais</h3></div>
+
+      <div class="photo-up">
+        <div class="photo-circle"><i data-lucide="camera" style="width:26px"></i></div>
+        <div class="pu-txt"><h4>Foto de perfil</h4><p>JPG ou PNG, até 5 MB</p><button class="btn-sm"><i data-lucide="upload" style="width:13px;vertical-align:-2px"></i> Enviar foto</button></div>
+      </div>
+
+      <div class="grid2">
+        <div class="field"><label>Nome <span class="req">*</span></label><input placeholder="Seu nome"></div>
+        <div class="field"><label>Sobrenome <span class="req">*</span></label><input placeholder="Seu sobrenome"></div>
+        <div class="field"><label>Apelido</label><input placeholder="Como gosta de ser chamado"></div>
+        <div class="field"><label>Data de Nascimento</label><input type="date"></div>
+        <div class="field"><label>E-mail <span class="req">*</span></label><input type="email" placeholder="voce@email.com"></div>
+        <div class="field"><label>Telefone / WhatsApp <span class="req">*</span></label><input placeholder="(00) 00000-0000"></div>
+        <div class="field"><label>RG</label><input placeholder="00.000.000-0"></div>
+        <div class="field"><label>CPF</label><input placeholder="000.000.000-00"></div>
+        <div class="field"><label>Estado Civil</label>
+          <select><option value="">Selecione</option><option>Solteiro(a)</option><option>Casado(a)</option><option>União estável</option><option>Divorciado(a)</option><option>Viúvo(a)</option></select></div>
+        <div class="field"><label>Renda Mensal</label>
+          <select><option value="">Selecione a faixa</option><option>Até R$ 5.000</option><option>R$ 5.001 a R$ 15.000</option><option>R$ 15.001 a R$ 30.000</option><option>R$ 30.001 a R$ 60.000</option><option>Acima de R$ 60.000</option></select></div>
+        <div class="field"><label>Dono 14% desde</label><input type="date"></div>
+      </div>
+    </div>
+
+    <!-- ENDEREÇO -->
+    <div class="card form-card">
+      <div class="fc-head"><div class="ic"><i data-lucide="map-pin" style="width:20px"></i></div><h3>Endereço</h3></div>
+      <div class="grid3">
+        <div class="field"><label>País</label><input value="Brasil"></div>
+        <div class="field"><label>CEP</label><input placeholder="00000-000"></div>
+        <div class="field"><label>Estado</label>
+          <select><option value="">UF</option><option>SP</option><option>RJ</option><option>MG</option><option>RS</option><option>PR</option><option>SC</option><option>BA</option><option>Outro</option></select></div>
+        <div class="field full"><label>Endereço completo</label><input placeholder="Rua, número, complemento, bairro, cidade"></div>
+      </div>
+    </div>
+
+    <!-- EXPECTATIVAS -->
+    <div class="card form-card">
+      <div class="fc-head"><div class="ic"><i data-lucide="target" style="width:20px"></i></div><h3>Sua jornada na mentoria</h3></div>
+      <div class="field"><label>Quais seus objetivos com a mentoria Dono 14%?</label>
+        <textarea placeholder="Ex: sair do vermelho, entender meu CMV, atingir 14% de lucro operacional..."></textarea></div>
+      <div class="field" style="margin-top:12px"><label>O que para você não pode faltar na mentoria?</label>
+        <textarea placeholder="Ex: acompanhamento de perto, clareza nos números, plano de ação prático..."></textarea></div>
+    </div>
+
+    <!-- DADOS DO RESTAURANTE -->
+    <div class="card form-card">
+      <div class="fc-head"><div class="ic"><i data-lucide="store" style="width:20px"></i></div><h3>Dados do Restaurante</h3></div>
+      <div class="grid2">
+        <div class="field"><label>Nome do restaurante <span class="req">*</span></label><input placeholder="Nome fantasia"></div>
+        <div class="field"><label>CNPJ</label><input placeholder="00.000.000/0000-00"></div>
+        <div class="field"><label>Site</label><input placeholder="https://"></div>
+        <div class="field"><label>Cargo que você ocupa</label><input placeholder="Ex: Proprietário, Sócio-gestor"></div>
+        <div class="field"><label>Instagram</label><input placeholder="@seurestaurante"></div>
+        <div class="field"><label>Facebook</label><input placeholder="/seurestaurante"></div>
+        <div class="field full"><label>Endereço completo do restaurante</label><input placeholder="Rua, número, bairro, cidade, UF"></div>
+        <div class="field"><label>Data de fundação</label><input type="date"></div>
+        <div class="field"><label>Quantidade de colaboradores</label>
+          <select><option value="">Selecione</option><option>1 a 5</option><option>6 a 15</option><option>16 a 30</option><option>31 a 60</option><option>Mais de 60</option></select></div>
+        <div class="field"><label>Faturamento mensal</label>
+          <select><option value="">Selecione a faixa</option><option>Até R$ 50 mil</option><option>R$ 50 mil a R$ 100 mil</option><option>R$ 100 mil a R$ 300 mil</option><option>R$ 300 mil a R$ 600 mil</option><option>Acima de R$ 600 mil</option></select></div>
+        <div class="field"><label>Lucro operacional estimado</label>
+          <select><option value="">Selecione</option><option>Estou no prejuízo</option><option>Empato (0%)</option><option>Até 5%</option><option>5% a 10%</option><option>10% a 14%</option><option>Acima de 14%</option><option>Não sei medir</option></select></div>
+        <div class="field"><label>Sistema de gestão que utiliza</label><input placeholder="Ex: Consumer, Saipos, Goomer, planilha, nenhum"></div>
+      </div>
+
+      <div class="field full" style="margin-top:16px"><label>Formas de atendimento</label>
+        <div class="atend-group" id="atend">
+          <div class="atend" data-v="salao"><span class="rd"></span><span>Salão</span></div>
+          <div class="atend" data-v="delivery"><span class="rd"></span><span>Delivery</span></div>
+          <div class="atend sel" data-v="ambos"><span class="rd"></span><span>Salão e Delivery</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="form-actions">
+      <button class="btn-ghost">Cancelar</button>
+      <button class="btn-primary"><i data-lucide="check" style="width:16px"></i> Salvar cadastro</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN: PAINEL ============ -->
+<section id="view-painel" class="view" data-mode="admin">
+  <div class="page-head">
+    <span class="eyebrow"><i data-lucide="shield" style="width:13px"></i> Área do Mentor</span>
+    <h1 style="margin-top:14px">Painel</h1>
+    <p>Visão geral da mentoria Dono 14% e das entregas dos mentorados.</p>
+  </div>
+
+  <div class="kpi-grid">
+    <div class="kpi"><div class="k-ic"><i data-lucide="users" style="width:20px"></i></div><div class="k-val">24</div><div class="k-lbl">Mentorados ativos</div><div class="k-trend up"><i data-lucide="trending-up" style="width:13px"></i> +3 este mês</div></div>
+    <div class="kpi"><div class="k-ic"><i data-lucide="list-checks" style="width:20px"></i></div><div class="k-val">11</div><div class="k-lbl">Planos em andamento</div><div class="k-trend">de 38 no total</div></div>
+    <div class="kpi"><div class="k-ic"><i data-lucide="inbox" style="width:20px"></i></div><div class="k-val">5</div><div class="k-lbl">Aguardando Reunião de Engenheiro</div><div class="k-trend up"><i data-lucide="alarm-clock" style="width:13px"></i> 2 vencem hoje</div></div>
+    <div class="kpi"><div class="k-ic"><i data-lucide="calendar-check" style="width:20px"></i></div><div class="k-val">3</div><div class="k-lbl">Reuniões agendadas</div><div class="k-trend">próxima em 30/06</div></div>
+  </div>
+
+  <div class="panel-2col">
+    <div class="card">
+      <div class="sec-head" style="margin-bottom:6px"><h3 style="font-size:1.2rem;font-weight:700">Aguardando Reunião de Engenheiro para Dono</h3></div>
+      <p class="muted" style="font-size:.85rem;margin-bottom:8px">Mentorados que concluíram o plano e esperam sua Reunião de Engenheiro para Dono</p>
+      <div class="queue-item"><img class="avatar" src="https://i.pravatar.cc/64?img=12"><div class="qi"><div class="qt">Lucas Andrade · Plano de ação 2</div><div class="qs">7/7 entregas · concluído em 21/06</div></div><button class="btn-sm" onclick="setMode('admin');goView('entregas')"><i data-lucide="play-circle" style="width:13px;vertical-align:-2px"></i> Subir reunião</button></div>
+      <div class="queue-item"><img class="avatar" src="https://i.pravatar.cc/64?img=5"><div class="qi"><div class="qt">Marina Costa · Plano de ação 1</div><div class="qs">14/14 entregas · concluído em 24/06</div></div><button class="btn-sm">Subir reunião</button></div>
+      <div class="queue-item"><img class="avatar" src="https://i.pravatar.cc/64?img=20"><div class="qi"><div class="qt">Carlos Menezes · Ajuste de velas</div><div class="qs">3/3 entregas · concluído em 25/06</div></div><button class="btn-sm">Subir reunião</button></div>
+      <div class="queue-item"><img class="avatar" src="https://i.pravatar.cc/64?img=32"><div class="qi"><div class="qt">Fernanda Lima · Plano de ação 1</div><div class="qs">14/14 entregas · concluído em 26/06</div></div><button class="btn-sm">Subir reunião</button></div>
+    </div>
+
+    <div class="card">
+      <h3 style="font-size:1.2rem;font-weight:700;margin-bottom:8px">Próximas reuniões agendadas</h3>
+      <div class="agenda-item"><div class="ad"><div class="d">30</div><div class="m">jun</div></div><div><div style="font-weight:600;font-size:.9rem">Lucas Andrade</div><div class="muted" style="font-size:.82rem">Reunião de Engenheiro para Dono · Plano 2 · 14h</div></div></div>
+      <div class="agenda-item"><div class="ad"><div class="d">02</div><div class="m">jul</div></div><div><div style="font-weight:600;font-size:.9rem">Marina Costa</div><div class="muted" style="font-size:.82rem">Reunião de Engenheiro para Dono · Plano 1 · 10h</div></div></div>
+      <div class="agenda-item"><div class="ad"><div class="d">04</div><div class="m">jul</div></div><div><div style="font-weight:600;font-size:.9rem">Carlos Menezes</div><div class="muted" style="font-size:.82rem">Ajuste de velas · 16h</div></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN: MENTORADOS ============ -->
+<section id="view-mentorados" class="view" data-mode="admin">
+  <div class="page-head">
+    <span class="eyebrow"><i data-lucide="users" style="width:13px"></i> Base de mentorados</span>
+    <h1 style="margin-top:14px">Mentorados</h1>
+    <p>Todos os donos na mentoria Dono 14% e o progresso de cada um.</p>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Mentorado</th><th>Restaurante</th><th>Faturamento</th><th>Lucro op.</th><th>Progresso</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <tr><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=12"><div><div class="nm">Lucas Andrade</div><div class="em">rodrigo@email.com</div></div></div></td><td>Sabor da Serra</td><td>R$ 300–600 mil</td><td><span class="pill gold">10–14%</span></td><td><span class="mini-prog"><i style="width:100%"></i></span>100%</td><td><span class="pill green">Em dia</span></td><td><span class="row-act">Ver <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=5"><div><div class="nm">Marina Costa</div><div class="em">marina@email.com</div></div></div></td><td>Cantina Bella</td><td>R$ 100–300 mil</td><td><span class="pill gold">5–10%</span></td><td><span class="mini-prog"><i style="width:72%"></i></span>72%</td><td><span class="pill green">Em dia</span></td><td><span class="row-act">Ver <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=20"><div><div class="nm">Carlos Menezes</div><div class="em">carlos@email.com</div></div></div></td><td>Burger House</td><td>R$ 50–100 mil</td><td><span class="pill red">Prejuízo</span></td><td><span class="mini-prog"><i style="width:40%"></i></span>40%</td><td><span class="pill gold">Atenção</span></td><td><span class="row-act">Ver <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=32"><div><div class="nm">Fernanda Lima</div><div class="em">fernanda@email.com</div></div></div></td><td>Empório do Sabor</td><td>Acima de R$ 600 mil</td><td><span class="pill green">Acima 14%</span></td><td><span class="mini-prog"><i style="width:88%"></i></span>88%</td><td><span class="pill green">Em dia</span></td><td><span class="row-act">Ver <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=47"><div><div class="nm">João Prado</div><div class="em">joao@email.com</div></div></div></td><td>Pastel & Cia</td><td>Até R$ 50 mil</td><td><span class="pill gold">Até 5%</span></td><td><span class="mini-prog"><i style="width:18%"></i></span>18%</td><td><span class="pill red">Parado</span></td><td><span class="row-act">Ver <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN: PLANOS DE AÇÃO ============ -->
+<section id="view-planos" class="view" data-mode="admin">
+  <div class="sec-head">
+    <div class="page-head" style="margin-bottom:0">
+      <span class="eyebrow"><i data-lucide="list-checks" style="width:13px"></i> Gestão de planos</span>
+      <h1 style="margin-top:14px">Planos de Ação</h1>
+      <p>Crie planos, defina entregáveis e suba os vídeos das Reuniões de Engenheiro para Dono.</p>
+    </div>
+    <button class="btn-primary" onclick="openPlan()"><i data-lucide="plus" style="width:16px"></i> Criar plano de ação</button>
+  </div>
+  <div class="card">
+    <div class="tbl-wrap">
+      <table class="tbl">
+        <thead><tr><th>Plano</th><th>Mentorado</th><th>Entregas</th><th>Prazo</th><th>Vídeo da reunião</th><th>Status</th><th></th></tr></thead>
+        <tbody>
+          <tr><td style="font-weight:600">Plano de ação 2</td><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=12">Lucas A.</div></td><td>7/7</td><td>15/05/2026</td><td><span class="pill red"><i data-lucide="upload" style="width:12px"></i> Pendente</span></td><td><span class="pill gold">Aguardando reunião</span></td><td><span class="row-act" onclick="openPlan()">Editar <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td style="font-weight:600">Plano de ação 1</td><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=12">Lucas A.</div></td><td>14/14</td><td>15/05/2026</td><td><span class="pill green"><i data-lucide="check" style="width:12px"></i> Publicado</span></td><td><span class="pill green">Concluído</span></td><td><span class="row-act" onclick="openPlan()">Editar <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td style="font-weight:600">Ajuste de velas</td><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=20">Carlos M.</div></td><td>3/3</td><td>30/04/2026</td><td><span class="pill green"><i data-lucide="check" style="width:12px"></i> Publicado</span></td><td><span class="pill green">Concluído</span></td><td><span class="row-act" onclick="openPlan()">Editar <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+          <tr><td style="font-weight:600">Plano de ação 1</td><td><div class="cell-user"><img class="avatar" src="https://i.pravatar.cc/64?img=5">Marina C.</div></td><td>10/14</td><td>20/07/2026</td><td><span class="pill"><i data-lucide="minus" style="width:12px"></i> Em andamento</span></td><td><span class="pill gold">Em andamento</span></td><td><span class="row-act" onclick="openPlan()">Editar <i data-lucide="chevron-right" style="width:14px"></i></span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ============ ADMIN: ENTREGAS ============ -->
+<section id="view-entregas" class="view" data-mode="admin">
+  <div class="page-head">
+    <span class="eyebrow"><i data-lucide="inbox" style="width:13px"></i> Acompanhamento</span>
+    <h1 style="margin-top:14px">Entregas</h1>
+    <p>Acompanhe o fluxo das entregas: do envio do mentorado até a Reunião de Engenheiro para Dono publicada.</p>
+  </div>
+  <div class="kanban">
+    <div class="kcol">
+      <div class="kh">Aguardando reunião <span class="cnt">3</span></div>
+      <div class="kcard" onclick="openPlan()">
+        <div class="kt">Plano de ação 2</div>
+        <div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=12"> Lucas Andrade</div>
+        <div class="kfoot"><span class="pill gold">7/7 entregas</span><button class="btn-sm"><i data-lucide="upload" style="width:12px;vertical-align:-2px"></i> Subir vídeo</button></div>
+      </div>
+      <div class="kcard"><div class="kt">Plano de ação 1</div><div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=32"> Fernanda Lima</div><div class="kfoot"><span class="pill gold">14/14 entregas</span><button class="btn-sm">Subir vídeo</button></div></div>
+      <div class="kcard"><div class="kt">Ajuste de velas</div><div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=20"> Carlos Menezes</div><div class="kfoot"><span class="pill gold">3/3 entregas</span><button class="btn-sm">Subir vídeo</button></div></div>
+    </div>
+    <div class="kcol">
+      <div class="kh">Reunião agendada <span class="cnt">1</span></div>
+      <div class="kcard"><div class="kt">Plano de ação 1</div><div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=5"> Marina Costa</div><div class="kfoot"><span class="pill">Reunião 02/07</span><span class="muted-2" style="font-size:.76rem">vídeo gravado</span></div></div>
+    </div>
+    <div class="kcol">
+      <div class="kh">Reunião realizada <span class="cnt">2</span></div>
+      <div class="kcard"><div class="kt">Plano de ação 1</div><div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=12"> Lucas Andrade</div><div class="kfoot"><span class="pill green"><i data-lucide="check" style="width:12px"></i> Publicado</span><span class="muted-2" style="font-size:.76rem">28/04</span></div></div>
+      <div class="kcard"><div class="kt">Ajuste de velas</div><div class="kmeta"><img class="avatar" src="https://i.pravatar.cc/64?img=20"> Carlos Menezes</div><div class="kfoot"><span class="pill green"><i data-lucide="check" style="width:12px"></i> Publicado</span><span class="muted-2" style="font-size:.76rem">22/04</span></div></div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<!-- ===== MODAL TAREFA ===== -->
+<div class="modal-bg" id="taskModal">
+  <div class="modal" style="position:relative">
+    <span class="modal-x" onclick="closeTask()"><i data-lucide="x" style="width:22px"></i></span>
+    <h2>Escrever, gravar e editar 3 anúncios de conversão · Urgência Oculta</h2>
+    <div class="modal-badges">
+      <span class="tg"><i data-lucide="link" style="width:13px"></i> Link</span>
+      <span class="tg dark"><i data-lucide="check" style="width:13px;color:var(--success)"></i> Finalizado</span>
+    </div>
+    <div class="modal-kv">
+      <div class="kv"><div class="lbl">Prazo</div><div class="val" style="font-size:1rem">15 de maio de 2026</div></div>
+      <div class="kv"><div class="lbl">Data de entrega</div><div class="val" style="font-size:1rem">09 de junho de 2026</div></div>
+    </div>
+    <div class="tabs3">
+      <button class="active" onclick="mPane(0,this)">Descrição</button>
+      <button onclick="mPane(1,this)">Entrega</button>
+    </div>
+    <div class="m-pane active" id="mp0">
+      <p>Anúncios de conversão têm um objetivo principal: levar o público a tomar uma ação, geralmente a compra.</p>
+      <p>O maior objetivo aqui é que as pessoas certas cliquem no anúncio e vão para a sua página de vendas. Por isso, precisam de uma chamada clara para o clique.</p>
+      <p>No momento de urgência oculta, o anúncio não apresenta diretamente o produto. Em vez disso, você chama a atenção explorando um problema real ou uma curiosidade do público.</p>
+      <p>Use "filtros de copy" para que a pessoa certa se identifique mais facilmente: palavras-chave do nicho e do público.</p>
+      <p>Você pode usar diferentes abordagens criativas, como:</p>
+      <ul><li>Comparação</li><li>Dilema</li><li>Demonstração</li><li>Prova</li><li>História</li><li>Problema vs. Solução</li><li>Jeito certo vs. jeito errado</li><li>Explicação simples</li></ul>
+    </div>
+    <div class="m-pane" id="mp1">
+      <p class="muted" style="font-size:.85rem">Links entregues</p>
+      <div class="link-row"><i data-lucide="external-link" style="width:15px;flex-shrink:0"></i> https://app.exemplo.com/anuncio-conversao-1</div>
+      <div class="link-row hl"><i data-lucide="external-link" style="width:15px;flex-shrink:0"></i> https://app.exemplo.com/anuncio-conversao-2</div>
+      <div class="link-row"><i data-lucide="external-link" style="width:15px;flex-shrink:0"></i> https://app.exemplo.com/anuncio-conversao-3</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL CRIAR/EDITAR PLANO ===== -->
+<div class="modal-bg" id="planModal">
+  <div class="modal" style="position:relative">
+    <span class="modal-x" onclick="closePlan()"><i data-lucide="x" style="width:22px"></i></span>
+    <h2>Criar plano de ação</h2>
+    <p class="muted" style="font-size:.9rem;margin:6px 0 22px">Defina o plano, os entregáveis e o vídeo da Reunião de Engenheiro para Dono.</p>
+
+    <div class="grid2">
+      <div class="field full"><label>Título do plano <span class="req">*</span></label><input placeholder="Ex: Plano de ação 3"></div>
+      <div class="field"><label>Mentorado <span class="req">*</span></label>
+        <select><option>Lucas Andrade</option><option>Marina Costa</option><option>Carlos Menezes</option><option>Fernanda Lima</option><option>João Prado</option></select></div>
+      <div class="field"><label>Mentor responsável</label>
+        <select><option>Rodrigo Haertel</option></select></div>
+      <div class="field"><label>Data de liberação</label><input type="date"></div>
+      <div class="field"><label>Prazo de entrega</label><input type="date"></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <label style="font-size:.82rem;font-weight:500;color:hsla(38,35%,92%,0.75)">Tarefas / Entregáveis</label>
+      <div id="builder" style="margin-top:10px">
+        <div class="builder-row"><span class="bnum">1</span><input value="Monte a oferta da venda do seu produto"><i data-lucide="trash-2" class="del" style="width:17px" onclick="delRow(this)"></i></div>
+        <div class="builder-row"><span class="bnum">2</span><input value="Escrever, gravar e editar 3 anúncios de conversão"><i data-lucide="trash-2" class="del" style="width:17px" onclick="delRow(this)"></i></div>
+        <div class="builder-row"><span class="bnum">3</span><input value="Ajustar CMV e ficha técnica dos 10 pratos campeões"><i data-lucide="trash-2" class="del" style="width:17px" onclick="delRow(this)"></i></div>
+      </div>
+      <button class="add-row" onclick="addRow()"><i data-lucide="plus" style="width:14px"></i> Adicionar entregável</button>
+    </div>
+
+    <div style="margin-top:22px">
+      <label style="font-size:.82rem;font-weight:500;color:hsla(38,35%,92%,0.75)">Vídeo da Reunião de Engenheiro para Dono</label>
+      <div class="dropzone" style="margin-top:10px">
+        <div class="dz-ic"><i data-lucide="upload-cloud" style="width:30px"></i></div>
+        Arraste o vídeo aqui ou <span style="color:var(--gold);font-weight:600">clique para enviar</span>
+        <div class="muted-2" style="font-size:.78rem;margin-top:4px">MP4 até 2 GB · ou cole um link do YouTube/Vimeo</div>
+      </div>
+      <div class="video-pending">
+        <div class="vp-ic"><i data-lucide="video" style="width:18px"></i></div>
+        <div style="flex:1"><div style="font-weight:600;font-size:.88rem">reuniao-engenheiro-dono-02.mp4</div><div class="muted-2" style="font-size:.78rem">184 MB · pronto para publicar</div></div>
+        <span class="pill gold">Rascunho</span>
+      </div>
+    </div>
+
+    <div class="form-actions" style="margin-top:24px">
+      <button class="btn-ghost" onclick="closePlan()">Cancelar</button>
+      <button class="btn-primary" onclick="closePlan()"><i data-lucide="check" style="width:16px"></i> Salvar plano</button>
+    </div>
+  </div>
+</div>
+
+<script>
+function goView(v){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById('view-'+v).classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.toggle('active',b.dataset.go===v));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function openDetail(){
+  document.querySelectorAll('.view').forEach(s=>s.classList.remove('active'));
+  document.getElementById('view-detalhe').classList.add('active');
+  document.querySelectorAll('.nav button').forEach(b=>b.classList.remove('active'));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+document.querySelectorAll('.nav button').forEach(b=>b.addEventListener('click',()=>goView(b.dataset.go)));
+function openTask(){document.getElementById('taskModal').classList.add('open')}
+function closeTask(){document.getElementById('taskModal').classList.remove('open')}
+document.getElementById('taskModal').addEventListener('click',e=>{if(e.target.id==='taskModal')closeTask()});
+function mPane(i,btn){
+  document.querySelectorAll('.tabs3 button').forEach(b=>b.classList.remove('active'));btn.classList.add('active');
+  document.querySelectorAll('.m-pane').forEach((p,idx)=>p.classList.toggle('active',idx===i));
+}
+document.getElementById('atend').addEventListener('click',e=>{
+  const a=e.target.closest('.atend');if(!a)return;
+  document.querySelectorAll('#atend .atend').forEach(x=>x.classList.remove('sel'));a.classList.add('sel');
+});
+// seg + tabs2 toggles (visual only)
+document.querySelectorAll('.seg').forEach(s=>s.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;s.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
+document.querySelectorAll('.tabs2').forEach(s=>s.addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;s.querySelectorAll('button').forEach(x=>x.classList.remove('active'));b.classList.add('active')}));
+// ===== MODO MENTORADO / ADMIN =====
+function setMode(mode){
+  document.querySelector('.client-nav').style.display = mode==='client'?'flex':'none';
+  document.querySelector('.admin-nav').style.display  = mode==='admin'?'flex':'none';
+  document.querySelectorAll('.mode-toggle button').forEach(b=>b.classList.toggle('active',b.dataset.mode===mode));
+  document.getElementById('userName').textContent = mode==='admin'?'Rodrigo Haertel · Mentor':'Lucas Andrade';
+  goView(mode==='admin'?'painel':'inicio');
+}
+document.querySelectorAll('.mode-toggle button').forEach(b=>b.addEventListener('click',()=>setMode(b.dataset.mode)));
+
+// ===== MODAL PLANO =====
+function openPlan(){document.getElementById('planModal').classList.add('open')}
+function closePlan(){document.getElementById('planModal').classList.remove('open')}
+document.getElementById('planModal').addEventListener('click',e=>{if(e.target.id==='planModal')closePlan()});
+function renumber(){document.querySelectorAll('#builder .builder-row .bnum').forEach((n,i)=>n.textContent=i+1)}
+function addRow(){
+  const r=document.createElement('div');r.className='builder-row';
+  r.innerHTML='<span class="bnum"></span><input placeholder="Descreva o entregável"><i data-lucide="trash-2" class="del" style="width:17px" onclick="delRow(this)"></i>';
+  document.getElementById('builder').appendChild(r);renumber();lucide.createIcons();
+}
+function delRow(el){el.closest('.builder-row').remove();renumber()}
+
+lucide.createIcons();
+</script>
+</body>
+</html>

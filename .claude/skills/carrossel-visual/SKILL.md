@@ -1,6 +1,7 @@
 ---
 name: carrossel-visual
-description: Orquestra geração de carrossel Instagram com foto IA por card. Dois modos: Criação (sem referência) conduz 9 etapas clássicas; Replicação (com imagem de referência) aplica análise pixel-level de 10 fases para reconstrução fiel. Ambos geram JSON config e executam gerar-carrossel-foto.py.
+description: >-
+  Orquestra geração de carrossel Instagram com foto IA por card. Dois modos: Criação (sem referência) conduz 9 etapas clássicas; Replicação (com imagem de referência) aplica análise pixel-level de 10 fases para reconstrução fiel. Ambos geram JSON config e executam gerar-carrossel-foto.py.
 allowed-tools: Read, Write, Bash
 ---
 

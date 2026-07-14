@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Criativos Escalados · Inteligência de Tráfego · Restaurantes BR</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;
+  --bg-soft:#f7f9fc;
+  --bg-card:#fbfcfe;
+  --border:#e5eaf2;
+  --border-soft:#eef2f8;
+  --text:#1a2238;
+  --text-soft:#5b6478;
+  --text-mute:#8a93a6;
+  --accent:#2563eb;
+  --accent-soft:#eff5ff;
+  --hot:#dc2626;
+  --hot-soft:#fef2f2;
+  --warm:#ea580c;
+  --warm-soft:#fff7ed;
+  --cool:#2563eb;
+  --cool-soft:#eff6ff;
+  --base:#6b7280;
+  --base-soft:#f3f4f6;
+  --radius:12px;
+  --radius-lg:16px;
+  --shadow:0 1px 2px rgba(15,23,42,.04),0 1px 3px rgba(15,23,42,.06);
+  --shadow-md:0 4px 6px -1px rgba(15,23,42,.06),0 2px 4px -1px rgba(15,23,42,.04);
+  --font:'Inter',-apple-system,BlinkMacSystemFont,sans-serif;
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;-webkit-font-smoothing:antialiased;font-feature-settings:"cv02","cv03","cv04","cv11"}
+.container{max-width:1180px;margin:0 auto;padding:0 24px}
+
+/* HEADER */
+header{padding:64px 0 48px;border-bottom:1px solid var(--border)}
+.eyebrow{display:inline-block;font-size:.72rem;letter-spacing:.18em;text-transform:uppercase;color:var(--accent);font-weight:700;margin-bottom:14px;padding:6px 12px;background:var(--accent-soft);border-radius:6px}
+h1{font-size:clamp(2rem,4.5vw,3rem);font-weight:800;letter-spacing:-.025em;line-height:1.1;margin-bottom:14px}
+.subtitle{font-size:1.1rem;color:var(--text-soft);max-width:780px;line-height:1.6;margin-bottom:24px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:8px}
+.chip{display:inline-flex;align-items:center;gap:6px;font-size:.78rem;font-weight:500;color:var(--text-soft);padding:6px 12px;background:var(--bg-soft);border:1px solid var(--border);border-radius:99px}
+.chip-dot{width:6px;height:6px;border-radius:50%;background:var(--accent)}
+.chip-active .chip-dot{background:#22c55e}
+
+/* STATS */
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:16px;margin-top:32px}
+@media(min-width:768px){.stats{grid-template-columns:repeat(4,1fr)}}
+.stat{padding:20px 22px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius-lg)}
+.stat-label{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:var(--text-mute);font-weight:600;margin-bottom:8px}
+.stat-num{font-size:1.85rem;font-weight:800;color:var(--text);line-height:1;letter-spacing:-.02em;margin-bottom:4px}
+.stat-foot{font-size:.78rem;color:var(--text-soft)}
+
+/* FILTER */
+.filters{display:flex;gap:8px;flex-wrap:wrap;padding:24px 0;margin:0;border-bottom:1px solid var(--border);position:sticky;top:0;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);z-index:10}
+.f-btn{font:inherit;font-size:.85rem;font-weight:600;color:var(--text-soft);background:transparent;border:1px solid var(--border);border-radius:99px;padding:8px 16px;cursor:pointer;transition:all .15s}
+.f-btn:hover{border-color:var(--accent);color:var(--accent)}
+.f-btn.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* MAIN LAYOUT */
+main{padding:48px 0 80px}
+.layout{display:grid;grid-template-columns:1fr;gap:32px}
+@media(min-width:1024px){.layout{grid-template-columns:240px 1fr}}
+
+/* NAV */
+.nav-side{position:sticky;top:88px;align-self:start}
+.nav-title{font-size:.72rem;letter-spacing:.16em;text-transform:uppercase;color:var(--text-mute);font-weight:700;margin-bottom:14px}
+.nav-list{list-style:none;display:flex;flex-direction:column;gap:2px}
+.nav-list a{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;font-size:.88rem;color:var(--text-soft);text-decoration:none;border-radius:8px;transition:all .15s}
+.nav-list a:hover{background:var(--bg-soft);color:var(--text)}
+.nav-badge{font-size:.7rem;font-weight:600;padding:2px 8px;background:var(--bg-soft);color:var(--text-mute);border-radius:99px;border:1px solid var(--border)}
+
+/* COMPETITOR */
+.comp{margin-bottom:56px;scroll-margin-top:88px}
+.comp-head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid var(--border);margin-bottom:24px}
+.comp-name{font-size:1.6rem;font-weight:800;letter-spacing:-.02em;line-height:1.15}
+.comp-name .flag{margin-right:8px}
+.comp-tag{font-size:.78rem;color:var(--text-soft);margin-top:4px}
+.comp-meta{display:flex;gap:12px;align-items:center;font-size:.78rem;color:var(--text-mute)}
+.comp-meta strong{color:var(--text);font-weight:700}
+
+/* PATTERN */
+.pattern{padding:18px 22px;background:var(--accent-soft);border-radius:var(--radius);margin-bottom:24px;font-size:.9rem;line-height:1.65;color:var(--text)}
+.pattern strong{color:var(--accent);font-weight:700}
+.pattern-label{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--accent);margin-bottom:6px}
+
+/* EMPTY STATE */
+.empty{padding:18px 22px;background:var(--warm-soft);border-radius:var(--radius);font-size:.9rem;color:var(--text);line-height:1.6}
+.empty strong{color:var(--warm)}
+.empty-label{display:block;font-size:.7rem;letter-spacing:.14em;text-transform:uppercase;font-weight:700;color:var(--warm);margin-bottom:6px}
+
+/* CREATIVES LIST */
+.creatives{display:grid;grid-template-columns:1fr;gap:12px}
+.creative{display:grid;grid-template-columns:64px 1fr;gap:18px;padding:18px 20px;background:var(--bg-card);border:1px solid var(--border);border-radius:var(--radius);transition:all .15s}
+.creative:hover{border-color:var(--accent);box-shadow:var(--shadow-md);transform:translateY(-1px)}
+.creative-num{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:8px;border-radius:8px}
+.creative-num-big{font-size:1.7rem;font-weight:800;line-height:1;letter-spacing:-.02em}
+.creative-num-label{font-size:.62rem;letter-spacing:.12em;text-transform:uppercase;font-weight:700;margin-top:4px;opacity:.8}
+.creative-num.hot{background:var(--hot-soft);color:var(--hot)}
+.creative-num.warm{background:var(--warm-soft);color:var(--warm)}
+.creative-num.cool{background:var(--cool-soft);color:var(--cool)}
+.creative-num.base{background:var(--base-soft);color:var(--base)}
+.creative-body{display:flex;flex-direction:column;gap:8px;min-width:0}
+.creative-copy{font-size:.92rem;line-height:1.55;color:var(--text)}
+.creative-meta{display:flex;flex-wrap:wrap;gap:10px;align-items:center;font-size:.74rem;color:var(--text-mute)}
+.creative-id{font-family:'SF Mono',Monaco,Consolas,monospace;font-size:.72rem;color:var(--text-mute);background:var(--bg-soft);padding:2px 8px;border-radius:4px;border:1px solid var(--border-soft)}
+.creative-link{color:var(--accent);text-decoration:none;font-weight:600;font-size:.78rem;display:inline-flex;align-items:center;gap:4px}
+.creative-link:hover{text-decoration:underline}
+.creative-link::after{content:"↗";font-size:.78rem}
+
+/* SUMMARY */
+.summary{margin-top:64px;padding:48px 40px;background:var(--bg-soft);border-radius:var(--radius-lg);border:1px solid var(--border)}
+.summary h2{font-size:1.8rem;font-weight:800;letter-spacing:-.02em;margin-bottom:8px}
+.summary-sub{color:var(--text-soft);margin-bottom:32px;font-size:.95rem}
+.summary-grid{display:grid;grid-template-columns:1fr;gap:24px}
+@media(min-width:768px){.summary-grid{grid-template-columns:repeat(3,1fr)}}
+.sum-col{background:var(--bg);padding:24px;border-radius:var(--radius);border:1px solid var(--border)}
+.sum-col h3{font-size:.95rem;font-weight:700;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.sum-col h3::before{content:"";width:8px;height:8px;border-radius:50%}
+.sum-col.hot h3::before{background:var(--hot)}
+.sum-col.warm h3::before{background:var(--warm)}
+.sum-col.gray h3::before{background:var(--base)}
+.sum-col ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.sum-col li{font-size:.86rem;line-height:1.5;color:var(--text-soft);padding-left:16px;position:relative}
+.sum-col li::before{content:"—";position:absolute;left:0;color:var(--text-mute)}
+.sum-col li strong{color:var(--text);font-weight:700}
+
+/* BOX */
+.box-grid{display:grid;grid-template-columns:1fr;gap:24px;margin-top:32px}
+@media(min-width:768px){.box-grid{grid-template-columns:repeat(2,1fr)}}
+.box{padding:28px 30px;border-radius:var(--radius-lg);border:1px solid var(--border);background:linear-gradient(180deg,#fff,#fafbfd)}
+.box h3{font-size:1.05rem;font-weight:800;margin-bottom:14px;letter-spacing:-.01em}
+.box ul{list-style:none;display:flex;flex-direction:column;gap:10px}
+.box li{font-size:.88rem;line-height:1.55;color:var(--text);padding-left:18px;position:relative}
+.box li::before{content:"→";position:absolute;left:0;color:var(--accent);font-weight:700}
+.box li strong{font-weight:700}
+
+/* OPPORTUNITY */
+.opp{margin-top:48px;padding:36px 40px;background:linear-gradient(135deg,#1a2238 0%,#2d3654 100%);color:#fff;border-radius:var(--radius-lg)}
+.opp-eyebrow{display:inline-block;font-size:.7rem;letter-spacing:.18em;text-transform:uppercase;font-weight:700;margin-bottom:14px;padding:5px 12px;background:rgba(255,255,255,.12);border-radius:6px}
+.opp h2{font-size:1.5rem;font-weight:800;letter-spacing:-.02em;margin-bottom:16px;color:#fff}
+.opp p{color:rgba(255,255,255,.78);font-size:.95rem;line-height:1.65;margin-bottom:16px}
+.opp ul{list-style:none;display:flex;flex-direction:column;gap:12px;margin-top:8px}
+.opp li{padding-left:22px;position:relative;font-size:.92rem;color:rgba(255,255,255,.88);line-height:1.5}
+.opp li::before{content:"◆";position:absolute;left:0;color:#86efac;font-size:.7rem;top:6px}
+.opp li strong{color:#fff;font-weight:700}
+
+/* FOOTER */
+footer{margin-top:64px;padding:24px 0;border-top:1px solid var(--border);font-size:.78rem;color:var(--text-mute);text-align:center}
+
+/* RESPONSIVE */
+@media(max-width:640px){
+  .creative{grid-template-columns:56px 1fr;gap:14px;padding:16px}
+  .creative-num-big{font-size:1.4rem}
+  .summary{padding:32px 24px}
+  .opp{padding:28px 24px}
+  .nav-side{display:none}
+}
+
+/* HIDDEN */
+.hidden{display:none}
+.flag{display:inline-block}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="container">
+    <div class="eyebrow">Inteligência de Tráfego · Biblioteca da Meta</div>
+    <h1>Criativos escalados · Concorrentes diretos<br>de gestão e lucro de restaurantes (BR)</h1>
+    <p class="subtitle">Mapeamento dos criativos que estão rodando em volume verticalmente (3 ou mais cópias do mesmo anúncio) entre os principais players de gestão, precificação e CMV no mercado brasileiro de restaurantes — para identificar padrões vencedores e gaps de posicionamento que o Do Custo ao Lucro pode explorar.</p>
+    <div class="chips">
+      <span class="chip chip-active"><span class="chip-dot"></span>Atualizado em 8 de maio de 2026 · 2 rodadas</span>
+      <span class="chip"><span class="chip-dot"></span>Mercado: Brasil (BR)</span>
+      <span class="chip"><span class="chip-dot"></span>Critério: 3+ anúncios usando o mesmo criativo</span>
+      <span class="chip"><span class="chip-dot"></span>17 concorrentes investigados</span>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">Concorrentes investigados</div>
+        <div class="stat-num">17</div>
+        <div class="stat-foot">3 da memória + 14 descobertos via WebSearch</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Criativos escalados encontrados</div>
+        <div class="stat-num">28</div>
+        <div class="stat-foot">com 3 ou mais cópias do mesmo anúncio</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Maior escala individual</div>
+        <div class="stat-num">8×</div>
+        <div class="stat-foot">5 criativos do Marani simultâneos</div>
+      </div>
+      <div class="stat">
+        <div class="stat-label">Players com escala vertical</div>
+        <div class="stat-num">6</div>
+        <div class="stat-foot">de 17 — só 35% escala um criativo</div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="container">
+  <div class="filters">
+    <button class="f-btn active" data-filter="all">Todos os concorrentes</button>
+    <button class="f-btn" data-filter="hot">Só os que escalam (5+)</button>
+    <button class="f-btn" data-filter="rotation">Alta rotação sem escala</button>
+    <button class="f-btn" data-filter="empty">Sem ads ativos</button>
+  </div>
+</div>
+
+<main>
+  <div class="container">
+    <div class="layout">
+      <aside class="nav-side">
+        <div class="nav-title">Concorrentes</div>
+        <ul class="nav-list">
+          <li><a href="#marani">Marcelo Marani <span class="nav-badge">5+ a 8×</span></a></li>
+          <li><a href="#politi">Marcelo Politi <span class="nav-badge">5×</span></a></li>
+          <li><a href="#miralha">Rafael Miralha <span class="nav-badge">7×</span></a></li>
+          <li><a href="#lessa">Matheus Lessa <span class="nav-badge">4×</span></a></li>
+          <li><a href="#saipos">Saipos (SaaS) <span class="nav-badge">5×</span></a></li>
+          <li><a href="#ebac">EBAC Food Business <span class="nav-badge">3×</span></a></li>
+          <li><a href="#bindes">Fábio Bindes <span class="nav-badge">rot.</span></a></li>
+          <li><a href="#alpha">Alpha Assessoria <span class="nav-badge">rot.</span></a></li>
+          <li><a href="#fraga">Bianca Fraga <span class="nav-badge">rot.</span></a></li>
+          <li><a href="#uliana">Marcelo Uliana <span class="nav-badge">1×</span></a></li>
+          <li><a href="#sem-ads">Sem ads ativos <span class="nav-badge">8</span></a></li>
+          <li><a href="#summary">Resumo estratégico</a></li>
+          <li><a href="#oportunidade">Oportunidades p/ DCAL</a></li>
+        </ul>
+      </aside>
+
+      <section>
+
+      <!-- MARANI -->
+      <article class="comp" id="marani" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Marcelo Marani</div>
+            <div class="comp-tag">Donos de Restaurantes · DDR Master · Encontro Nacional · Escalada</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~160</strong> ads ativos</span>
+            <span><strong>5+</strong> criativos escalados</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          O Marani é o player que mais escala um criativo: ele <strong>multiplica TUDO em 8 cópias</strong> simultâneas. A oferta principal não é curso nem mentoria, é <strong>EVENTO PRESENCIAL</strong> recorrente (Escalada, Encontro Nacional 2026). O criativo abre falando de transformação coletiva ("Foram dois dias intensos", "200 donos decidiram sair do piloto automático") e fecha plantando a próxima edição. Estrutura: prova social do evento passado → expectativa pelo próximo.
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">8</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Foram dois dias intensos. De troca, de conexão, de estratégia, de verdade. Cada dono nessa sala entende: o que separa um restaurante comum de um extraordinário, é quem está no comando." <strong>(DDR Master · evento)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1434646304878913</span>
+                <span>Veiculação: 4 mar 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1434646304878913" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">8</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Hoje João Pessoa viveu o começo de uma virada. Mais de 200 donos de restaurantes decidiram sair do piloto automático e escolheram subir a montanha do resultado com as próprias mãos." <strong>(Escalada · evento)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1642464756782772</span>
+                <span>Veiculação: 4 mar 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1642464756782772" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">8</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"O Encontro Nacional 2026 está chegando. E você não vai querer ficar de fora. Estamos preparando algo maior do que tudo que já fizemos." <strong>(Encontro Nacional · próxima edição)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 3139905229730488</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=3139905229730488" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">8</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"A Escalada Goiânia não foi só sobre CMV, precificação, operação ou liderança. Foi sobre coragem. Coragem de parar a rotina por dois dias pra olhar com mais clareza pro próprio restaurante." <strong>(Escalada · cidade)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1492803602210780</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1492803602210780" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">8</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Tem uma hora em que o jogo deixa de ser sobre apenas faturar mais e começa a ser sobre sustentar quem você está se tornando. Quando um empresário entra no ambiente certo, ele não volta igual." <strong>(mentoria high-ticket)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 936944005867312</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=936944005867312" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- POLITI -->
+      <article class="comp" id="politi" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Marcelo Politi</div>
+            <div class="comp-tag">Politi Academy · Manual Mestre · Acelera Food Nation 2026</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~150</strong> ads ativos</span>
+            <span><strong>4</strong> criativos escalados</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          Politi é o oposto do Marani na monetização: o produto-âncora dele é o <strong>livro/manual de baixo ticket</strong> ("Manual Mestre Restaurante à Prova de Crises") com VSL longa de "10 horas de conteúdo". Roda em <strong>3 versões diferentes da mesma promessa</strong>, todas a 5 cópias. Em segundo plano: imersão presencial em Campinas (4 cópias) e o evento AFN 2026. CMV/precificação aparecem em reels orgânicos pagos sem escala — não são oferta direta.
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Blindagem total contra crises para seu restaurante! 🛡️ Descubra os segredos no Manual Mestre Restaurante à Prova de Crises. Toque 'SAIBA MAIS' e proteja seu negócio!" <strong>(Manual Mestre · oferta direta curta)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1403103558149891</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1403103558149891" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Dono de restaurante, me escuta! Nenhum investimento que você deseja fazer no seu negócio vai ser tão barato e efetivo como esse. São mais de 10 horas de conteúdo focados em tornar seu restaurante lucrativo e à prova de QUALQUER CRISE." <strong>(Manual Mestre · VSL longa v1)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1680683096296874</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1680683096296874" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Mesma copy do Manual Mestre VSL longa — variação visual/criativa diferente. <strong>(Manual Mestre · VSL longa v2)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1302074771807025</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1302074771807025" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Mesma copy do Manual Mestre — variação 3. <strong>(Manual Mestre · VSL longa v3)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 26498020716458617</span>
+                <span>Veiculação: 1 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=26498020716458617" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">4</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Imersão para donos de bares e restaurantes em Campinas. Marcelo Politi, Lucas Profeta e Pedro Leite vão te ensinar as 3 alavancas: Custo Primário (CMV e CMO), Vendas e Processos." <strong>(Imersão Campinas · 2 jun)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1840649266601917</span>
+                <span>Veiculação: 30 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1840649266601917" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- MIRALHA -->
+      <article class="comp" id="miralha" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Rafael Miralha</div>
+            <div class="comp-tag">Gastronomia Lucrativa · Aula ao vivo do Mapa do CMV · High-ticket</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~58</strong> ads ativos</span>
+            <span><strong>9+</strong> criativos escalados</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          Miralha é o player com <strong>maior densidade de criativos escalados</strong> entre os 11 (9 criativos rodando simultaneamente, 7 deles a 5 cópias ou mais). Estratégia: <strong>UMA oferta-âncora replicada em ~10 versões visuais</strong> da mesma promessa — aula ao vivo gratuita do "Mapa do CMV real e lucrativo". Filtro alto: "EXCLUSIVO PARA DONOS QUE FATURAM ACIMA DE 100 MIL POR MÊS". Concorrente direto da mentoria Dono 14% — só que com diagnóstico personalizado como CTA, não cardápio projetado.
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num hot"><span class="creative-num-big">7</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"No dia 15 de Abril, às 14h30, o Chef Rafael Miralha vai conduzir uma aula ao vivo e gratuita com o mapa do CMV real e lucrativo." <strong>(Aula ao vivo · vídeo 1:15)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1561006629362242</span>
+                <span>Veiculação: 1 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1561006629362242" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num warm"><span class="creative-num-big">6</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Mesma copy da aula ao vivo — versão de vídeo 0:52. <strong>(Aula ao vivo · curta)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1628387438413619</span>
+                <span>Veiculação: 1 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1628387438413619" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num warm"><span class="creative-num-big">6</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Mesma aula ao vivo — vídeo 0:26 (formato Reels rápido). <strong>(Aula ao vivo · Reels)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 956081197273697</span>
+                <span>Veiculação: 2 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=956081197273697" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num warm"><span class="creative-num-big">6</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Aula ao vivo — versão estática (8 placements de "Learn More"). <strong>(Aula ao vivo · estático)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 4543737215845950</span>
+                <span>Veiculação: 1 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=4543737215845950" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"📉 Seu restaurante fatura bem, mas o lucro some? No dia 15/04, Chef Rafael Miralha vai conduzir aula ao vivo com O PASSO A PASSO para aumentar de R$10.000 a R$30.000 de lucro nos próximos 30 dias — mesmo que hoje você não tenha clareza nenhuma dos seus números." <strong>(Aula com promessa numérica)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 4433325923619738</span>
+                <span>Veiculação: 2 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=4433325923619738" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Vamos falar de CMV real, processo de cozinha e eficiência operacional que realmente colocam dinheiro no caixa. Você aceita o desafio? Quem governa a gestão, governa o lucro." <strong>(Versão imperativa)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 2021986532005585</span>
+                <span>Veiculação: 18 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=2021986532005585" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">3</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Aula ao vivo — versão estática alternativa.</div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1727773808242347</span>
+                <span>Veiculação: 1 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1727773808242347" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- MATHEUS LESSA -->
+      <article class="comp" id="lessa" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Matheus Lessa</div>
+            <div class="comp-tag">Workshop Planejamento Estratégico · Imersões presenciais · Self-claim "maior nome em gestão de restaurantes do Brasil"</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~28</strong> ads ativos</span>
+            <span><strong>2</strong> criativos escalados + alta rotação</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          Player descoberto na 2ª rodada — concorrente de cabeça-com-cabeça com Marani e Politi. Estratégia híbrida: <strong>1 criativo escalado verticalmente (Workshop)</strong> + dezenas de variações da mesma imersão presencial em IDs separados. Self-claim agressivo: "<em>maior nome quando o assunto é gestão de Restaurantes no Brasil</em>" + "<em>23 mil alunos em 17 países</em>" + "<em>maior ecossistema de educação para donos de Restaurante</em>". Traz prova social via volume e a frase-mãe é "<em>não é falta de esforço, é falta de planejamento</em>". Lead magnets diversos via DM (PLANEJAMENTO, VENDA, CURVA, DATA).
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">4</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Você trabalha o ano inteiro, mas sente que não está indo a lugar nenhum? Não é falta de esforço, é falta de planejamento! Sem clareza nos números e processos, seu restaurante fica estagnado. Participe do Workshop Planejamento Estratégico com Matheus Lessa!" <strong>(Workshop · evergreen)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1296013308642263</span>
+                <span>Veiculação: 30 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1296013308642263" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">2</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">Versão expandida do Workshop: "Você passa o ano inteiro trabalhando, resolvendo problema, apagando incêndio… e quando olha pro resultado, sente que só enxugou gelo. Foi exatamente pra resolver isso que criamos o Workshop Planejamento Estratégico para 2026. Já são mais de 23 mil alunos em 17 países diferentes, dentro do maior ecossistema de educação para donos de Restaurante do Brasil." <strong>(VSL longa)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 938296372320112</span>
+                <span>Veiculação: 20 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=938296372320112" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">5+</span><span class="creative-num-label">variantes</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"🛎️🚨 Atenção, Dono de Restaurante! Curitiba/Ribeirão Preto vai viver um dia de virada. Gestão, lucro e decisões que mudam o jogo. Não é palestra. É imersão. É experiência. É decisão." <strong>(Imersões presenciais — alta rotação por cidade, 5+ versões com IDs separados)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">IDs 828104607017696, 3099581160430194, 786164361243092, 2058271311711428, 1450728529607304…</span>
+                <span>Veiculação: 8 mai 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?active_status=active&country=BR&q=Matheus%20Lessa" target="_blank" rel="noopener">Ver todas</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- SAIPOS -->
+      <article class="comp" id="saipos" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Saipos <span style="font-size:.85rem;font-weight:500;color:var(--text-soft)">(SaaS — concorrente direto do Painel do Dono)</span></div>
+            <div class="comp-tag">Sistema de gestão para restaurantes · CMV automático</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>3</strong> criativos escalados</span>
+            <span><strong>top tier</strong> em ads BR</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          A Saipos é o único <strong>concorrente direto do Painel do Dono</strong> com escala vertical real. Importante: ela atira no MESMO insight central do seu mantra "sem planilhas" — <em>"Papel e planilha não cobram mensalidade. Mas cobram caro de outro jeito"</em>. O posicionamento dela é "sem CMV controlado, restaurante que fatura R$200k vira prejuízo". Diferença: Saipos é PDV/operacional broad, não foca cardápio nem precificação. Você tem o eixo técnico que ela não cobre.
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num cool"><span class="creative-num-big">5</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Restaurante cheio e faturamento alto não garantem lucro no bolso. Sem CMV controlado, até quem fatura R$ 200 mil pode ter prejuízo. Na Saipos, o CMV é calculado automaticamente com relatórios simples e eficientes." <strong>(Pain-point clássico)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1563932218018045</span>
+                <span>Veiculação: 23 mar 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1563932218018045" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">4</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Papel e planilha não cobram mensalidade. Mas cobram caro de outro jeito. Pedido errado, estoque descontrolado, CMV fora do padrão — tudo isso é dinheiro saindo sem você ver." <strong>(Anti-planilha — referência forte para o mantra DCAL)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1614646369655783</span>
+                <span>Veiculação: 21 abr 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1614646369655783" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">3</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"Controle de CMV com sistema de gestão! Tenha todas as ferramentas necessárias para fazer o cálculo e controle do CMV." <strong>(CTA direto)</strong></div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1654806775877512</span>
+                <span>Veiculação: 5 mar 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1654806775877512" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- EBAC -->
+      <article class="comp" id="ebac" data-tier="hot">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>EBAC Food Business <span style="font-size:.85rem;font-weight:500;color:var(--text-soft)">(curso institucional)</span></div>
+            <div class="comp-tag">Plataforma de cursos online · gestão de restaurantes/bares/cafés</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>1</strong> criativo escalado</span>
+          </div>
+        </div>
+
+        <div class="pattern">
+          <span class="pattern-label">Padrão identificado</span>
+          EBAC é institucional, broad, com <strong>oferta de desconto agressivo (40%)</strong>. Não compete diretamente, mas a frase de hook é interessante: <em>"Pare de apagar incêndios e comece a gerir"</em> — mesmo eixo emocional do dono "trabalhando muito e lucrando pouco" que aparece na sua copy.
+        </div>
+
+        <div class="creatives">
+          <div class="creative">
+            <div class="creative-num base"><span class="creative-num-big">3</span><span class="creative-num-label">cópias</span></div>
+            <div class="creative-body">
+              <div class="creative-copy">"O sabor do sucesso no mercado gastronômico? Eficiência e lucratividade! Destaque seu restaurante, bar ou café com o curso online Food Business. 40% DE DESCONTO por tempo limitado! Pare de apagar incêndios e comece a gerir!"</div>
+              <div class="creative-meta">
+                <span class="creative-id">ID 1627753815018279 / 4097024077183509</span>
+                <span>Veiculação: 24 mar 2026</span>
+                <a class="creative-link" href="https://www.facebook.com/ads/library/?id=1627753815018279" target="_blank" rel="noopener">Ver na Biblioteca</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <!-- BINDES -->
+      <article class="comp" id="bindes" data-tier="rotation">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Fábio Bindes</div>
+            <div class="comp-tag">Mentor de Restaurantes · Grupo Lago (Sushiloko, Hum Burger)</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~19</strong> ads ativos</span>
+            <span><strong>0</strong> criativos escalados</span>
+          </div>
+        </div>
+
+        <div class="empty">
+          <span class="empty-label">Alta rotação · sem escala vertical</span>
+          O Bindes investe em <strong>volume de criativos diferentes</strong> (19 ads, todos únicos) ao invés de escalar um vencedor. Estratégia: reels educativos com gatilho de DM ("Comente PANFLETO", "Comente INDICADOR", "Comente HAPPY"). Funciona como awareness orgânico pago — qualifica via inbox, não via VSL pública. <strong>Não tem oferta fechada escalada.</strong> Concorrente que ainda está em fase de construção de audiência, não de monetização vertical.
+        </div>
+      </article>
+
+      <!-- BIANCA -->
+      <article class="comp" id="fraga" data-tier="rotation">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Bianca Fraga</div>
+            <div class="comp-tag">Mentoria Bianca Fraga · pivotou para iFood</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~12</strong> ads ativos</span>
+            <span><strong>0</strong> criativos escalados</span>
+          </div>
+        </div>
+
+        <div class="empty">
+          <span class="empty-label">PIVOTOU para outro produto · sem escala</span>
+          Pivotou da gestão financeira generalista para <strong>"iFood: do Básico ao Avançado"</strong> (curso ~R$80/mês). Sai da concorrência direta com o Painel do Dono e vai para o nicho de delivery/marketplace. Várias cópias do mesmo creative do iFood, mas cada uma com Library ID diferente — <strong>não conta como escala vertical</strong>. Reels antigos sobre precificação ainda rodando isolados (1 cópia cada).
+        </div>
+      </article>
+
+      <!-- ALPHA ASSESSORIA -->
+      <article class="comp" id="alpha" data-tier="rotation">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Alpha Assessoria</div>
+            <div class="comp-tag">Agência de marketing especializada em foodservice · self-claim "a maior da América Latina"</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>~110</strong> resultados (incluindo outras "Alphas")</span>
+            <span><strong>0</strong> escalados verticais</span>
+          </div>
+        </div>
+
+        <div class="empty">
+          <span class="empty-label">Alta rotação · sem escala vertical confirmada</span>
+          A Alpha (assessorialpha.com) não compete diretamente com você — vende <strong>tráfego/agência</strong> para restaurantes, não método de gestão. Mas é um player massivo: roda 10+ variações do MESMO hook ("<em>Dono de Restaurante, investir em marketing não é mais uma opção, é obrigação</em>") com IDs separados e variações de vídeo (0:48, 0:49, 0:53). Padrão idêntico ao Bindes — alta rotação sem duplicar criativo. Case escalado: <em>"O Nilson, da Nils Pizzaria, iniciou faturando 50 mil por mês, hoje fatura mais de 900 mil reais mensais"</em> — referência forte de prova social via case-fonte.
+        </div>
+      </article>
+
+      <!-- MARCELO ULIANA -->
+      <article class="comp" id="uliana" data-tier="rotation">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Marcelo Uliana <span style="font-size:.85rem;font-weight:500;color:var(--text-soft)">(Mentoria MU)</span></div>
+            <div class="comp-tag">Imersão CMV presencial · turma 18/05</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>1</strong> ad ativo</span>
+          </div>
+        </div>
+
+        <div class="empty">
+          <span class="empty-label">Player emergente · investimento mínimo</span>
+          Apenas 1 ad ativo: "A Imersão CMV é um treinamento presencial com Marcelo Uliana, onde você vai aprender, na prática, como controlar custos, reduzir desperdícios e transformar faturamento em lucro real". Nova turma 18/05. <strong>Hook idêntico ao seu Desafio do Preço do Prato</strong> mas com formato presencial e sem método nomeado. Player a monitorar nas próximas rodadas — pode estar testando ou pode ser intermitente.
+        </div>
+      </article>
+
+      <!-- SEM ADS -->
+      <article class="comp" id="sem-ads" data-tier="empty">
+        <div class="comp-head">
+          <div>
+            <div class="comp-name"><span class="flag">🇧🇷</span>Concorrentes sem ads ativos na BR</div>
+            <div class="comp-tag">Investigados · zero anúncios escalados ou ativos</div>
+          </div>
+          <div class="comp-meta">
+            <span><strong>8</strong> nomes</span>
+          </div>
+        </div>
+
+        <div class="empty">
+          <span class="empty-label">Sem presença em mídia paga</span>
+          <strong>Saulo Jennings</strong> (chef/consultor): zero ads ativos.<br>
+          <strong>Sergio Molinari</strong> (Food Consulting Group): apenas 1 ad da Abrasel mencionando o Congresso, sem anúncio próprio.<br>
+          <strong>Solange Calzavara</strong> (precificação): zero ads ativos.<br>
+          <strong>EGG Educa</strong> (Escola de Gestão da Gastronomia): zero ads ativos no momento.<br>
+          <strong>Domine Restaurantes</strong> (mencionado na sua memória): a busca por keyword traz outros anunciantes. A marca pode ter mudado de nome ou desativado mídia paga.<br>
+          <strong>Christian Consult</strong> (christianconsult.com.br): zero ads próprios — apesar do site declarar "25 anos de método para aumentar lucratividade".<br>
+          <strong>Rafael Scalco</strong> (rafaelscalco.com.br): zero ads ativos. Aparece em Google orgânico para "CMV restaurante" mas sem mídia paga.<br>
+          <strong>NaMesa</strong> (namesa.com.br): a marca não foi localizada na Biblioteca BR — a keyword retorna +50k resultados genéricos sobre "mesa".
+          <br><br>
+          Esses players ou apostam 100% em orgânico/SEO, ou têm mídia rodando de forma muito intermitente, ou simplesmente saíram do jogo. <strong>O Christian Consult é particularmente surpreendente</strong> — autoridade técnica de 25 anos sem nenhum tráfego pago é raro no setor.
+        </div>
+      </article>
+
+      <!-- SUMMARY -->
+      <section class="summary" id="summary">
+        <h2>Resumo estratégico</h2>
+        <p class="summary-sub">Após 2 rodadas de investigação cobrindo 17 concorrentes, o mercado se confirma: poucos players escalando vertical (apenas 6 de 17, ou 35%), um trio dominante (Marani, Politi, Miralha), um novo entrante forte (Matheus Lessa) e a maioria do mercado em alta rotação ou ausente. <strong>É um mercado pouco maduro em performance — espaço amplo para quem souber escalar.</strong></p>
+
+        <div class="summary-grid">
+          <div class="sum-col hot">
+            <h3>Quem escala 1 criativo (3+ cópias)</h3>
+            <ul>
+              <li><strong>Marani</strong> — eventos presenciais. 5 criativos a 8 cópias cada.</li>
+              <li><strong>Politi</strong> — livro Manual Mestre (3 versões a 5 cópias) + imersão Campinas (4).</li>
+              <li><strong>Miralha</strong> — aula ao vivo CMV (1 oferta replicada em 9+ versões, picos a 7 cópias).</li>
+              <li><strong>Matheus Lessa</strong> — Workshop Planejamento (4 cópias) + imersões cidade-a-cidade.</li>
+              <li><strong>Saipos</strong> — software com pain-point CMV/anti-planilha (5 cópias do hero).</li>
+              <li><strong>EBAC</strong> — curso Food Business 40% off (3 cópias).</li>
+            </ul>
+          </div>
+
+          <div class="sum-col warm">
+            <h3>Alta rotação · sem escala</h3>
+            <ul>
+              <li><strong>Fábio Bindes</strong> — 19 reels diferentes, gatilho de DM. Awareness puro.</li>
+              <li><strong>Alpha Assessoria</strong> — agência de marketing, 10+ variações do mesmo hook em IDs separados.</li>
+              <li><strong>Bianca Fraga</strong> — pivotou pro iFood, várias versões da mesma copy mas IDs separados.</li>
+              <li><strong>Politi (orgânico)</strong> — em paralelo ao Manual Mestre, dezenas de reels educativos sobre CMV/ficha técnica sem escala.</li>
+              <li><strong>Marcelo Uliana</strong> — apenas 1 ad ativo (Imersão CMV), monitorar.</li>
+            </ul>
+          </div>
+
+          <div class="sum-col gray">
+            <h3>Sem ads ativos / não localizados</h3>
+            <ul>
+              <li><strong>Saulo Jennings, Sergio Molinari, Solange Calzavara</strong> — zero mídia paga.</li>
+              <li><strong>EGG Educa, Domine Restaurantes</strong> — sem ads ativos.</li>
+              <li><strong>Christian Consult, Rafael Scalco, NaMesa</strong> — descobertos via WebSearch, mas zero presença na Biblioteca BR.</li>
+              <li>Surpresa: vários players com sites profissionais não rodam tráfego pago — apostam em SEO orgânico.</li>
+            </ul>
+          </div>
+        </div>
+
+        <div class="box-grid">
+          <div class="box">
+            <h3>Padrão comum dos que escalam</h3>
+            <ul>
+              <li><strong>Eixo emocional fixo:</strong> faturamento alto ≠ lucro real. Aparece em Marani, Politi, Miralha, Lessa e Saipos.</li>
+              <li><strong>Promessa numérica concreta:</strong> R$10-30k/30 dias (Miralha), 10h de conteúdo (Politi), faturamento +R$100k/mês (filtro Miralha), 23 mil alunos em 17 países (Lessa).</li>
+              <li><strong>CTA único repetido:</strong> nenhum alterna copy de botão entre criativos — todos batem no mesmo "Saiba mais", "Garantir minha vaga", "Comente PALAVRA".</li>
+              <li><strong>Lead magnet forte:</strong> aula gratuita (Miralha), evento (Marani), livro com promo (Politi), workshop online (Lessa). Ninguém vende high-ticket frio.</li>
+              <li><strong>VSL longa em paralelo à curta:</strong> sempre tem versão de 0:25 e versão de 1:15+ rodando do mesmo criativo.</li>
+            </ul>
+          </div>
+
+          <div class="box">
+            <h3>Diferenças entre os players que escalam</h3>
+            <ul>
+              <li><strong>Marani = palco.</strong> Vende evento presencial. Prova social do salão cheio.</li>
+              <li><strong>Politi = palavra escrita.</strong> Vende livro/manual. Autoridade técnica de 35 anos, "blindagem contra crises".</li>
+              <li><strong>Miralha = aula ao vivo.</strong> Vende diagnóstico high-ticket via webinar. "Quem governa a gestão, governa o lucro".</li>
+              <li><strong>Lessa = workshop + imersão cidade-a-cidade.</strong> Vende escala via volume de turmas locais. Self-claim "maior nome em gestão de restaurantes do Brasil".</li>
+              <li><strong>Saipos = software.</strong> Vende ferramenta operacional. Pain-point é o caos da planilha e o CMV não controlado.</li>
+              <li><strong>EBAC = certificação.</strong> Curso modular institucional com desconto 40%.</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- OPORTUNIDADE -->
+      <section class="opp" id="oportunidade">
+        <div class="opp-eyebrow">Gaps que o Do Custo ao Lucro pode explorar</div>
+        <h2>O que ninguém está reivindicando no mercado BR</h2>
+        <p>Cruzando os criativos escalados dos 6 principais players com o que já está travado no seu posicionamento (memória do projeto), aparecem 7 gaps reais — eixos onde o DCAL pode ocupar espaço sem competir frontalmente:</p>
+        <ul>
+          <li><strong>Metáfora do Engenheiro do Cardápio.</strong> Nenhum dos 6 usa campo semântico de engenharia/projeto/obra. Marani fala em "escalada/montanha", Politi em "blindagem", Miralha em "governar gestão", Lessa em "planejamento estratégico". O eixo Engenheiro está vago.</li>
+          <li><strong>Patamar numérico de chegada (14% de lucro operacional).</strong> Miralha promete "R$10-30k em 30 dias". Lessa promete "clareza, lucro e direção". Marani fala de "subir a montanha". Ninguém oferece um patamar fechado e nominado de chegada — o "Dono 14%" como aspiração tem espaço próprio.</li>
+          <li><strong>"Sem planilhas" como mantra.</strong> Saipos chega perto ("papel e planilha cobram caro") mas trata como argumento. Lessa fala de "capital de giro não é teoria bonita de planilha" — também sem cravar. Você pode reivindicar isso como bandeira de marca.</li>
+          <li><strong>Cardápio como projeto técnico.</strong> Os players falam de CMV, gestão, operação, liderança, planejamento — ninguém fala em <em>projetar o cardápio</em>. Esse é o diferencial técnico-criativo que está livre.</li>
+          <li><strong>Escada de produto integrada (R$47 → R$147 → R$97/mês → R$1.497 → R$12k).</strong> Marani só vende evento e mentoria. Politi só vende livro e imersão. Miralha vende aula→diagnóstico. Lessa vende workshop+imersão. Saipos só vende SaaS. Ninguém tem 5 degraus articulados como você.</li>
+          <li><strong>Self-claim baseado em PESQUISA, não em volume de alunos.</strong> Lessa briga com Marani na disputa de "maior número de alunos / maior ecossistema". Você tem o flanco aberto para se posicionar como o player que <em>pesquisou 482 donos de restaurante e descobriu que só 9% sabem o custo real do prato</em> — autoridade científica, não popularidade.</li>
+          <li><strong>Funcionalidade contínua via SaaS (Painel do Dono) atrelada a método.</strong> Saipos é SaaS sem método didático. Os mentores vendem método sem ferramenta recorrente. Você é o único que entrega Engenharia de Cardápio dentro do Painel do Dono — recorrência mensal com método embutido.</li>
+        </ul>
+        <p style="margin-top:24px;font-size:.95rem;">⚠️ <strong>Atenção competitiva imediata:</strong> Matheus Lessa e Marcelo Marani brigam abertamente por "maior nome / maior ecossistema". Quando você crescer para a próxima escala de mídia, esse conflito direto vira oportunidade — entre num eixo terceiro (Engenheiro técnico-científico) ao invés de disputar quem tem mais alunos.</p>
+      </section>
+
+      </section>
+    </div>
+  </div>
+</main>
+
+<footer>
+  <div class="container">
+    Pesquisa atualizada em 8 de maio de 2026 · 2 rodadas de investigação · 17 concorrentes mapeados · Critério: 3 ou mais anúncios usando o mesmo criativo · Mercado: Brasil · Fonte: Biblioteca de Anúncios da Meta
+  </div>
+</footer>
+
+<script>
+  const filterBtns = document.querySelectorAll('.f-btn');
+  const comps = document.querySelectorAll('.comp');
+  filterBtns.forEach(btn => {
+    btn.addEventListener('click', () => {
+      filterBtns.forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      const f = btn.dataset.filter;
+      comps.forEach(c => {
+        if (f === 'all') {
+          c.classList.remove('hidden');
+        } else if (f === 'hot' && c.dataset.tier === 'hot') {
+          c.classList.remove('hidden');
+        } else if (f === 'rotation' && c.dataset.tier === 'rotation') {
+          c.classList.remove('hidden');
+        } else if (f === 'empty' && c.dataset.tier === 'empty') {
+          c.classList.remove('hidden');
+        } else {
+          c.classList.add('hidden');
+        }
+      });
+    });
+  });
+</script>
+
+</body>
+</html>
