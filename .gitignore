@@ -163,3 +163,7 @@ scripts/log-atualizacao-automatica.txt
 # Pasta antiga do site (migrada para C:\Users\rodri\dev\docustoaolucro)
 Do Custo ao Lucro - Restaurantes/
 _ARQUIVO-site-migrado/
+
+# Exportacoes locais para outros agentes (contem caminhos da maquina local)
+.agents/
+.codex/
