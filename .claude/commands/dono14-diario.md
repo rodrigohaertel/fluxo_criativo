@@ -13,16 +13,21 @@ Rode: `py -3 scripts/dono14-diario.py`
 Devolve a campanha por dia (gasto, cliques, LPV, lead Meta, CTR, CPM, reach, CPL Meta) e os eventos do VSL no pixel (Play, Unmute, retenção 25/50/75/100) com a taxa de ativar som. O script lê o token do `.env` sozinho.
 
 ## Passo 2. Leads reais pelo banco (execute_sql)
-Reconciliação por dia (últimos 8 dias):
+
+Reconciliação por dia, **série completa desde 09/06** (não use janela curta: o mapa `leads_banco` do dashboard precisa do histórico inteiro, e uma janela de 8 dias já causou truncamento do histórico uma vez):
 ```sql
-with dias as (select generate_series((current_date - 8), current_date, interval '1 day')::date as d)
+with dias as (select generate_series(date '2026-06-09', current_date, interval '1 day')::date as d)
 select to_char(d,'DD/MM') dia,
  (select count(*) from contact_submissions cs where (cs.source ilike 'mentoria%' or cs.source ilike 'sess%') and (cs.created_at at time zone 'America/Sao_Paulo')::date=d) leads_banco,
  (select count(*) from contact_submissions cs where cs.source ilike 'mentoria%' and (cs.created_at at time zone 'America/Sao_Paulo')::date=d) leads_a,
  (select count(*) from contact_submissions cs where cs.source ilike 'sess%' and (cs.created_at at time zone 'America/Sao_Paulo')::date=d) leads_b,
- (select count(*) from lead_events le where le.event_name='Lead' and (le.created_at at time zone 'America/Sao_Paulo')::date=d) eventos_meta
+ (select count(distinct le.event_id) from lead_events le where le.event_name='Lead' and (le.created_at at time zone 'America/Sao_Paulo')::date=d) eventos_dedup
 from dias order by d;
 ```
+
+> **ATENÇÃO, leia antes de gritar "fantasma".** A coluna é `count(DISTINCT event_id)`, nunca `count(*)`. Cada lead do funil **/mentoria gera 2 linhas** em `lead_events` com o **mesmo `event_id`** (uma do CAPI em `/mentoria-cadastro`, outra do pixel em `/mentoria-obrigado`, com ~2s de diferença). O funil **/sessao gera 1 linha**. Isso é deduplicação funcionando como deve: a Meta recebe os dois e conta um. Contar linhas produz alarme falso permanente. Desde a trava de dedup de 10/07, `eventos_dedup` bate 100% com `leads_banco`. Se um dia não bater, aí sim investigue.
+>
+> `lead_events` é **tabela do próprio banco** (o que o site disparou), **não** é o que a Meta reporta no Gerenciador. São coisas diferentes: no Gerenciador a Meta costuma reportar **a menos** (só atribui o que liga a um clique na janela dela). E a **atribuição por criativo** da Meta segue não confiável (armadilha nº 1 do handoff): ela erra em *qual anúncio* trouxe o lead, o que é diferente de errar *quantos* leads houve.
 Nomes dos leads do dia fechado (ontem):
 ```sql
 select to_char(created_at at time zone 'America/Sao_Paulo','DD/MM HH24:MI') quando, name, whatsapp,
