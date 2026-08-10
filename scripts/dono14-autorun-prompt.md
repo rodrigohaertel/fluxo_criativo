@@ -64,8 +64,11 @@ Atualize `meus-produtos/dono-14/trafego/analise/diario/.contexto.json`:
 - **NUNCA trunque o mapa `leads_banco`**: ele guarda a série completa desde 09/06. Apenas acrescente o dia FECHADO novo. Não grave o dia corrente parcial na série (regra do dia fechado).
 - Leads reais = banco. Exclusões conhecidas: a submissão falsa de 23/07 (Bryan) conta 0.
 - Atualize `comercial` com os stages do CRM (venda = só stage ganho).
-- Escreva `consideracoes` com julgamento, respeitando o plano vigente (atualizado em 08/08/2026):
-  - **Dupla âncora A39 + A40**, R$ 72/dia cada, mais **A41 em teste** a R$ 60/dia com régua formal em 10/08.
+- Escreva `consideracoes` com julgamento, respeitando o plano vigente (atualizado em 10/08/2026):
+  - **Dupla âncora A39 + A40 a R$ 85/dia cada** (o Rodrigo subiu de R$ 72 em 09/08 às 10h28), mais **A41 em teste a R$ 60/dia**. Programado atual: **R$ 230/dia**. Não comparar com o R$ 204 antigo.
+  - **A41 cumpre 7 dias cheios de teste** (04/08 a 10/08), por decisão do Rodrigo, para a análise ser justa. A régua formal roda com 10/08 fechado, ou seja, na leitura de 11/08. Até lá, só observar.
+  - **Plano seguinte já sinalizado pelo Rodrigo:** se o A41 morrer na régua, ele sobe A39 e A40 para R$ 100/dia e roda uma semana só com os dois. Se isso acontecer, o programado passa a R$ 200/dia e a série de comparação recomeça.
+  - **Atenção ao efeito do degrau:** no dia em que o orçamento subiu (09/08), o gasto foi a R$ 296,52 e o CPL real saltou de R$ 44,58 para R$ 148,26. Um dia não prova, mas mexer em orçamento reabre aprendizado. Sempre olhar 2 ou 3 dias depois de um degrau antes de julgar o criativo.
   - **Gatilho de escala:** 3 dias seguidos com 3+ leads/dia e CPL real abaixo de R$ 70 (só sinalizar, nunca executar).
   - **Recuo de âncora:** 3 dias seguidos com CPL acima de R$ 100 ou CTR abaixo de 1%.
   - **Leitura por criativo vem do BANCO** (`utm_content`), não da atribuição da Meta. A atribuição da plataforma já errou quatro vezes nesta conta e em 08/08 apontou o A40 como vencedor quando o A39 é quem produziu a venda e os três contratos. Citar número da Meta só como contraste, sempre rotulado.
@@ -106,6 +109,13 @@ Como interpretar a saída e o que escrever:
 - **"ATUALIZADO com sucesso"** (código 0): escreva "Sincronização: atualização recebida", listando os commits que chegaram (o script os imprime em "Chegando:").
 - **"PARADO"** (código 2): houve conflito que exige decisão humana. O script já desfez tudo e devolveu o trabalho, então **nada foi perdido e nada ficou pela metade**. Registre em AVISOS EM DESTAQUE do marcador, nomeando os arquivos em conflito, e siga em frente.
 - **Passo não executado por qualquer motivo:** escreva isso explicitamente no marcador, com o motivo.
+
+**O script também faz BACKUP AUTOMÁTICO** (desde 10/08/2026): commita sozinho o que mudou em `scripts/`, `.claude/commands/`, `.claude/agents/`, `.claude/rules/`, `.claude/skills/`, `.claude/settings.json`, `CLAUDE.md` e `ARQUITETURA.md`, e envia para o fork pessoal. Registre no marcador o que ele disser:
+- **"BACKUP: N arquivo(s) salvos"**: escreva quantos e siga.
+- **"BACKUP: nada novo para salvar"**: escreva isso mesmo.
+- **"BACKUP ABORTADO: o conteúdo parece conter credencial"**: isso é grave. Vai em **AVISOS EM DESTAQUE**, dizendo que algum arquivo tem algo parecido com token escrito nele e que o backup do dia não aconteceu. Não tente contornar, não commite à mão, não edite o arquivo para "limpar". A conferência é do Rodrigo.
+
+Nada fora dessa lista de pastas é commitado, de propósito, para lixo de terminal e arquivo temporário nunca entrarem no repositório.
 
 **Proibido tentar resolver o conflito na madrugada.** Sem o Rodrigo para escolher entre as duas versões, a decisão não é sua. A única resolução automática permitida é a do `.gitignore` (união dos dois blocos), e ela já está dentro do script.
 
