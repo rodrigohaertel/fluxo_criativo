@@ -158,6 +158,11 @@ def resumo_regua():
 REGUA, ACIMA5, ENTRE35, ENTRE13, FORA, SEM_CPL = resumo_regua()
 
 
+def conc(cs, sing, plur):
+    """Concordancia simples pelo tamanho da lista."""
+    return sing if len(cs) == 1 else plur
+
+
 def lista(cs):
     if not cs:
         return "nenhum"
@@ -598,7 +603,7 @@ html = f"""<!DOCTYPE html>
 </div>
 
 <div class="aviso">
-  <p><b>A conclusão que mais muda a operação.</b> Dez dos doze criativos ficam abaixo de {brl(150)} por lead, ou seja, acima de 4x de retorno pela média histórica. Só o A34 e o A30 se aproximam do teto de {brl(RECEITA_POR_LEAD)}, e os dois com base pequena demais para condenar. Ou seja, <b>o gargalo desta conta não é o preço do lead, é o volume e a qualificação</b>. Cortar criativo por CPL de R$ 100 ou R$ 150 é otimizar a variável errada. O que decide o resultado é quantos leads dentro do filtro de R$ 100 mil a peça consegue trazer, e é exatamente aí que o A40 se separa dos outros.</p>
+  <p><b>A conclusão que mais muda a operação.</b> Dos {len(REGUA)} criativos com CPL medido, <b>{len(ACIMA5)} entregam acima de 5x</b> ({lista(ACIMA5)}) e {len(ENTRE35)} {conc(ENTRE35,'fica','ficam')} entre 3x e 5x ({lista(ENTRE35)}). Abaixo de 3x {conc(ENTRE13+FORA,'fica','ficam')} {len(ENTRE13) + len(FORA)} ({lista(ENTRE13 + FORA)}), e o {lista(FORA)} {conc(FORA,'passou','passaram')} do ponto de empate de {brl(RECEITA_POR_LEAD)}. Outros {len(SEM_CPL)} não geraram lead nenhum e por isso não entram na régua ({lista(SEM_CPL)}). <b>O gargalo desta conta não é o preço do lead, é o volume e a qualificação</b>. Cortar criativo por CPL de R$ 100 ou R$ 150 é otimizar a variável errada. O que decide o resultado é quantos leads dentro do filtro de R$ 100 mil a peça consegue trazer, e é exatamente aí que o A40 se separa dos outros.</p>
   <p><b>Ressalva de base.</b> Quatro vendas em {LEADS_PERIODO} leads é amostra pequena para uma taxa estável. A taxa de {num(TX_VENDA)}% e o valor de {brl(RECEITA_POR_LEAD)} por lead são a melhor estimativa disponível hoje, não uma constante. Reavaliar a cada cinco vendas novas.</p>
 </div>
 

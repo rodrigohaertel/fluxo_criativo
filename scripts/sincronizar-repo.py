@@ -25,12 +25,28 @@ NUNCA usa reset, checkout --, clean, rebase nem push --force.
 Uso:  py -3 scripts/sincronizar-repo.py [--sem-push]
 Saida: 0 = tudo certo (com ou sem novidade) | 2 = precisa de decisao humana
 """
+import re
 import subprocess
 import sys
+from datetime import date
 from pathlib import Path
 
 RAIZ = Path(__file__).resolve().parent.parent
 SEM_PUSH = "--sem-push" in sys.argv
+SEM_COMMIT = "--sem-commit" in sys.argv
+
+# BACKUP AUTOMATICO (08/2026): o que a rotina pode commitar sozinha. Lista
+# fechada de proposito. Nada fora daqui entra, para que lixo de terminal, arquivo
+# temporario ou pasta nova nunca seja versionado por acidente.
+PASTAS_BACKUP = ("scripts", ".claude/commands", ".claude/agents", ".claude/rules", ".claude/skills")
+ARQUIVOS_BACKUP = (".claude/settings.json", "CLAUDE.md", "ARQUITETURA.md")
+
+# Se qualquer coisa parecida com credencial aparecer no que seria commitado, o
+# backup ABORTA. Melhor perder o backup de um dia do que vazar chave no GitHub.
+PADRAO_SEGREDO = re.compile(
+    r"EAA[A-Za-z0-9]{20,}|sk-[A-Za-z0-9_\-]{20,}|eyJ[A-Za-z0-9_\-]{30,}"
+    r"|xox[bp]-[A-Za-z0-9\-]{10,}|whsec_[A-Za-z0-9]{10,}|AIza[A-Za-z0-9_\-]{30,}"
+)
 
 
 def git(*args, check=False):
@@ -83,6 +99,51 @@ def unir_gitignore():
     return True
 
 
+def backup_automatico():
+    """Commita as mudancas de script e configuracao, para o trabalho nao viver
+    so no disco desta maquina. Conservador de proposito:
+      - so os caminhos de PASTAS_BACKUP / ARQUIVOS_BACKUP entram;
+      - aborta se aparecer algo parecido com credencial;
+      - nao commita nada fora disso (lixo de terminal, pasta nova, temporario).
+    O .env segue no .gitignore e nunca chega aqui.
+    """
+    if SEM_COMMIT:
+        return
+    alvos = [p for p in (*PASTAS_BACKUP, *ARQUIVOS_BACKUP) if (RAIZ / p).exists()]
+    if not alvos:
+        return
+
+    git("add", "--", *alvos)
+    staged = [l for l in git("diff", "--cached", "--name-only").stdout.split("\n") if l]
+    if not staged:
+        print("BACKUP: nada novo para salvar.")
+        return
+
+    # Trava de seguranca: le o conteudo que seria commitado.
+    diff = git("diff", "--cached").stdout
+    achado = PADRAO_SEGREDO.search(diff)
+    if achado:
+        git("reset", "-q")
+        print(f"BACKUP ABORTADO: o conteudo parece conter credencial "
+              f"({achado.group()[:6]}...). Nada foi commitado. Conferir a mao.")
+        return
+
+    resumo = ", ".join(sorted({p.split("/")[0] for p in staged}))
+    corpo = "\n".join(f"- {p}" for p in staged[:40])
+    if len(staged) > 40:
+        corpo += f"\n- e mais {len(staged) - 40} arquivo(s)"
+    msg = (f"chore(rotina): backup automatico de {date.today().strftime('%d/%m/%Y')}\n\n"
+           f"Salvo pela rotina das 02h ({resumo}), para o trabalho nao viver so no\n"
+           f"disco da maquina. Arquivos:\n\n{corpo}\n\n"
+           f"Co-Authored-By: Claude Opus 5 <noreply@anthropic.com>\n")
+    r = git("commit", "-q", "-m", msg)
+    if r.returncode == 0:
+        print(f"BACKUP: {len(staged)} arquivo(s) salvos em commit automatico.")
+    else:
+        git("reset", "-q")
+        print(f"BACKUP: falha ao commitar ({(r.stderr or '').strip()[:160]}). Nada foi alterado.")
+
+
 def espelhar_fork():
     if SEM_PUSH or not tem_remote("fork"):
         return
@@ -109,6 +170,7 @@ print(f"Commits locais (customizacoes, nunca vao para o Workshop): {frente}")
 
 if atras == 0:
     print("\nEM DIA: nao ha atualizacao nova do Workshop.")
+    backup_automatico()
     espelhar_fork()
     sys.exit(0)
 
@@ -154,5 +216,6 @@ if sujo:
     print("Trabalho em aberto devolvido sem conflito.")
 
 print("\nATUALIZADO com sucesso.")
+backup_automatico()
 espelhar_fork()
 sys.exit(0)
