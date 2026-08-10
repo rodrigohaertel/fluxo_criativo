@@ -28,9 +28,13 @@ from datetime import date, datetime, timedelta
 # a janela de atribuicao e de 7 dias, entao leads/conversoes de cliques antigos
 # ainda pingam atribuidos ao CBO ate ~09/07/2026. Aposentar o CBO desta lista
 # depois de 09/07 (deixar so a ABO).
+# APOSENTADA em 08/08/2026, por decisao do Rodrigo: a CBO Vencedores
+# (120246284721790527) foi DESATIVADA e nao esta mais em uso. Ficou uma semana
+# inteira sem entrega (31/07 a 07/08) e a cauda de atribuicao ja se esgotou.
+# Nao voltar a monitorar: gerava um bloco "sem entrega no periodo" todo dia e um
+# aviso falso de "campanha zerada" no relatorio.
 CAMPANHAS = [
-    ("CBO Vencedores (VIVA desde 07/07, A36/A37/A38, A32 pausado)", "120246284721790527"),
-    ("ABO Teste de Criativos (ENCERRADA 07/07, so cauda de atribuicao)", "120247419652220527"),
+    ("ABO Teste de Criativos (unica campanha viva do funil Dono 14%)", "120247419652220527"),
 ]
 ABO = "120247419652220527"
 PIXEL = "223799232011558"
@@ -96,12 +100,16 @@ def ts(d):
     return int(time.mktime(datetime(d.year, d.month, d.day).timetuple()))
 
 
+# REGRA DA ROTINA (06/08/2026): todo numero de relatorio termina em ONTEM.
+# O dia de hoje esta em aberto (pacing, atribuicao e dedup ainda mudam ao longo
+# do dia) e um parcial lido como fechado distorce CPL, CTR e as reguas.
 hoje = date.today()
 ontem = hoje - timedelta(days=1)
-ini = hoje - timedelta(days=8)
+ini = ontem - timedelta(days=7)  # 8 dias FECHADOS: ontem-7 ate ontem
 
 print("=" * 70)
 print(f"LEITURA DIARIA DONO 14%  |  gerado {hoje.isoformat()}  |  dia fechado {ontem.isoformat()}")
+print(f"Janela: {ini.isoformat()} a {ontem.isoformat()} (somente dias fechados; hoje nao entra)")
 print("=" * 70)
 
 # --- Campanhas: diario (ABO viva + CBO na cauda de atribuicao de 7 dias) ---
@@ -110,7 +118,7 @@ for rotulo, camp_id in CAMPANHAS:
         f"{camp_id}/insights",
         {
             "time_increment": 1,
-            "time_range": json.dumps({"since": ini.isoformat(), "until": hoje.isoformat()}),
+            "time_range": json.dumps({"since": ini.isoformat(), "until": ontem.isoformat()}),
             "fields": "date_start,spend,reach,frequency,inline_link_clicks,ctr,cpm,actions",
         },
     ).get("data", [])
@@ -135,7 +143,7 @@ ads = get(
     f"{ABO}/insights",
     {
         "level": "ad",
-        "time_range": json.dumps({"since": ini.isoformat(), "until": hoje.isoformat()}),
+        "time_range": json.dumps({"since": ini.isoformat(), "until": ontem.isoformat()}),
         "fields": "ad_name,spend,impressions,inline_link_clicks,inline_link_click_ctr,ctr,cpc,actions",
     },
 ).get("data", [])
@@ -154,10 +162,11 @@ if ads:
         )
 
 # --- VSL + funil: eventos do pixel ---
-vsl_ini = hoje - timedelta(days=4)
+vsl_ini = ontem - timedelta(days=4)
 stats = get(
     f"{PIXEL}/stats",
-    {"aggregation": "event", "start": ts(vsl_ini), "end": ts(hoje + timedelta(days=1))},
+    # end = inicio de hoje, ou seja, fecha no fim do dia de ontem.
+    {"aggregation": "event", "start": ts(vsl_ini), "end": ts(ontem + timedelta(days=1))},
 ).get("data", [])
 
 agg = {}
@@ -165,7 +174,7 @@ for bucket in stats:
     for e in bucket.get("data", []):
         agg[e.get("value")] = agg.get(e.get("value"), 0) + int(e.get("count", 0))
 
-print(f"\n[VSL E FUNIL - eventos do pixel, {vsl_ini.isoformat()} a {hoje.isoformat()}]")
+print(f"\n[VSL E FUNIL - eventos do pixel, {vsl_ini.isoformat()} a {ontem.isoformat()}]")
 for k in ["PageView", "ViewContent", "VSL_Play", "VSL_Unmute", "VSL_25", "VSL_50", "VSL_75", "VSL_100", "Lead"]:
     if k in agg:
         print(f"  {k:<14} {agg[k]}")

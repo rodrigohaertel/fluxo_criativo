@@ -112,7 +112,10 @@ if os.path.exists(CTX):
     except Exception as e:  # noqa: BLE001
         print(f"[AVISO] contexto invalido: {e}", file=sys.stderr)
 
+# REGRA DA ROTINA (06/08/2026): todo numero termina no dia FECHADO (ontem). A
+# serie diaria ja descartava o dia em aberto; a janela do pixel agora tambem.
 hoje = date.today()
+ontem = hoje - timedelta(days=1)
 gerado_em = ctx.get("gerado_em", hoje.isoformat())
 dia_fechado = ctx.get("dia_fechado", (hoje - timedelta(days=1)).isoformat())
 ddmm_fechado = ddmm_of(dia_fechado)
@@ -129,7 +132,7 @@ rows = get(
         "level": "campaign",
         "time_increment": 1,
         "limit": 500,
-        "time_range": json.dumps({"since": START, "until": hoje.isoformat()}),
+        "time_range": json.dumps({"since": START, "until": ontem.isoformat()}),
         "fields": "date_start,objective,spend,impressions,inline_link_clicks,actions",
     },
 ).get("data", [])
@@ -181,8 +184,9 @@ leads_total = t_lead_banco
 START_DDMM = ddmm_of(START)
 
 # ---------- VSL (pixel) ----------
-vsl_ini = hoje - timedelta(days=4)
-stats = get(f"{PIXEL}/stats", {"aggregation": "event", "start": ts(vsl_ini), "end": ts(hoje + timedelta(days=1))}).get("data", [])
+vsl_ini = ontem - timedelta(days=4)
+# end = inicio de hoje, ou seja, a janela fecha no fim do dia de ontem.
+stats = get(f"{PIXEL}/stats", {"aggregation": "event", "start": ts(vsl_ini), "end": ts(ontem + timedelta(days=1))}).get("data", [])
 agg = {}
 for bucket in stats:
     for e in bucket.get("data", []):
