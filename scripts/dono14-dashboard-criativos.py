@@ -144,6 +144,28 @@ def teto_cpl():
     return linhas
 
 
+def resumo_regua():
+    """Conta como os criativos com CPL medido se distribuem contra o teto."""
+    vals = [(x["criativo"], x["cpl_banco"] or x["cpl_meta"]) for x in C if (x["cpl_banco"] or x["cpl_meta"])]
+    a5 = [c for c, v in vals if v <= RECEITA_POR_LEAD / 5]
+    a3 = [c for c, v in vals if RECEITA_POR_LEAD / 5 < v <= RECEITA_POR_LEAD / 3]
+    a1 = [c for c, v in vals if RECEITA_POR_LEAD / 3 < v <= RECEITA_POR_LEAD]
+    fora = [c for c, v in vals if v > RECEITA_POR_LEAD]
+    sem = [x["criativo"] for x in C if not (x["cpl_banco"] or x["cpl_meta"])]
+    return vals, a5, a3, a1, fora, sem
+
+
+REGUA, ACIMA5, ENTRE35, ENTRE13, FORA, SEM_CPL = resumo_regua()
+
+
+def lista(cs):
+    if not cs:
+        return "nenhum"
+    if len(cs) == 1:
+        return cs[0]
+    return ", ".join(cs[:-1]) + " e " + cs[-1]
+
+
 def cpl_vs_teto():
     alvo3 = RECEITA_POR_LEAD / 3
     alvo5 = RECEITA_POR_LEAD / 5
