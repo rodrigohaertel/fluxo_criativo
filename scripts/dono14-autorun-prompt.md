@@ -67,9 +67,9 @@ Atualize `meus-produtos/dono-14/trafego/analise/diario/.contexto.json`:
 - Leads reais = banco. Exclusões conhecidas: a submissão falsa de 23/07 (Bryan) conta 0.
 - Atualize `comercial` com os stages do CRM (venda = só stage ganho).
 - Escreva `consideracoes` com julgamento, respeitando o plano vigente (atualizado em 10/08/2026):
-  - **Dupla âncora A39 + A40 a R$ 85/dia cada** (o Rodrigo subiu de R$ 72 em 09/08 às 10h28), mais **A41 em teste a R$ 60/dia**. Programado atual: **R$ 230/dia**. Não comparar com o R$ 204 antigo.
-  - **A41 cumpre 7 dias cheios de teste** (04/08 a 10/08), por decisão do Rodrigo, para a análise ser justa. A régua formal roda com 10/08 fechado, ou seja, na leitura de 11/08. Até lá, só observar.
-  - **Plano seguinte já sinalizado pelo Rodrigo:** se o A41 morrer na régua, ele sobe A39 e A40 para R$ 100/dia e roda uma semana só com os dois. Se isso acontecer, o programado passa a R$ 200/dia e a série de comparação recomeça.
+  - **SÓ A DUPLA ÂNCORA, A39 + A40, a R$ 100/dia cada. Programado: R$ 200/dia.** Aplicado pelo Rodrigo em 11/08 às 09h24 (subiu de R$ 85), confirmado no registro de atividades da conta. Não comparar com R$ 204 nem com R$ 230, que são planos antigos.
+  - **A41 foi PAUSADO em 11/08 às 09h23**, ao fim dos 7 dias de teste (04/08 a 10/08). Fechou com 3 leads reais, CPL real R$ 139, 1 sessão e nenhum fechamento. Não citar como campanha zerada nem cobrar decisão sobre ele: está encerrado. A cauda de atribuição dele pode pingar por alguns dias.
+  - **Janela combinada: 11/08 a segunda-feira 17/08**, só com as duas âncoras. **Ler o resultado pela janela de 13 a 17**, descartando 11 e 12 como transição do degrau, porque mudança de orçamento reabre aprendizado. Dizer isso no relatório em vez de tratar 12/08 como veredito.
   - **Atenção ao efeito do degrau:** no dia em que o orçamento subiu (09/08), o gasto foi a R$ 296,52 e o CPL real saltou de R$ 44,58 para R$ 148,26. Um dia não prova, mas mexer em orçamento reabre aprendizado. Sempre olhar 2 ou 3 dias depois de um degrau antes de julgar o criativo.
   - **Gatilho de escala:** 3 dias seguidos com 3+ leads/dia e CPL real abaixo de R$ 70 (só sinalizar, nunca executar).
   - **Recuo de âncora:** 3 dias seguidos com CPL acima de R$ 100 ou CTR abaixo de 1%.

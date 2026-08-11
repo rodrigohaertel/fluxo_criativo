@@ -34,7 +34,7 @@ from datetime import date, datetime, timedelta
 # Nao voltar a monitorar: gerava um bloco "sem entrega no periodo" todo dia e um
 # aviso falso de "campanha zerada" no relatorio.
 CAMPANHAS = [
-    ("ABO Teste de Criativos (unica campanha viva do funil Dono 14%)", "120247419652220527"),
+    ("ABO Dupla Ancora A39+A40 (unica campanha viva do funil Dono 14%)", "120247419652220527"),
 ]
 ABO = "120247419652220527"
 PIXEL = "223799232011558"
