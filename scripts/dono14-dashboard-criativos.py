@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-08-07"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-08-11"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -607,7 +607,29 @@ html = f"""<!DOCTYPE html>
   <p><b>Ressalva de base.</b> Quatro vendas em {LEADS_PERIODO} leads é amostra pequena para uma taxa estável. A taxa de {num(TX_VENDA)}% e o valor de {brl(RECEITA_POR_LEAD)} por lead são a melhor estimativa disponível hoje, não uma constante. Reavaliar a cada cinco vendas novas.</p>
 </div>
 
-<h2>4. A escada de métricas</h2>
+<h2>4. O degrau que separa os líderes: a sessão</h2>
+<p class="sub">Trazer lead barato e qualificado é meio caminho. O que fecha contrato é a sessão converter. Aqui estão só os criativos que já levaram alguém até a call, com coorte de {D.get('maturacao_dias',7)} dias para a comparação ser justa.</p>
+<div class="tbox"><table>
+<thead><tr><th>Criativo</th><th>Leads</th><th>Coorte madura</th><th>Avançaram</th><th>Sessões agendadas</th><th>Sessões realizadas</th><th>Viraram contrato ou venda</th><th>Taxa da sessão</th></tr></thead>
+<tbody>
+{''.join(f"""<tr class="{'novo' if l['rastreado'] else ''}">
+  <td class="k"><b>{l['criativo']}</b><em>{l['titulo']}</em></td>
+  <td class="n">{l['leads_banco']}</td>
+  <td class="n">{l['maduros']}</td>
+  <td class="n">{l['maduros_avancaram']} <em>({num(l['taxa_coorte'],0)}%)</em></td>
+  <td class="n">{l['sess_agendadas']}</td>
+  <td class="n">{l['sess_realizadas']}</td>
+  <td class="n forte">{l['sess_convertidas']}</td>
+  <td class="n {'z5' if l['taxa_sessao'] >= 50 else ('z1' if l['sess_realizadas'] else '')}">{num(l['taxa_sessao'],0)}%{'' if l['sess_realizadas'] else ' <em>sem base</em>'}</td>
+</tr>""" for l in C if l['sess_agendadas'] or l['maduros'])}
+</tbody></table></div>
+<div class="aviso">
+  <p><b>Este é o achado que decide a próxima leva.</b> O A39 levou {por['A39']['sess_realizadas']} pessoas à sessão e fechou {por['A39']['sess_convertidas']} ({num(por['A39']['taxa_sessao'],0)}%). O A40 levou {por['A40']['sess_realizadas']} e fechou {por['A40']['sess_convertidas']}. Os dois trazem lead barato e qualificado, o A40 até melhor nos dois quesitos, mas só um deles traz gente que compra depois de conversar.</p>
+  <p><b>A hipótese, e ela é hipótese.</b> O A39 abre com o problema de mercado, então atrai quem quer resolver um problema. O A40 abre mostrando a ferramenta funcionando, então atrai quem quer conhecer a ferramenta. Intenção diferente na entrada, resultado diferente na saída.</p>
+  <p><b>O que ainda não está decidido.</b> O A40 tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões agendadas que ainda não aconteceram. Se elas fecharem, a leitura muda. Enquanto não acontecerem, três sessões sem conversão é sinal, não sentença.</p>
+</div>
+
+<h2>5. A escada de métricas</h2>
 <p class="sub">Cada degrau responde uma pergunta diferente e culpa um elemento diferente do método. Um criativo não se julga por um número, se julga pela escada inteira.</p>
 <div class="degraus">
 {escada('Parou o scroll (hook rate)', 'hook', nota='Culpa do gancho e da Urgência Oculta. Faixa apertada nesta conta: o hook não separa vencedor de perdedor.')}
@@ -618,7 +640,7 @@ html = f"""<!DOCTYPE html>
 {escada('Custou quanto por lead', 'cpl_meta', '', inverso=True, nota='Leitura pela atribuição da Meta. Só serve para comparar entre criativos do mesmo período.')}
 </div>
 
-<h2>5. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
+<h2>6. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
 <p class="sub">Cada bolha é um criativo. Quanto mais à direita, mais gente clicou. Quanto mais acima, mais gente cadastrou depois de chegar. O tamanho é o quanto foi investido. O canto superior direito é onde o dinheiro rende.</p>
 {scatter()}
 
@@ -627,73 +649,82 @@ html = f"""<!DOCTYPE html>
     <div class="row"><span>Hook</span><b>{num(por['A34']['hook'])}%</b></div>
     <div class="row"><span>CTR de link</span><b class="win">{num(por['A34']['ctr_link'],2)}%</b></div>
     <div class="row"><span>P50</span><b>{num(por['A34']['p50'])}%</b></div>
-    <div class="row"><span>Visita para lead</span><b>{num(por['A34']['lpv_lead_meta'])}%</b></div>
+    <div class="row"><span>Vendeu</span><b>não</b></div>
   </div>
-  <div class="col"><h5>A36 · o melhor fecho</h5>
-    <div class="row"><span>Hook</span><b>{num(por['A36']['hook'])}%</b></div>
-    <div class="row"><span>CTR de link</span><b>{num(por['A36']['ctr_link'],2)}%</b></div>
-    <div class="row"><span>P50</span><b>{num(por['A36']['p50'])}%</b></div>
-    <div class="row"><span>Visita para lead</span><b>{num(por['A36']['lpv_lead_meta'])}%</b></div>
+  <div class="col"><h5>A40 · o melhor lead</h5>
+    <div class="row"><span>P50</span><b class="win">{num(por['A40']['p50'])}%</b></div>
+    <div class="row"><span>CPL de banco</span><b class="win">{brl(por['A40']['cpl_banco'])}</b></div>
+    <div class="row"><span>Dentro do filtro</span><b class="win">{num(por['A40']['taxa_q'],0)}%</b></div>
+    <div class="row"><span>Vendeu</span><b>ainda não</b></div>
   </div>
-  <div class="col win"><h5>A40 · quem chegou mais perto</h5>
-    <div class="row"><span>Hook</span><b class="win">{num(alvo['hook'])}%</b></div>
-    <div class="row"><span>CTR de link</span><b>{num(alvo['ctr_link'],2)}%</b></div>
-    <div class="row"><span>P50</span><b class="win">{num(alvo['p50'])}%</b></div>
-    <div class="row"><span>Visita para lead</span><b class="win">{num(alvo['lpv_lead'])}%</b></div>
+  <div class="col win"><h5>A39 · o que vende</h5>
+    <div class="row"><span>Leads</span><b>{por['A39']['leads_banco']}</b></div>
+    <div class="row"><span>Coorte madura</span><b class="win">{num(por['A39']['taxa_coorte'],0)}%</b></div>
+    <div class="row"><span>Taxa da sessão</span><b class="win">{num(por['A39']['taxa_sessao'],0)}%</b></div>
+    <div class="row"><span>Vendas fechadas</span><b class="win">{por['A39']['vendas']}</b></div>
   </div>
-  <div class="col win"><h5>A40 · a prova no banco</h5>
-    <div class="row"><span>Leads reais</span><b>{alvo['leads_banco']}</b></div>
-    <div class="row"><span>Dentro do filtro</span><b class="win">{alvo['q100']} de {alvo['leads_banco']}</b></div>
-    <div class="row"><span>Acima de R$ 200 mil</span><b class="win">{alvo['q200']}</b></div>
-    <div class="row"><span>CPL qualificado</span><b class="win">{brl(alvo['cpl_q'])}</b></div>
+  <div class="col win"><h5>A39 · o retorno</h5>
+    <div class="row"><span>Investido</span><b>{brl(por['A39']['gasto_rast'])}</b></div>
+    <div class="row"><span>Receita fechada</span><b class="win">{brl(por['A39']['receita'])}</b></div>
+    <div class="row"><span>ROAS</span><b class="win">{num(por['A39']['roas'],2)}x</b></div>
+    <div class="row"><span>Em contrato</span><b>{brl(por['A39']['pipeline_valor'])}</b></div>
   </div>
 </div>
-<div class="aviso"><p><b>O que falta no A40.</b> Ele herdou o fecho do A36 e melhorou, herdou parte do gancho e melhorou, e só não herdou o clique do A34. CTR de link de {num(alvo['ctr_link'],2)}% contra {num(por['A34']['ctr_link'],2)}% do A34. Com o clique do A34 e a mesma taxa de cadastro, o CPL cairia para a casa dos R$ 45. É a única lacuna que sobrou, e é ela que a leva A42 tem que atacar.</p></div>
+<div class="aviso">
+  <p><b>O alvo mudou de dono.</b> A leitura anterior apontava o A40 como quem chegou mais perto, porque ele junta gancho, retenção e CPL qualificado. Com o funil completo na mão, o veredito é outro: <b>o A39 é a única peça que percorre a cadeia inteira</b>, do scroll até o contrato assinado. Ele tem {brl(por['A39']['receita'])} fechados e mais {brl(por['A39']['pipeline_valor'])} em contrato, sobre {brl(por['A39']['gasto_rast'])} investidos.</p>
+  <p><b>O que o A39 ainda não tem.</b> O meio dele perde gente: P50 de {num(por['A39']['p50'])}% contra {num(por['A40']['p50'])}% do A40. E a frequência está em {num(por['A39']['freq'],2)}, a mais alta da conta, com CPM de {brl(por['A39']['cpm'],2)}. É peça provada rodando em público que já se esgotou.</p>
+  <p><b>A conta que a próxima leva persegue.</b> O gancho de dado do A39, que traz quem compra, com o meio do A40, que segura na tela. Manter a taxa de sessão de {num(por['A39']['taxa_sessao'],0)}% e subir o P50 para a faixa dos 20%.</p>
+</div>
 
-<h2>6. O DNA por família de ângulo</h2>
+<h2>7. O DNA por família de ângulo</h2>
 <p class="sub">Os doze criativos agrupados pelo ângulo da Mandala, com o número de cada família. É aqui que a decisão de roteiro se sustenta.</p>
 <div class="fams">
 {''.join(card_familia(f) for f in fam_ord)}
 </div>
 
-<h2>7. A direção da leva A42, A43 e A44</h2>
-<p class="sub">Tudo acima aponta para o mesmo lugar: manter o motor de demonstração que qualifica e resolver o clique.</p>
+<h2>8. A direção da leva A42, A43 e A44</h2>
+<p class="sub">Tudo acima aponta para o mesmo lugar: partir do A39, que é o único que vende, e corrigir onde ele é fraco.</p>
 <div class="plano">
   <div class="p">
     <div class="cod">A42 · aposta principal</div>
-    <h4>Demonstração com gancho de dado</h4>
-    <p>Abre com o dado da ABRASEL na tela, como o A39, e no segundo 4 já vira o Painel montando a cascata, como o A40. Os dois ângulos que mais qualificam lead na mesma peça, um resolvendo a fraqueza do outro.</p>
-    <div class="meta">Meta: subir o CTR de link de <b>{num(alvo['ctr_link'],2)}%</b> para <b>1,6%</b> sem perder a taxa de cadastro de <b>{num(alvo['lpv_lead'])}%</b>. Textura: tela de notícia virando Painel. Duração alvo: 70 a 85s.</div>
+    <h4>Dilema, ancorado no dado que já vendeu</h4>
+    <p>Ângulo inédito na conta, com a prova de mercado que faz o A39 converter. A estrutura de dilema é a que mais segura no meio, porque a pessoa fica para descobrir a saída, e é exatamente o meio que o A39 perde hoje.</p>
+    <div class="meta">Meta: manter a taxa de sessão de <b>{num(por['A39']['taxa_sessao'],0)}%</b> e subir o P50 de <b>{num(por['A39']['p50'])}%</b> para <b>20%</b>. Duração alvo: 60 a 75s.</div>
   </div>
   <div class="p">
     <div class="cod">A43 · o alvo literal</div>
     <h4>A conta dos 72% montada na tela</h4>
-    <p>Pega a conta empilhada que deu ao A34 o melhor clique da conta (16% de Simples, 14% de iFood, 42% de CMV) e monta ela linha a linha no Painel, em vez de contar de boca. É a fusão do melhor gancho com o melhor fecho, o alvo que nenhuma peça alcançou.</p>
-    <div class="meta">Rosto no gancho e no CTA, tela no miolo. Meta: hook acima de <b>28%</b>, CTR de link acima de <b>1,7%</b> e visita para lead acima de <b>13%</b>.</div>
+    <p>Pega a conta empilhada que deu ao A34 o melhor clique da conta e monta ela linha a linha no Painel, em vez de contar de boca. Junta o melhor gancho com o payoff visual que o A40 provou reter.</p>
+    <div class="meta">Rosto no gancho e no CTA, tela no miolo. Meta: hook acima de <b>28%</b>, CTR de link acima de <b>1,7%</b> e P50 acima de <b>20%</b>.</div>
   </div>
   <div class="p gate">
     <div class="cod">A44 · travado pela prova</div>
     <h4>Antes e depois no Painel</h4>
-    <p>Continua com trava de dado: só sai quando o mentorado do A40 tiver número de saída verificável. Sem a prova real, não sobe. O substituto, se o número não vier a tempo, é uma segunda demonstração com outro Painel, outro porte de restaurante e outro tipo de comida.</p>
-    <div class="meta">A família de demonstração é a que qualifica e ainda tem só <b>duas peças</b> na conta. Ampliar essa família vale mais que abrir uma sétima família nova.</div>
+    <p>Só sai quando houver número de saída verificável de um mentorado, com print conferido. Sem a prova real, não sobe. Substituto, se o número não vier: uma segunda demonstração com outro Painel e outro porte de restaurante.</p>
+    <div class="meta">A família de demonstração é a que qualifica melhor e ainda tem só <b>duas peças</b>. Ampliar essa família vale mais que abrir uma família nova.</div>
   </div>
 </div>
 
-<h2>8. O que não repetir</h2>
+<div class="aviso">
+  <p><b>Duas ações valem mais que criativo novo, e são para agora.</b> Primeira: a frequência do A39 está em {num(por['A39']['freq'],2)} e a do A40 em {num(por['A40']['freq'],2)}, as duas subindo. As peças estão provadas, o público é que acabou. Ampliar segmentação ou lookalike antes que o CPM suba mais. Segunda: há {brl(FIN['pipeline_total'])} parados em contrato assinado que ainda não viraram receita. Destravar isso rende mais que qualquer ponto de CPL.</p>
+</div>
+
+<h2>9. O que não repetir</h2>
 <ul class="nao">
-  <li><b>Convocação e "procura-se".</b> O A41 teve o filtro mais explícito de todos e trouxe {por['A41']['leads_banco']} leads, nenhum dentro do filtro de faturamento. A mesma família do A30, que custou {brl(por['A30']['cpl_meta'])} por lead. O formato atrai quem quer ser escolhido, não quem tem porte.</li>
+  <li><b>Convocação e "procura-se", com ressalva.</b> Teste encerrado: o A41 gastou {brl(por['A41']['gasto_rast'])} e trouxe {por['A41']['leads_banco']} leads, sendo {por['A41']['q100']} dentro do filtro, a {brl(por['A41']['cpl_q'])} o lead qualificado. É de longe o pior da leva nova (o A40 faz o mesmo por {brl(por['A40']['cpl_q'])}), e o único lead que prestou entrou no último dia, com sessão ainda por acontecer. A mesma família do A30, que custou {brl(por['A30']['cpl_meta'])} por lead. Não repetir o formato, mas esperar a sessão desse lead antes de enterrar o ângulo de vez.</li>
   <li><b>História de origem longa em rosto puro.</b> O A33 gastou {brl(por['A33']['gasto'])}, não gerou lead nenhum e tem a pior retenção da série, com 94 segundos.</li>
   <li><b>Perseguir hook e retenção como critério de vitória.</b> O A38 tem a melhor retenção da conta (P95 de {num(por['A38']['p95'])}%) e o melhor connect ({num(por['A38']['connect'])}%), com o pior CPL ({brl(por['A38']['cpl_meta'])}) e a pior taxa de cadastro. Métrica de vaidade confirmada com dado novo.</li>
   <li><b>Subir criativo novo no CBO junto com os antigos.</b> O A32 consumiu {brl(1933)} do CBO enquanto o A34 e o A38 ficaram na migalha. Conjunto isolado, como está sendo feito hoje no ABO de teste, e está funcionando.</li>
   <li><b>Coroar ou enterrar peça pela atribuição da Meta.</b> O A35 mostrava {por['A35']['leads_meta']} leads no gerenciador e {por['A35']['leads_banco']} lead real. Veredito só com o banco e o CRM na mão.</li>
 </ul>
 
-<h2>9. Ressalvas de leitura</h2>
+<h2>10. Ressalvas de leitura</h2>
 <div class="aviso">
   <p><b>A comparação entre lotes não é limpa.</b> Entre o A38 e o A39 mudou a oferta (de mentoria para sessão gratuita), mudou a página e mudou a estrutura de campanha. Só a família do ângulo é comparável, não o CPL absoluto.</p>
-  <p><b>O A41 tem base pequena:</b> {brl(por['A41']['gasto'])} e {por['A41']['impressoes']:,} impressões, todo em agosto. Zero qualificado é sinal forte, mas ainda não é sentença estatística. O sinal casa com o do A30, da mesma família, e por isso a recomendação é não insistir.</p>
-  <p><b>O A40 é o mais novo do trio</b> e boa parte do gasto dele é de agosto. Os leads dele ainda estão entrando no pipeline. O A39 teve mais tempo para maturar, o que explica os contratos e a venda. Não conclua que o A39 vende mais e o A40 só cadastra até o A40 completar o mesmo tempo de estrada.</p>
-  <p><b>A atribuição da Meta melhorou muito</b> depois dos ajustes de julho: A39 com 14 contra 16 reais, A40 com 10 contra 10. Continua imprestável para os criativos antigos, mas para os novos já dá para ler com confiança.</p>
+  <p><b>O A40 ainda não está julgado.</b> Ele tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões marcadas que não aconteceram. Três sessões sem conversão é sinal forte, mas a amostra é pequena e a peça é mais nova que o A39. O veredito real sai quando essas sessões acontecerem.</p>
+  <p><b>Faturamento declarado não é qualificação.</b> O A40 trouxe declarações de R$ 8 milhões, R$ 1,5 milhão e R$ 1,2 milhão por mês. As duas primeiras foram perdidas. Declaração fora da curva merece desconfiança, não comemoração.</p>
+  <p><b>A base ainda é pequena.</b> {FIN['vendas_total']} vendas em {D['totais']['leads_banco_total_periodo']} leads sustentam uma taxa de {num(TX_VENDA)}% e um valor de {brl(RECEITA_POR_LEAD)} por lead. É a melhor estimativa disponível, não uma constante. Reavaliar a cada cinco vendas novas.</p>
+  <p><b>A atribuição da Meta continua imprestável para os criativos antigos.</b> Para os novos ela já bate com o banco. O A35 segue como o exemplo do erro: 8 leads no gerenciador, zero na realidade, e por isso ele entra com zero em toda esta página.</p>
 </div>
 
 <footer>

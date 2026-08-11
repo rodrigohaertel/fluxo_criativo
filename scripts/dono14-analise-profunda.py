@@ -21,7 +21,10 @@ FORMATO PADRÃO, aprovado pelo Rodrigo em 08/08/2026. Não reduzir sem combinar:
   3. Tabela com FREQ e CPM além de CTR, CPC, CPV, funil de vídeo e connect, mais
      LEADS BANCO e CPL REAL por período (o CPL da Meta fica só como contraste).
   4. Filtro "Por dia" e "Por semana" na mesma tabela, e linha de TOTAL da vida.
-  5. Gráfico de evolução semanal (SVG puro): leads em barras, CTR e CPL em linha.
+  5. Análise do criativo fechando cada cartão: leitura determinística de topo,
+     retenção, ponte para a página, lead, comercial, tendência e veredito pela
+     régua. Cada frase sai de um número da própria tabela, sem especular causa.
+     (Substituiu o gráfico semanal, removido em 11/08 por não ajudar a decidir.)
   6. Etapas do CRM com o nome do board (Sessão, SDR, Fechamento, Ganhos), nunca
      a chave crua do banco. Fonte: src/lib/crmStages.ts do repositório do site.
   7. Largura de 85% da janela e nenhuma célula quebrando em duas linhas.
@@ -387,9 +390,11 @@ padding:6px 16px;font-size:.8rem;font-family:var(--font);cursor:pointer}
 .fbtn.on{background:rgba(224,180,100,.14);color:var(--gold);border-color:var(--gold);font-weight:700}
 .oculto{display:none}
 tr.tot td{border-top:2px solid var(--gold);font-weight:800;background:rgba(224,180,100,.06)}
-svg.graf{width:100%;min-width:560px;height:auto}
-.gtxt{fill:var(--cream40);font-size:11px;font-family:var(--font)}
-.gnum{fill:var(--cream60);font-size:10px;font-family:var(--font)}
+.analise{background:rgba(224,180,100,.05);border:1px solid rgba(224,180,100,.28);
+border-radius:12px;padding:14px 18px}
+.analise ul{margin:0;padding-left:18px}
+.analise li{margin:7px 0;font-size:.9rem;color:var(--cream60);line-height:1.6}
+.analise li b{color:var(--cream)}
 .foot{color:var(--cream40);font-size:.76rem;margin-top:22px;line-height:1.7}
 div.scroll{overflow-x:auto}</style>"""
 
@@ -484,9 +489,10 @@ for idx, nome in enumerate(nomes_ativos):
                             + celulas_periodo(sv, ld_banco_sem, sem_fim >= INICIO_UTM) + "</tr>")
         ms = linha_metricas(sv)
         serie_grafico.append({
-            "rot": ddmm(sem_ini), "ctr": ms["ctr"] or 0,
+            "rot": ddmm(sem_ini), "ctr": ms["ctr"] or 0, "ini": sem_ini,
             "cpl": (sv["sp"] / ld_banco_sem) if ld_banco_sem else None,
             "leads": ld_banco_sem, "gasto": sv["sp"], "conn": ms["conn"] or 0,
+            "p50": ms["p50"], "hook": ms["hook"],
         })
 
     # ---------- linha de TOTAL (vida inteira do criativo)
@@ -533,55 +539,113 @@ for idx, nome in enumerate(nomes_ativos):
 <div class="legenda">Vida do criativo: {ddmm(nasceu)} a {ddmm(ontem)} · gasto total {brl(a['sp'])}.
 CPL real, CAC e ROAS usam a janela creditável (19/07 em diante), porque antes disso o lead não guardava o criativo.</div>"""
 
-    # ---------- grafico de evolucao semanal (SVG puro, sem biblioteca)
-    grafico = ""
+    # ---------- ANALISE DO CRIATIVO (fecha o cartao, no lugar do grafico)
+    # Leitura deterministica: cada frase sai de um numero da propria tabela.
+    # Nao inventa causa, nao especula. Onde falta dado, diz que falta.
+    dias_vivos = len(dias_do_ad)
+    ldia = ld_real / dias_vivos if dias_vivos else 0
+    # tempo medio nao se soma: no acumulado e a media dos dias com entrega.
+    tms_vida = [por_ad_dia[d][nome].get("tm", 0) for d in dias_do_ad]
+    tm_medio = sum(tms_vida) / len(tms_vida) if tms_vida else 0
+    # ATENCAO: a classe CSS "top" cobre 🟢 E 💚 (as duas sao "boas"). Para saber
+    # se e verde FORTE, olhar o emoji, nao a classe.
+    def forte(v, fn):
+        return v is not None and fn(v)[1] == "💚"
+
+    def bom(v, fn):
+        return v is not None and fn(v)[1] in ("🟢", "💚")
+
+    pontos = []
+
+    # 1. Topo: o anuncio consegue tirar a pessoa do feed?
+    if m["ctr"] is not None:
+        cls_c, emj_c = sem_ctr(m["ctr"])
+        rot_c = {"top": "muito forte", "": "fraco", "bad": "no limite", "dead": "ruim"}.get(cls_c, "")
+        pontos.append(f"<b>Topo:</b> CTR de link em {emj_c} {m['ctr']:.2f}%".replace(".", ",")
+                      + f" e CPC de {brl(m['cpc'], 2) if m['cpc'] else '-'}. "
+                      + ("O anúncio para o scroll." if m["ctr"] >= 1.5 else
+                         "O anúncio prende pouco: a maioria passa direto." if m["ctr"] < 1 else
+                         "O anúncio funciona, sem se destacar."))
+
+    # 2. Meio: quem parou, fica?
+    if a["v3"]:
+        pontos.append(f"<b>Retenção:</b> de cada 100 que dão 3 segundos, {m['p25']:.0f} chegam a 25% do vídeo "
+                      f"e {m['p50']:.0f} chegam à metade (tempo médio {tm_medio:.0f}s). "
+                      + ("O miolo sustenta o interesse." if m["p50"] >= 20 else
+                         "O miolo perde a pessoa, é o padrão dos criativos que já enterramos." if m["p50"] < 13 else
+                         "O miolo segura de forma mediana."))
+
+    # 3. Ponte: quem clica, chega?
+    pontos.append(f"<b>Ponte para a página:</b> connect de {m['conn']:.0f}% "
+                  f"(custo por visita {brl(m['cpv'], 2) if m['cpv'] else '-'}). "
+                  + ("A promessa do anúncio bate com a página." if m["conn"] >= 70 else
+                     "Parte do clique se perde antes de carregar a página."))
+
+    # 4. Fundo: vira lead? a que preco?
+    if ld_real:
+        pontos.append(f"<b>Lead:</b> {ld_real} leads reais em {dias_vivos} dias "
+                      + f"({ldia:.1f} por dia)".replace(".", ",")
+                      + f", a {sem_cpl(cpl_real_ad)[1]} {brl(cpl_real_ad)} cada.")
+    else:
+        pontos.append(f"<b>Lead:</b> nenhum lead real atribuído em {dias_vivos} dias de veiculação, "
+                      f"com {brl(gasto_utm)} gastos.")
+
+    # 5. Comercial: o lead vira dinheiro?
+    plural = lambda n, s, p: f"{n} {s if n == 1 else p}"
+    if n_ganho:
+        pontos.append(f"<b>Comercial:</b> {plural(n_sessao, 'sessão agendada', 'sessões agendadas')} e "
+                      f"<b class='top'>{plural(n_ganho, 'fechamento', 'fechamentos')}</b>, "
+                      f"{brl(receita_ad)} de receita. CAC de {brl(cac_ad)} e "
+                      + f"ROAS de {roas_ad:.1f}x".replace(".", ",")
+                      + ". É criativo que produz venda, não só lead.")
+    elif n_sessao:
+        pontos.append(f"<b>Comercial:</b> {plural(n_sessao, 'sessão agendada', 'sessões agendadas')} "
+                      f"({tx_sessao:.0f}% dos leads) e nenhum fechamento até agora. "
+                      f"Traz gente que aceita conversar; falta converter.")
+    elif ld_real:
+        pontos.append("<b>Comercial:</b> nenhuma sessão agendada e nenhum fechamento. "
+                      "O lead entra e não avança, é o sinal mais grave do cartão.")
+
+    # 6. Tendencia: comparar a primeira semana com a ultima
     if len(serie_grafico) >= 2:
-        W, H, PADL, PADB, PADT = 640, 190, 44, 26, 14
-        n = len(serie_grafico)
-        larg = (W - PADL - 12) / max(n - 1, 1)
-        max_ctr = max([s["ctr"] for s in serie_grafico] + [1]) * 1.25
-        cpls = [s["cpl"] for s in serie_grafico if s["cpl"]]
-        max_cpl = (max(cpls) * 1.25) if cpls else 1
-        max_ld = max([s["leads"] for s in serie_grafico] + [1])
-        yb = H - PADB
+        pri, ult = serie_grafico[0], serie_grafico[-1]
+        d_ctr = ult["ctr"] - pri["ctr"]
+        seta = "subindo" if d_ctr > 0.15 else ("caindo" if d_ctr < -0.15 else "estável")
+        txt = (f"<b>Tendência:</b> CTR {seta} da primeira semana ({pri['rot']}: {pri['ctr']:.2f}%) "
+               f"para a última ({ult['rot']}: {ult['ctr']:.2f}%)").replace(".", ",")
+        if pri["cpl"] and ult["cpl"]:
+            txt += f", e CPL real de {brl(pri['cpl'])} para {brl(ult['cpl'])}"
+        pontos.append(txt + ". "
+                      + ("Sem sinal de fadiga." if d_ctr >= -0.15 else
+                         "Vale observar se é fadiga de público."))
+    freq_v = m.get("freq")
+    if freq_v and freq_v > 3:
+        pontos.append(f"<b>Fadiga:</b> frequência acumulada de {freq_v:.2f} (acima de 3): "
+                      "o mesmo público está vendo demais.".replace(".", ","))
 
-        def px(i):
-            return PADL + i * larg
+    # 7. Veredito pela regua oficial
+    metricas = [("CTR", m["ctr"], sem_ctr), ("CPC", m["cpc"], sem_cpc),
+                ("CPV", m["cpv"], sem_cpv), ("CPL real", cpl_real_ad, sem_cpl)]
+    vermelhos = [n for n, v, fn in metricas if v is not None and fn(v)[1] == "🔴"]
+    bons = [n for n, v, fn in metricas if bom(v, fn)]
+    cpl_ok = bom(cpl_real_ad, sem_cpl)          # verde OU verde forte, como manda a régua
+    cpl_txt = ("verde forte" if forte(cpl_real_ad, sem_cpl)
+               else "verde" if cpl_ok else "fora do verde")
+    if len(vermelhos) >= 2:
+        veredito = (f"<b>Régua:</b> ENTERRAR. Vermelho em {len(vermelhos)} métricas "
+                    f"({', '.join(vermelhos)}), que é o critério da janela.")
+    elif cpl_ok and len(bons) >= 2:
+        outras = [v for v in bons if v != "CPL real"]
+        veredito = (f"<b>Régua:</b> APROVADO. CPL real no {cpl_txt} mais "
+                    f"{', '.join(outras)} também no verde.")
+    else:
+        det = f"vermelho em {', '.join(vermelhos)}" if vermelhos else "nenhum vermelho"
+        veredito = (f"<b>Régua:</b> SEM VEREDITO AUTOMÁTICO ({det}; CPL real {cpl_txt}). "
+                    f"Não enterra nem aprova sozinho, a decisão é do Rodrigo.")
+    pontos.append(veredito)
 
-        def py(val, teto):
-            return PADT + (yb - PADT) * (1 - (val / teto if teto else 0))
-
-        barras = "".join(
-            f'<rect x="{px(i) - 9:.0f}" y="{py(s["leads"], max_ld * 1.6):.0f}" width="18" '
-            f'height="{max(yb - py(s["leads"], max_ld * 1.6), 0):.0f}" fill="rgba(90,169,230,.28)" rx="3"/>'
-            f'<text x="{px(i):.0f}" y="{py(s["leads"], max_ld * 1.6) - 4:.0f}" class="gnum" text-anchor="middle">{s["leads"]}</text>'
-            for i, s in enumerate(serie_grafico))
-        lin_ctr = " ".join(f'{px(i):.0f},{py(s["ctr"], max_ctr):.0f}' for i, s in enumerate(serie_grafico))
-        pts_cpl = [(i, s["cpl"]) for i, s in enumerate(serie_grafico) if s["cpl"]]
-        lin_cpl = " ".join(f'{px(i):.0f},{py(v, max_cpl):.0f}' for i, v in pts_cpl)
-        rotulos = "".join(
-            f'<text x="{px(i):.0f}" y="{H - 8}" class="gtxt" text-anchor="middle">{s["rot"]}</text>'
-            for i, s in enumerate(serie_grafico))
-        marc_ctr = "".join(f'<circle cx="{px(i):.0f}" cy="{py(s["ctr"], max_ctr):.0f}" r="3" fill="#37d399"/>'
-                           for i, s in enumerate(serie_grafico))
-        marc_cpl = "".join(f'<circle cx="{px(i):.0f}" cy="{py(v, max_cpl):.0f}" r="3" fill="#e0b464"/>'
-                           for i, v in pts_cpl)
-        grafico = f"""
-<h4 class="lupa">Evolução semanal</h4>
-<div class="badges">
-  <span class="badge"><b style="color:#5aa9e6">barras</b> leads reais</span>
-  <span class="badge"><b style="color:#37d399">linha verde</b> CTR link (teto {max_ctr:.2f}%)</span>
-  <span class="badge"><b style="color:#e0b464">linha ouro</b> CPL real (teto {brl(max_cpl)})</span>
-</div>
-<div class="scroll"><svg viewBox="0 0 {W} {H}" class="graf" role="img">
-  <line x1="{PADL - 20}" y1="{yb}" x2="{W - 6}" y2="{yb}" stroke="#1e3a31"/>
-  {barras}
-  <polyline points="{lin_ctr}" fill="none" stroke="#37d399" stroke-width="2"/>
-  {marc_ctr}
-  {f'<polyline points="{lin_cpl}" fill="none" stroke="#e0b464" stroke-width="2" stroke-dasharray="5 3"/>' if len(pts_cpl) > 1 else ''}
-  {marc_cpl}
-  {rotulos}
-</svg></div>"""
+    grafico = ("<h4 class=\"lupa\">Análise do criativo</h4><div class=\"analise\"><ul>"
+               + "".join(f"<li>{p}</li>" for p in pontos) + "</ul></div>")
     cartoes += f"""
 <div class="criativo"><h3>{esc(nome)} · acumulado da era ({brl(a['sp'])})</h3>
 <div class="badges">
@@ -597,7 +661,6 @@ CPL real, CAC e ROAS usam a janela creditável (19/07 em diante), porque antes d
 <div class="badges"><span class="badge">funil de vídeo: hook <b>{m['hook']:.0f}%</b> · p25 <b>{m['p25']:.0f}%</b> · p50 <b>{m['p50']:.0f}%</b> · p75 <b>{m['p75']:.0f}%</b> · p95 <b>{m['p95']:.0f}%</b></span></div>
 <div class="badges">{fad}</div>
 {comercial}
-{grafico}
 <h4 class="lupa">Histórico completo · da primeira aparição ({ddmm(nasceu)}) até {ddmm(ontem)}</h4>
 <div class="filtro">
   <button class="fbtn on" onclick="verLupa(this,{idx},'dia')">Por dia</button>
@@ -613,7 +676,8 @@ CPL real, CAC e ROAS usam a janela creditável (19/07 em diante), porque antes d
 {total_row}</table></div>
 <div class="legenda">CPL real = gasto do período ÷ leads do BANCO atribuídos a este criativo pelo utm_content.
 "n/d" antes de 19/07 porque o campo ainda não era gravado. "leads Meta" é a atribuição da plataforma, mantida só como contraste.
-Na visão por semana, cada linha soma a semana inteira (segunda a domingo) e o tempo médio é a média dos dias com entrega.</div></div>"""
+Na visão por semana, cada linha soma a semana inteira (segunda a domingo) e o tempo médio é a média dos dias com entrega.</div>
+{grafico}</div>"""
 
 # --------- placar do dia fechado
 placar = ""

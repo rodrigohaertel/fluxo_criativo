@@ -48,6 +48,8 @@ Rode `py -3 scripts/dono14-banco.py` (consulta o Supabase DIRETO via chave no .e
 Se o script falhar (ex.: SUPABASE_SERVICE_KEY ausente ou erro de rede), tente a ferramenta `execute_sql` do Supabase (projeto `sizhdcrnfylimhsdfdnf`) com a consulta da skill `/dono14-diario`, SEMPRE com `count(distinct event_id)`. Se ambos falharem, siga com os números da Meta e marque em destaque: "RECONCILIAÇÃO COM O BANCO PENDENTE, conferir na sessão interativa".
 Regra de leitura: leads reais = `contact_submissions`; atenção a ressubmissões (mesmo nome/telefone já existente conta como reengajamento, não lead novo).
 
+**Cadastro falso não conta como lead.** Quando o Rodrigo identifica um, ele apaga do banco, e a partir daí os scripts já param de contar sozinhos. O que NÃO se corrige sozinho é a série `leads_banco` do `.contexto.json`, que guarda o número do dia em que o falso ainda existia. Se o total do `.contexto.json` divergir do que o `dono14-banco.py` devolve, **o banco vence**: corrija o dia no contexto e registre a correção no marcador. Casos já tratados: Bryan (23/07) e João Silva (10/08, apagado em 11/08, o dia caiu de 3 para 2 leads).
+
 ## Passo 2b. Comercial detalhado (venda, valor e pipeline)
 Rode `py -3 scripts/dono14-comercial.py` (autorizado na allowlist desde 08/08). Ele traz cada card com stage, valor de contrato, tags e os motivos de perda.
 
@@ -86,7 +88,7 @@ Rode `py -3 scripts/dono14-analise-profunda.py`. O script gera `analise-profunda
 2. Lupa comercial por criativo, com leads do banco casados por `utm_content`: leads reais, CPL real, sessões agendadas, fechamentos, quantos Dono 14% e quantos Painel do Dono, receita, CAC e ROAS.
 3. Colunas de freq e CPM na tabela, além de leads do banco e CPL real por período.
 4. Filtro "Por dia" e "Por semana", com linha de TOTAL da vida do criativo.
-5. Gráfico de evolução semanal.
+5. **Análise do criativo fechando cada cartão** (texto determinístico: topo, retenção, ponte, lead, comercial, tendência e veredito pela régua). Substituiu o gráfico semanal, removido em 11/08 por decisão do Rodrigo.
 6. Etapas do CRM com o nome do board, nunca a chave crua.
 
 Se o arquivo sair sem algum desses blocos, registre em AVISOS EM DESTAQUE no marcador em vez de tentar remendar o HTML.

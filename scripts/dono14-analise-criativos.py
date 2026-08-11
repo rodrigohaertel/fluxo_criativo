@@ -40,6 +40,7 @@ SUPABASE = "https://sizhdcrnfylimhsdfdnf.supabase.co"
 SINCE = "2026-04-01"                 # inicio da serie historica da analise
 INICIO_RASTREIO = "2026-07-19"       # dia em que o utm_content passou a gravar o criativo
 PRIMEIRO_CRIATIVO = 30               # A30 em diante entram na analise
+MATURACAO_DIAS = 7                   # dias que um lead precisa ter para entrar na coorte madura
 UNTIL = date.today().isoformat()
 
 # Correcao manual (Rodrigo, 07 e 10/08/2026): o A35 nao gerou lead nenhum.
@@ -258,7 +259,11 @@ card_por_sub = {c["submission_id"]: c for c in cards if c.get("submission_id")}
 def zero():
     return {"leads": 0, "q100": 0, "q200": 0, "stages": defaultdict(int),
             "sessoes": 0, "contratos": 0, "ganhos": 0, "perdidos": 0,
-            "receita": 0.0, "pipeline_valor": 0.0, "vendas": 0}
+            "receita": 0.0, "pipeline_valor": 0.0, "vendas": 0,
+            # funil de sessao: agendada, ja realizada (data no passado) e convertida
+            "sess_agendadas": 0, "sess_realizadas": 0, "sess_convertidas": 0,
+            # coorte com 7 dias ou mais de maturacao
+            "maduros": 0, "maduros_avancaram": 0}
 
 
 banco = defaultdict(zero)
@@ -288,6 +293,19 @@ for s in subs:
                                ("ganhos", "ganho"), ("perdidos", "perdido")]:
             if st == estagio:
                 alvo[chave] += 1
+        avancou = st in ("sessao_estrategica", "contrato", "ganho")
+        fechou = st in ("contrato", "ganho")
+        agendada = (card.get("sessao_agendada") or "")[:10]
+        if agendada:
+            alvo["sess_agendadas"] += 1
+            if agendada <= UNTIL:
+                alvo["sess_realizadas"] += 1
+                if fechou:
+                    alvo["sess_convertidas"] += 1
+        if (date.fromisoformat(UNTIL) - date.fromisoformat(s["created_at"][:10])).days >= MATURACAO_DIAS:
+            alvo["maduros"] += 1
+            if avancou:
+                alvo["maduros_avancaram"] += 1
 
 for c in CORRECOES:
     if c in banco:
@@ -367,6 +385,11 @@ for c in sorted(meta_agg, key=lambda x: int(x[1:])):
         pipeline=pipeline, avancos=avancos,
         custo_avanco=round(gasto_rast / avancos, 2) if avancos else None,
         stages=st,
+        sess_agendadas=b["sess_agendadas"], sess_realizadas=b["sess_realizadas"],
+        sess_convertidas=b["sess_convertidas"],
+        taxa_sessao=pct(b["sess_convertidas"], b["sess_realizadas"]),
+        maduros=b["maduros"], maduros_avancaram=b["maduros_avancaram"],
+        taxa_coorte=pct(b["maduros_avancaram"], b["maduros"]),
         receita=round(b["receita"], 2), vendas=b["vendas"],
         pipeline_valor=round(b["pipeline_valor"], 2),
         roas=round(b["receita"] / gasto_rast, 2) if gasto_rast and b["receita"] else None,
@@ -414,6 +437,7 @@ saida = dict(
     ),
     correcoes=CORRECOES,
     inicio_rastreio=INICIO_RASTREIO,
+    maturacao_dias=MATURACAO_DIAS,
 )
 
 destino = DESTINO / "dataset-criativos-a30-a41.json"
