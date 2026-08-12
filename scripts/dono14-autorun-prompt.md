@@ -59,6 +59,8 @@ Registre no marcador: quantas vendas em ganho, a receita somada, e o pipeline em
 
 ## Passo 3. Clarity
 Rode `py -3 scripts/dono14-clarity.py` (Data Export API direto, token no .env; devolve sessões, scroll médio, tempo ativo e dead/rage clicks por URL do último dia). **UMA execução só: a API aceita no máximo 10 chamadas/dia.** Use o resultado para o placar de engajamento das páginas da Sessão.
+
+**Como ler o scroll (mudou em 12/08/2026):** a dobra da `/sessao` foi revisada e publicada pelo Rodrigo, e o CTA principal agora nasce DENTRO da primeira tela do celular (y=388 num viewport de 812). Antes ele ficava em y=872, fora da tela. Portanto **scroll baixo deixou de ser sintoma de "não chega ao botão"**: a pessoa pode converter sem rolar. Reportar o número, sim; tratar 13% ou 15% como problema automático, não. E **não cobrar mais a revisão da dobra como pendência**, ela está feita.
 Se o script falhar (token ausente/erro), tente as ferramentas MCP do Clarity se disponíveis; senão, anote "Clarity pendente". Gravações de sessão (jornadas individuais) não saem pela API: ficam para a sessão interativa da manhã, quando necessário.
 
 ## Passo 4. Atualizar o contexto
