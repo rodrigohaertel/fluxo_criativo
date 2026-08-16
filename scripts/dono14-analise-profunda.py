@@ -184,6 +184,14 @@ for r in diario:
     if r.get("campaign_id") in IDS:
         gasto_dia[r["date_start"]] += num(r["spend"])
 
+# QUAIS CRIATIVOS AINDA ESTAO NO AR (decisao do Rodrigo, 16/08/2026): a lupa por
+# criativo mostra SO os anuncios ativos. Peca pausada vira ruido: o A41 continuava
+# ocupando cartao inteiro dias depois de ser desligado. O historico dela nao se
+# perde, fica nos relatorios datados anteriores.
+ads_status = meta_get(f"{ACC}/ads", fields="name,effective_status", limit=200)
+ATIVOS = {(a.get("name") or "?").split(" ")[0][:4]
+          for a in ads_status if a.get("effective_status") == "ACTIVE"}
+
 FIELDS_AD = ("date_start,ad_name,campaign_id,spend,impressions,reach,frequency,inline_link_clicks,actions,"
              "video_p25_watched_actions,video_p50_watched_actions,video_p75_watched_actions,"
              "video_p95_watched_actions,video_avg_time_watched_actions")
@@ -423,7 +431,11 @@ def fmt_sem(valor, fn, prefixo="", sufixo="", dec=2):
 
 
 # --------- cartões por criativo (a parte "nível criativo" que o Rodrigo cobra)
-nomes_ativos = sorted(vivos_na_era, key=lambda n: -acum[n]["sp"])
+# So os anuncios ATIVOS na conta agora. Se a consulta de status falhar, cai no
+# comportamento antigo (todos os da era) em vez de mostrar um relatorio vazio.
+nomes_ativos = sorted(vivos_na_era & ATIVOS if ATIVOS else vivos_na_era,
+                      key=lambda n: -acum[n]["sp"])
+pausados = sorted(vivos_na_era - set(nomes_ativos))
 
 
 def celulas_periodo(v, ld_banco, creditavel):
@@ -752,7 +764,10 @@ doc = f"""<meta charset="utf-8"><meta name="viewport" content="width=device-widt
 {placar}</table></div>
 <div class="legenda">Semáforos oficiais (05/08): CTR 🔴&lt;1% 🟡1-1,25% 🟢1,25-1,5% 💚&gt;1,5% · CPC 🔴&gt;15 🟡10-15 🟢5-10 💚&lt;5 · CPV 🔴&gt;23 🟡15-23 🟢8-15 💚&lt;8 · CPL 🔴&gt;150 🟡100-150 🟢70-100 💚&lt;70</div></div>
 
-<div class="grp"><h2>🔬 Lupa por criativo · vida inteira, lupa comercial e fadiga</h2>{cartoes}</div>
+<div class="grp"><h2>🔬 Lupa por criativo · somente anúncios ATIVOS</h2>
+<div class="legenda">Mostra apenas o que está no ar agora ({', '.join(nomes_ativos) or 'nenhum'}).
+{('Fora do ar, não exibidos: ' + ', '.join(pausados) + '. O histórico deles fica nos relatórios datados anteriores.') if pausados else ''}</div>
+{cartoes}</div>
 <script>
 function verLupa(btn, idx, modo) {{
   document.getElementById('lupa-dia-' + idx).classList.toggle('oculto', modo !== 'dia');

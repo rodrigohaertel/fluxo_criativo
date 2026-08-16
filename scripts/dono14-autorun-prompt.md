@@ -48,6 +48,15 @@ Rode `py -3 scripts/dono14-banco.py` (consulta o Supabase DIRETO via chave no .e
 Se o script falhar (ex.: SUPABASE_SERVICE_KEY ausente ou erro de rede), tente a ferramenta `execute_sql` do Supabase (projeto `sizhdcrnfylimhsdfdnf`) com a consulta da skill `/dono14-diario`, SEMPRE com `count(distinct event_id)`. Se ambos falharem, siga com os números da Meta e marque em destaque: "RECONCILIAÇÃO COM O BANCO PENDENTE, conferir na sessão interativa".
 Regra de leitura: leads reais = `contact_submissions`; atenção a ressubmissões (mesmo nome/telefone já existente conta como reengajamento, não lead novo).
 
+## Como contar lead: CAPTAÇÃO é o número oficial (decidido pelo Rodrigo em 16/08/2026)
+
+O `dono14-banco.py` devolve duas contagens por dia. Use cada uma no seu lugar:
+
+- **CAPTAÇÃO** (coluna `CAPTACAO`): cadastros que a mídia entregou. **Inclui ressubmissão**, porque o anúncio pagou por aquele preenchimento e o reengajamento tem valor real. **Exclui falso e spam** (lista em `meus-produtos/dono-14/trafego/cadastros-falsos.json`). **É o número oficial: manda no CPL real, na régua, no gatilho de escala e na série `leads_banco` do contexto.**
+- **lead_novo**: pessoas únicas no dia. Serve para projeção comercial e CAC, e para dizer quantas pessoas novas entraram no funil. Nunca usar para CPL.
+
+Quando os dois diferirem, diga isso no marcador em uma linha, sem tratar como problema. Exemplo real de 15/08: captação 3, pessoas novas 2, porque o Lúcio (lead de 02/08, hoje em Fechamento) preencheu de novo e o Rodrigo unificou. CPL do dia é R$ 61,11 pela captação, não R$ 91,67.
+
 **Evento órfão não é divergência.** O `dono14-banco.py` agora tem a coluna `orfaos`: eventos em `lead_events` sem lead correspondente em `contact_submissions`, casados por prefixo de hash do e-mail. Isso acontece quando o Rodrigo apaga um cadastro falso ou unifica dois cadastros do mesmo lead e remove o duplicado: a linha sai da tabela de leads, o evento fica. **Não abrir investigação, não pedir consulta extra, não registrar como pendência.** Basta escrever no marcador, em uma linha, quantos órfãos houve e a causa. O número oficial é sempre `leads_banco`. Casos conhecidos: 10/08 (cadastro falso do João Silva) e 15/08 (unificação do Lúcio).
 
 **Cadastro falso não conta como lead.** Quando o Rodrigo identifica um, ele apaga do banco, e a partir daí os scripts já param de contar sozinhos. O que NÃO se corrige sozinho é a série `leads_banco` do `.contexto.json`, que guarda o número do dia em que o falso ainda existia. Se o total do `.contexto.json` divergir do que o `dono14-banco.py` devolve, **o banco vence**: corrija o dia no contexto e registre a correção no marcador. Casos já tratados: Bryan (23/07) e João Silva (10/08, apagado em 11/08, o dia caiu de 3 para 2 leads).

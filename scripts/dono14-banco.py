@@ -14,6 +14,7 @@ Uso: py -3 scripts/dono14-banco.py [dias]   (padrão: 10 dias)
 """
 import hashlib
 import json
+import re
 import sys
 import urllib.parse
 import urllib.request
@@ -25,6 +26,7 @@ sys.stdout.reconfigure(encoding="utf-8")
 
 SUPABASE_URL = "https://sizhdcrnfylimhsdfdnf.supabase.co"
 TZ_SP = timezone(timedelta(hours=-3))  # America/Sao_Paulo (sem horario de verao desde 2019)
+RAIZ_PROD = Path(__file__).resolve().parent.parent / "meus-produtos" / "dono-14" / "trafego"
 
 
 def carregar_chave():
@@ -119,11 +121,39 @@ hashes_vivos = {
     hashlib.sha256((s["email"] or "").strip().lower().encode()).hexdigest()[:HASH_N]
     for s in subs if s.get("email")
 }
-orfaos_por_dia = defaultdict(set)
+FALSOS = RAIZ_PROD / "cadastros-falsos.json"
+hashes_falsos = set()
+if FALSOS.exists():
+    try:
+        hashes_falsos = {f["hash"] for f in json.loads(FALSOS.read_text(encoding="utf-8"))["falsos"]}
+    except Exception as e:  # noqa: BLE001
+        print(f"[AVISO] cadastros-falsos.json ilegivel ({e}); nenhum falso excluido.", file=sys.stderr)
+
+orfaos_por_dia = defaultdict(set)      # ressubmissao: CONTA como captacao
+falsos_por_dia = defaultdict(set)      # falso/spam: nao conta em lugar nenhum
 for e in evs:
     ph = (e.get("email_hash_prefix") or "")[:HASH_N]
-    if ph and ph not in hashes_vivos:
-        orfaos_por_dia[dia_sp(e["created_at"]).strftime("%d/%m")].add(e["event_id"])
+    if not ph or ph in hashes_vivos:
+        continue
+    k = dia_sp(e["created_at"]).strftime("%d/%m")
+    (falsos_por_dia if ph in hashes_falsos else orfaos_por_dia)[k].add(e["event_id"])
+
+# REGRA DE CONTAGEM (decisao do Rodrigo, 16/08/2026)
+#   CAPTACAO   = cadastros que a midia entregou. Inclui ressubmissao (a mesma
+#                pessoa preenchendo de novo: o anuncio pagou por aquilo e o
+#                reengajamento tem valor real). Exclui falso/spam.
+#                E o numero OFICIAL: manda no CPL, na regua e no gatilho.
+#   LEAD NOVO  = pessoas unicas. Serve para projecao comercial e CAC.
+# Ressubmissao viva no banco ja entra sozinha em `banco` (sao linhas separadas);
+# a apagada volta pela contagem de orfaos.
+def norm_tel(t):
+    return re.sub(r"\D", "", t or "")[-11:]
+
+
+ident_por_dia = defaultdict(set)
+for s in subs:
+    k = dia_sp(s["created_at"]).strftime("%d/%m")
+    ident_por_dia[k].add((s.get("email") or "").strip().lower() or norm_tel(s.get("whatsapp")))
 
 # REGRA DA ROTINA (06/08/2026): a serie de metricas termina em ONTEM. O dia de
 # hoje esta em aberto (lead pode entrar a qualquer hora) e contar um parcial como
@@ -134,19 +164,28 @@ print("=" * 66)
 print(f"BANCO SUPABASE (direto, sem conector) | consultado {datetime.now(TZ_SP).strftime('%d/%m %H:%M')} SP")
 print("=" * 66)
 print(f"SERIE (somente dias FECHADOS, termina em {ontem_sp.strftime('%d/%m')}):")
-print(f"{'dia':<8}{'leads_banco':>12}{'funil_A':>9}{'funil_B':>9}{'eventos_dedup':>15}{'orfaos':>8}")
-total_orfaos = 0
+print(f"{'dia':<8}{'CAPTACAO':>10}{'lead_novo':>11}{'funil_A':>9}{'funil_B':>9}"
+      f"{'eventos':>9}{'resub':>7}{'falso':>7}")
+tot_cap = tot_novo = tot_resub = tot_falso = 0
 for i in range(dias, 0, -1):
     d = (hoje_sp - timedelta(days=i)).strftime("%d/%m")
     v = por_dia.get(d, {"banco": 0, "a": 0, "b": 0})
-    orf = len(orfaos_por_dia.get(d, set()))
-    total_orfaos += orf
-    print(f"{d:<8}{v['banco']:>12}{v['a']:>9}{v['b']:>9}"
-          f"{len(ev_por_dia.get(d, set())):>15}{(orf or '-'):>8}")
-if total_orfaos:
-    print(f"\n  ORFAOS: {total_orfaos} evento(s) sem lead correspondente no banco. NAO e divergencia")
-    print("  nem lead perdido: e cadastro que o Rodrigo apagou (falso) ou unificou (duplicado),")
-    print("  cujo evento continua gravado em lead_events. O numero oficial e SEMPRE leads_banco.")
+    resub = len(orfaos_por_dia.get(d, set()))     # ressubmissao apagada: volta na captacao
+    falso = len(falsos_por_dia.get(d, set()))     # falso: nao conta
+    captacao = v["banco"] + resub
+    novos = len(ident_por_dia.get(d, set()))      # pessoas unicas no dia
+    tot_cap += captacao; tot_novo += novos; tot_resub += resub; tot_falso += falso
+    print(f"{d:<8}{captacao:>10}{novos:>11}{v['a']:>9}{v['b']:>9}"
+          f"{len(ev_por_dia.get(d, set())):>9}{(resub or '-'):>7}{(falso or '-'):>7}")
+print(f"{'TOTAL':<8}{tot_cap:>10}{tot_novo:>11}")
+print("\n  CAPTACAO = numero OFICIAL (CPL, regua, gatilho). Inclui ressubmissao, porque")
+print("  a midia pagou por aquele cadastro, e exclui falso/spam.")
+print("  lead_novo = pessoas unicas no dia, para projecao comercial e CAC.")
+if tot_resub:
+    print(f"  resub: {tot_resub} cadastro(s) que o Rodrigo unificou e apagou; o evento sobrou e")
+    print("  por isso volta para a captacao. Nao e divergencia, nao investigar.")
+if tot_falso:
+    print(f"  falso: {tot_falso} evento(s) de cadastro falso (lista em cadastros-falsos.json).")
 
 print("-" * 66)
 print(f"LEADS DO DIA FECHADO ({ontem_sp.strftime('%d/%m')}) (nome, hora SP, funil):")
