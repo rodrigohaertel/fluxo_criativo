@@ -12,6 +12,7 @@ Chaves lidas do .env (nunca ficam neste arquivo):
 
 Uso: py -3 scripts/dono14-banco.py [dias]   (padrão: 10 dias)
 """
+import hashlib
 import json
 import sys
 import urllib.parse
@@ -73,7 +74,7 @@ inicio_iso = inicio_utc.strftime("%Y-%m-%dT%H:%M:%S+00:00")
 
 # ---------------- 1. contact_submissions (a verdade dos leads)
 subs = get("contact_submissions", {
-    "select": "name,whatsapp,source,created_at",
+    "select": "name,whatsapp,email,source,created_at",
     "or": "(source.ilike.mentoria*,source.ilike.sess*)",
     "created_at": f"gte.{inicio_iso}",
     "order": "created_at.asc",
@@ -81,7 +82,7 @@ subs = get("contact_submissions", {
 
 # ---------------- 2. lead_events (dedup por event_id)
 evs = get("lead_events", {
-    "select": "event_id,created_at",
+    "select": "event_id,created_at,email_hash_prefix",
     "event_name": "eq.Lead",
     "created_at": f"gte.{inicio_iso}",
 })
@@ -107,6 +108,23 @@ ev_por_dia = defaultdict(set)
 for e in evs:
     ev_por_dia[dia_sp(e["created_at"]).strftime("%d/%m")].add(e["event_id"])
 
+# ---------------- eventos ORFAOS (explicam a diferenca evento x lead)
+# Quando o Rodrigo unifica dois cadastros do mesmo lead e apaga o duplicado, ou
+# apaga um cadastro falso, a linha some de contact_submissions mas o evento fica
+# gravado em lead_events. Sem isso, a rotina reportava "divergencia" e pedia
+# investigacao todo dia (aconteceu em 10/08, lead falso, e 15/08, unificacao).
+# O casamento e por prefixo de hash do e-mail, unico vinculo que a tabela guarda.
+HASH_N = 16  # tamanho gravado em lead_events.email_hash_prefix
+hashes_vivos = {
+    hashlib.sha256((s["email"] or "").strip().lower().encode()).hexdigest()[:HASH_N]
+    for s in subs if s.get("email")
+}
+orfaos_por_dia = defaultdict(set)
+for e in evs:
+    ph = (e.get("email_hash_prefix") or "")[:HASH_N]
+    if ph and ph not in hashes_vivos:
+        orfaos_por_dia[dia_sp(e["created_at"]).strftime("%d/%m")].add(e["event_id"])
+
 # REGRA DA ROTINA (06/08/2026): a serie de metricas termina em ONTEM. O dia de
 # hoje esta em aberto (lead pode entrar a qualquer hora) e contar um parcial como
 # dia normal distorce a media e o CPL.
@@ -116,11 +134,19 @@ print("=" * 66)
 print(f"BANCO SUPABASE (direto, sem conector) | consultado {datetime.now(TZ_SP).strftime('%d/%m %H:%M')} SP")
 print("=" * 66)
 print(f"SERIE (somente dias FECHADOS, termina em {ontem_sp.strftime('%d/%m')}):")
-print(f"{'dia':<8}{'leads_banco':>12}{'funil_A':>9}{'funil_B':>9}{'eventos_dedup':>15}")
+print(f"{'dia':<8}{'leads_banco':>12}{'funil_A':>9}{'funil_B':>9}{'eventos_dedup':>15}{'orfaos':>8}")
+total_orfaos = 0
 for i in range(dias, 0, -1):
     d = (hoje_sp - timedelta(days=i)).strftime("%d/%m")
     v = por_dia.get(d, {"banco": 0, "a": 0, "b": 0})
-    print(f"{d:<8}{v['banco']:>12}{v['a']:>9}{v['b']:>9}{len(ev_por_dia.get(d, set())):>15}")
+    orf = len(orfaos_por_dia.get(d, set()))
+    total_orfaos += orf
+    print(f"{d:<8}{v['banco']:>12}{v['a']:>9}{v['b']:>9}"
+          f"{len(ev_por_dia.get(d, set())):>15}{(orf or '-'):>8}")
+if total_orfaos:
+    print(f"\n  ORFAOS: {total_orfaos} evento(s) sem lead correspondente no banco. NAO e divergencia")
+    print("  nem lead perdido: e cadastro que o Rodrigo apagou (falso) ou unificou (duplicado),")
+    print("  cujo evento continua gravado em lead_events. O numero oficial e SEMPRE leads_banco.")
 
 print("-" * 66)
 print(f"LEADS DO DIA FECHADO ({ontem_sp.strftime('%d/%m')}) (nome, hora SP, funil):")
