@@ -32,6 +32,7 @@ FORMATO PADRÃO, aprovado pelo Rodrigo em 08/08/2026. Não reduzir sem combinar:
 Uso:    py -3 scripts/dono14-analise-profunda.py [--out CAMINHO]
 Chaves: FB_ACCESS_TOKEN_PERMANENTE e SUPABASE_SERVICE_KEY no .env.
 """
+import hashlib
 import html
 import json
 import sys
@@ -253,16 +254,39 @@ for r in ads:
 
 # ------------------------------------------------------------------ Banco
 inicio_utc = datetime(2026, 6, 9, 3, tzinfo=timezone.utc).isoformat()
-subs = sb_get("contact_submissions", {"select": "id,name,source,created_at",
+subs = sb_get("contact_submissions", {"select": "id,name,email,source,created_at",
                                       "or": "(source.ilike.mentoria*,source.ilike.sess*)",
                                       "created_at": f"gte.{inicio_utc}", "order": "created_at.asc"})
 cards = sb_get("crm_cards", {"select": "stage,faturamento_medio,valor_contrato,submission_id", "deleted_at": "is.null"})
 card_por_sub = {c["submission_id"]: c for c in cards if c.get("submission_id")}
+
+# REGRA DE CONTAGEM (Rodrigo, 16/08/2026): o numero oficial e CAPTACAO, ou seja,
+# os cadastros que a midia entregou. Ressubmissao conta (o anuncio pagou por ela);
+# falso e spam nao contam.
+#
+# A serie oficial vive no .contexto.json (`leads_banco`), mantida pela rotina e ja
+# corrigida caso a caso. Ela e a FONTE UNICA para o dia fechado e para o total,
+# igual ao dashboard, para os dois relatorios nunca discordarem. Contar aqui de
+# novo, direto do banco, era o que fazia a analise profunda mostrar 2 leads em
+# 15/08 (perdendo a ressubmissao apagada do Lucio) enquanto o dashboard mostrava 3.
+# O banco entra so como reserva, para dia que ainda nao esteja na serie.
 leads_dia = defaultdict(int)
+for ddmm_k, n in (ctx.get("leads_banco") or {}).items():
+    if not isinstance(n, int):
+        continue
+    try:
+        dd, mm = ddmm_k.split("/")
+        ano = 2026 if int(mm) >= 6 else 2027
+        leads_dia[date(ano, int(mm), int(dd))] = n
+    except ValueError:
+        continue
 leads_ontem = []
 for s in subs:
     d = dia_sp(s["created_at"])
-    leads_dia[d.date()] += 1
+    # Reserva so para dia FECHADO que ainda nao entrou na serie. Sem o corte em
+    # ontem, o dia em aberto entrava no total e quebrava a regra do dia fechado.
+    if d.date() <= ontem and d.date() not in leads_dia:
+        leads_dia[d.date()] += 1
     if d.date() == ontem:
         c = card_por_sub.get(s["id"], {})
         fat = c.get("faturamento_medio")
