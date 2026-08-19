@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-08-11"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-08-18"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -67,6 +67,7 @@ NAO_RAST = [l for l in C if not l["rastreado"]]
 gasto_rast = sum(l["gasto"] for l in RAST)
 leads_banco = sum(l["leads_banco"] for l in RAST)
 q100 = sum(l["q100"] for l in RAST)
+leads_meta_janela = sum(l["leads_meta_rast"] for l in C)
 
 familias = {}
 for l in C:
@@ -489,8 +490,8 @@ html = f"""<!DOCTYPE html>
 
 <div class="kpis">
   <div class="kpi"><b>{brl(GASTO)}</b><span>investido nos 12</span></div>
-  <div class="kpi warn"><b>{D['totais']['leads_meta']}</b><span>leads pela Meta</span></div>
-  <div class="kpi win"><b>{leads_banco}</b><span>leads reais rastreados</span></div>
+  <div class="kpi warn"><b>{D['totais']['leads_meta']}</b><span>leads atribuídos pela Meta no período todo</span></div>
+  <div class="kpi win"><b>{leads_banco}</b><span>leads com criativo identificado (Meta também aponta {leads_meta_janela})</span></div>
   <div class="kpi"><b>{q100}</b><span>leads dentro do filtro</span></div>
   <div class="kpi"><b>{brl(D['totais']['gasto_rastreado'])}</b><span>investido com criativo identificado (de 19/07 em diante)</span></div>
   <div class="kpi win"><b>{brl(por['A40']['cpl_q'])}</b><span>melhor CPL qualificado (A40)</span></div>
@@ -498,8 +499,13 @@ html = f"""<!DOCTYPE html>
   <div class="kpi win"><b>{num(ROAS_FUNIL,2)}x</b><span>ROAS do funil da mentoria</span></div>
 </div>
 
+<div class="fix">
+  <p><b>O fato que domina esta leitura: contrato assinado está caindo.</b> {FIN['contrato_perdido_total']} contratos com valor fechado foram para perdido, somando <b>{brl(FIN['contrato_perdido_valor'])}</b>. Só entre 11 e 17 de agosto caíram cinco, de R$ 12 mil a R$ 18 mil cada. O pipeline vivo encolheu para {brl(FIN['pipeline_total'])} e a receita segue nos mesmos {brl(RECEITA)} de uma semana atrás. Nenhum criativo novo corrige isso: a perda acontece depois da proposta assinada, e é o degrau mais caro do funil.</p>
+</div>
+
 <div class="aviso">
   <p><b>Leia isto antes de qualquer número.</b> O código do criativo só passou a ser gravado no banco em <b>{D['inicio_rastreio'][8:10]}/{D['inicio_rastreio'][5:7]}/2026</b>. Só o A39, o A40 e o A41 têm lead real rastreável de ponta a ponta. Para o A30 até o A38 existe apenas a atribuição da Meta, que já provou ser fantasma nesta conta. Os {D['sem_utm']['leads']} leads de junho e da primeira metade de julho entraram sem origem de criativo e por isso não podem ser creditados a ninguém.</p>
+  <p><b>Os dois números de lead do topo não se contradizem, medem janelas diferentes.</b> Os {D['totais']['leads_meta']} da Meta somam abril a agosto inteiro, quando a maior parte do investimento rodou sem rastreamento. Os {leads_banco} são só de 19/07 em diante. <b>Dentro dessa mesma janela a Meta aponta {leads_meta_janela} e o banco tem {leads_banco}</b>, ou seja, para os criativos novos a atribuição da Meta virou confiável. O problema de atribuição continua valendo apenas para A30 a A38, que rodaram antes.</p>
   <p>Dos {brl(GASTO)} investidos no período, só {brl(D['totais']['gasto_rastreado'])} rodaram com o criativo identificado no banco. Toda conclusão de CPL real desta página vale para essa fatia, e é por isso que a tabela 2 usa o gasto da janela, não o gasto histórico da peça.</p>
 </div>
 
@@ -671,9 +677,10 @@ html = f"""<!DOCTYPE html>
   </div>
 </div>
 <div class="aviso">
-  <p><b>O alvo mudou de dono.</b> A leitura anterior apontava o A40 como quem chegou mais perto, porque ele junta gancho, retenção e CPL qualificado. Com o funil completo na mão, o veredito é outro: <b>o A39 é a única peça que percorre a cadeia inteira</b>, do scroll até o contrato assinado. Ele tem {brl(por['A39']['receita'])} fechados e mais {brl(por['A39']['pipeline_valor'])} em contrato, sobre {brl(por['A39']['gasto_rast'])} investidos.</p>
-  <p><b>O que o A39 ainda não tem.</b> O meio dele perde gente: P50 de {num(por['A39']['p50'])}% contra {num(por['A40']['p50'])}% do A40. E a frequência está em {num(por['A39']['freq'],2)}, a mais alta da conta, com CPM de {brl(por['A39']['cpm'],2)}. É peça provada rodando em público que já se esgotou.</p>
-  <p><b>A conta que a próxima leva persegue.</b> O gancho de dado do A39, que traz quem compra, com o meio do A40, que segura na tela. Manter a taxa de sessão de {num(por['A39']['taxa_sessao'],0)}% e subir o P50 para a faixa dos 20%.</p>
+  <p><b>O A39 continua sendo o único que vende, mas a distância caiu.</b> Ele tem {por['A39']['vendas']} vendas e {brl(por['A39']['receita'])}, contra zero do A40. Na conversão de sessão são {num(por['A39']['taxa_sessao'],0)}% contra {num(por['A40']['taxa_sessao'],0)}%, com as duas peças já tendo levado {por['A39']['sess_realizadas']} pessoas cada à call. Há uma semana esse placar era 75% contra 0%, e ele encolheu porque três contratos do A39 caíram.</p>
+  <p><b>O A40 ganhou o topo do funil com folga.</b> {por['A40']['leads_banco']} leads a {brl(por['A40']['cpl_banco'])}, contra {por['A39']['leads_banco']} a {brl(por['A39']['cpl_banco'])}. CPM de {brl(por['A40']['cpm'],2)} contra {brl(por['A39']['cpm'],2)}, e P50 de {num(por['A40']['p50'])}% contra {num(por['A39']['p50'])}%. Para trazer gente barata e segurar na tela, ele é superior em tudo.</p>
+  <p><b>E aqui está a ressalva que muda o veredito de qualificação.</b> Cinco dos {por['A40']['leads_banco']} leads do A40 declararam faturar acima de R$ 1 milhão por mês, faixa implausível para restaurante. O A39 não tem nenhum. Tirando essas declarações infladas, a taxa de lead dentro do filtro do A40 cai de {num(por['A40']['taxa_q'],0)}% para cerca de 57%, abaixo dos {num(por['A39']['taxa_q'],0)}% do A39. A demonstração do Painel parece induzir a pessoa a inflar o próprio número.</p>
+  <p><b>A frequência dos dois passou do limite.</b> {num(por['A39']['freq'],2)} no A39 e {num(por['A40']['freq'],2)} no A40. Público novo é mais urgente que peça nova.</p>
 </div>
 
 <h2>7. O DNA por família de ângulo</h2>

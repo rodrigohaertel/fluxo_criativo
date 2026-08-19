@@ -260,6 +260,8 @@ def zero():
     return {"leads": 0, "q100": 0, "q200": 0, "stages": defaultdict(int),
             "sessoes": 0, "contratos": 0, "ganhos": 0, "perdidos": 0,
             "receita": 0.0, "pipeline_valor": 0.0, "vendas": 0,
+            # contrato assinado que depois virou perdido, a fuga do fim do funil
+            "contrato_perdido": 0, "contrato_perdido_valor": 0.0,
             # funil de sessao: agendada, ja realizada (data no passado) e convertida
             "sess_agendadas": 0, "sess_realizadas": 0, "sess_convertidas": 0,
             # coorte com 7 dias ou mais de maturacao
@@ -267,7 +269,7 @@ def zero():
 
 
 banco = defaultdict(zero)
-sem_utm = {"leads": 0, "q100": 0, "stages": defaultdict(int),
+sem_utm = {"leads": 0, "q100": 0, "stages": defaultdict(int), "contrato_perdido": 0, "contrato_perdido_valor": 0.0,
            "receita": 0.0, "pipeline_valor": 0.0, "vendas": 0}
 
 for s in subs:
@@ -288,6 +290,10 @@ for s in subs:
         alvo["vendas"] += 1
     elif st == "contrato":
         alvo["pipeline_valor"] += valor
+    elif st == "perdido" and valor >= 1000:
+        # chegou a ter valor de contrato e mesmo assim caiu
+        alvo["contrato_perdido"] += 1
+        alvo["contrato_perdido_valor"] += valor
     if da_analise(c):
         for chave, estagio in [("sessoes", "sessao_estrategica"), ("contratos", "contrato"),
                                ("ganhos", "ganho"), ("perdidos", "perdido")]:
@@ -391,6 +397,8 @@ for c in sorted(meta_agg, key=lambda x: int(x[1:])):
         maduros=b["maduros"], maduros_avancaram=b["maduros_avancaram"],
         taxa_coorte=pct(b["maduros_avancaram"], b["maduros"]),
         receita=round(b["receita"], 2), vendas=b["vendas"],
+        contrato_perdido=b["contrato_perdido"],
+        contrato_perdido_valor=round(b["contrato_perdido_valor"], 2),
         pipeline_valor=round(b["pipeline_valor"], 2),
         roas=round(b["receita"] / gasto_rast, 2) if gasto_rast and b["receita"] else None,
         roas_pipeline=round((b["receita"] + b["pipeline_valor"]) / gasto_rast, 2) if gasto_rast and (b["receita"] + b["pipeline_valor"]) else None,
@@ -430,6 +438,8 @@ saida = dict(
         vendas_total=sum(l["vendas"] for l in linhas) + sem_utm["vendas"],
         vendas_rastreadas=sum(l["vendas"] for l in linhas),
         pipeline_total=round(sum(l["pipeline_valor"] for l in linhas) + sem_utm["pipeline_valor"], 2),
+        contrato_perdido_total=sum(l["contrato_perdido"] for l in linhas) + sem_utm["contrato_perdido"],
+        contrato_perdido_valor=round(sum(l["contrato_perdido_valor"] for l in linhas) + sem_utm["contrato_perdido_valor"], 2),
         ticket_medio=15000.0,
         ticket_avista=12000.0,
         entrada_por_venda=500.0,
