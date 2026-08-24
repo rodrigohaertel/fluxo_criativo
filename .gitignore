@@ -167,3 +167,10 @@ _ARQUIVO-site-migrado/
 # Exportacoes locais para outros agentes (contem caminhos da maquina local)
 .agents/
 .codex/
+
+# Marca temporaria do autorun (existe so enquanto a rotina roda)
+scripts/.autorun-em-curso
+
+# Backups do settings local (contem tokens, nunca versionar)
+*.bak-hook
+.claude/settings.local.json.bak*
