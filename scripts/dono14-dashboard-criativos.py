@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-08-18"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-08-24"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -500,7 +500,8 @@ html = f"""<!DOCTYPE html>
 </div>
 
 <div class="fix">
-  <p><b>O fato que domina esta leitura: contrato assinado está caindo.</b> {FIN['contrato_perdido_total']} contratos com valor fechado foram para perdido, somando <b>{brl(FIN['contrato_perdido_valor'])}</b>. Só entre 11 e 17 de agosto caíram cinco, de R$ 12 mil a R$ 18 mil cada. O pipeline vivo encolheu para {brl(FIN['pipeline_total'])} e a receita segue nos mesmos {brl(RECEITA)} de uma semana atrás. Nenhum criativo novo corrige isso: a perda acontece depois da proposta assinada, e é o degrau mais caro do funil.</p>
+  <p><b>O fato que domina esta leitura: o dinheiro está saindo depois da assinatura, não antes.</b> Já são {FIN['contrato_perdido_total']} contratos com valor fechado que foram para perdido, somando <b>{brl(FIN['contrato_perdido_valor'])}</b>. E em 19/08 uma venda que já estava no estágio ganho voltou para perdido: o cliente cancelou durante a execução, com a mentoria em andamento. A receita caiu de R$ 75.000 para <b>{brl(RECEITA)}</b> e o ROAS do funil de 6,18x para <b>{num(ROAS_FUNIL,2)}x</b> sem que nenhum criativo tenha piorado.</p>
+  <p>Isso reposiciona a leitura inteira desta página. A aquisição está melhor do que nunca: o A40 traz lead a {brl(por['A40']['cpl_banco'])} com {num(por['A40']['taxa_q'],0)}% dentro do filtro. O funil perde no fim, e nenhum criativo novo alcança esse degrau.</p>
 </div>
 
 <div class="aviso">
@@ -677,10 +678,11 @@ html = f"""<!DOCTYPE html>
   </div>
 </div>
 <div class="aviso">
-  <p><b>O A39 continua sendo o único que vende, mas a distância caiu.</b> Ele tem {por['A39']['vendas']} vendas e {brl(por['A39']['receita'])}, contra zero do A40. Na conversão de sessão são {num(por['A39']['taxa_sessao'],0)}% contra {num(por['A40']['taxa_sessao'],0)}%, com as duas peças já tendo levado {por['A39']['sess_realizadas']} pessoas cada à call. Há uma semana esse placar era 75% contra 0%, e ele encolheu porque três contratos do A39 caíram.</p>
-  <p><b>O A40 ganhou o topo do funil com folga.</b> {por['A40']['leads_banco']} leads a {brl(por['A40']['cpl_banco'])}, contra {por['A39']['leads_banco']} a {brl(por['A39']['cpl_banco'])}. CPM de {brl(por['A40']['cpm'],2)} contra {brl(por['A39']['cpm'],2)}, e P50 de {num(por['A40']['p50'])}% contra {num(por['A39']['p50'])}%. Para trazer gente barata e segurar na tela, ele é superior em tudo.</p>
-  <p><b>E aqui está a ressalva que muda o veredito de qualificação.</b> Cinco dos {por['A40']['leads_banco']} leads do A40 declararam faturar acima de R$ 1 milhão por mês, faixa implausível para restaurante. O A39 não tem nenhum. Tirando essas declarações infladas, a taxa de lead dentro do filtro do A40 cai de {num(por['A40']['taxa_q'],0)}% para cerca de 57%, abaixo dos {num(por['A39']['taxa_q'],0)}% do A39. A demonstração do Painel parece induzir a pessoa a inflar o próprio número.</p>
-  <p><b>A frequência dos dois passou do limite.</b> {num(por['A39']['freq'],2)} no A39 e {num(por['A40']['freq'],2)} no A40. Público novo é mais urgente que peça nova.</p>
+  <p><b>O A40 virou a máquina de topo da conta, com folga.</b> {por['A40']['leads_banco']} leads a {brl(por['A40']['cpl_banco'])}, contra {por['A39']['leads_banco']} a {brl(por['A39']['cpl_banco'])} do A39. CPM de {brl(por['A40']['cpm'],2)} contra {brl(por['A39']['cpm'],2)}, P50 de {num(por['A40']['p50'])}% contra {num(por['A39']['p50'])}%, e {num(por['A40']['taxa_q'],0)}% dos leads dentro do filtro contra {num(por['A39']['taxa_q'],0)}%. Para trazer gente barata e qualificada, ele ganha em todos os quesitos.</p>
+  <p><b>E continua sem vender.</b> {por['A40']['sess_realizadas']} sessões realizadas, {por['A40']['sess_convertidas']} convertida. O A39 fez {por['A39']['sess_realizadas']} sessões e converteu {por['A39']['sess_convertidas']}, uma taxa de {num(por['A39']['taxa_sessao'],0)}% contra {num(por['A40']['taxa_sessao'],0)}%. A vantagem do A39 na sessão encolheu de 75% para {num(por['A39']['taxa_sessao'],0)}% em duas semanas, e encolheu porque os contratos dele caíram, não porque ele parou de trazer gente certa.</p>
+  <p><b>A ressalva da qualificação segue de pé.</b> O A40 continua atraindo declaração de faturamento fora da curva. Tirando as declarações implausíveis, a vantagem dele na taxa de lead qualificado desaparece.</p>
+  <p><b>O teto de CPL desabou e isso muda a régua.</b> Cada lead vale hoje {brl(RECEITA_POR_LEAD)} de contrato fechado, contra R$ 694 em 11/08. A queda vem das duas pontas: a receita caiu com o cancelamento e o número de leads subiu. Com o teto em {brl(RECEITA_POR_LEAD)}, o limite para 3x é {brl(RECEITA_POR_LEAD/3)}, e o CPL do A39 ({brl(por['A39']['cpl_banco'])}) passou a encostar nesse limite. O do A40 ({brl(por['A40']['cpl_banco'])}) segue folgado.</p>
+  <p><b>A frequência dos dois passou de 2.</b> {num(por['A39']['freq'],2)} no A39 e {num(por['A40']['freq'],2)} no A40. Público novo deixou de ser recomendação e virou pendência.</p>
 </div>
 
 <h2>7. O DNA por família de ângulo</h2>
