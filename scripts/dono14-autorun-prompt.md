@@ -68,6 +68,11 @@ Rode `py -3 scripts/dono14-comercial.py` (autorizado na allowlist desde 08/08). 
 
 Registre no marcador: quantas vendas em ganho, a receita somada, e o pipeline em contrato (valor e nomes). Se o número de ganhos mudou desde a leitura anterior, isso é o fato mais importante do dia e vai no topo do resumo, com nome e valor.
 
+## Passo 2c. Orçamento real da conta
+Rode `py -3 scripts/dono14-orcamento.py`. Ele devolve o orçamento diário dos conjuntos ATIVOS e compara com o plano combinado.
+
+**Use esse número para julgar o gasto do dia**, nunca o plano de memória. E **nunca mais escreva "não foi possível confirmar o orçamento via API"**: esse aviso falso se repetiu de 24 a 27/08 porque a chamada era feita inline e barrada pelo detector do terminal. O script resolve isso. Se ele próprio falhar, aí sim registre o erro real que apareceu.
+
 ## Passo 3. Clarity
 Rode `py -3 scripts/dono14-clarity.py` (Data Export API direto, token no .env; devolve sessões, scroll médio, tempo ativo e dead/rage clicks por URL do último dia). **UMA execução só: a API aceita no máximo 10 chamadas/dia.** Use o resultado para o placar de engajamento das páginas da Sessão.
 
