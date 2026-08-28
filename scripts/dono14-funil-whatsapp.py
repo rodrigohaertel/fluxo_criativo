@@ -36,7 +36,7 @@ import sys
 import urllib.parse
 import urllib.request
 from collections import defaultdict
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
@@ -45,7 +45,17 @@ RAIZ = Path(__file__).resolve().parent.parent
 DESTINO = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 SUPABASE = "https://sizhdcrnfylimhsdfdnf.supabase.co"
 
-INICIO_AGENTE = "2026-07-17"   # primeira mensagem e primeira conversa do agente
+# ---------------------------------------------------------------- marcos do funil
+# Cada marco abre uma era. Para registrar uma mudanca de processo, basta
+# acrescentar uma linha aqui: as janelas, as tabelas e os textos se ajustam.
+# (data de inicio, nome curto, o que mudou naquele dia)
+MARCOS = [
+    ("2026-07-17", "Agente de WhatsApp",
+     "entrada do agente automático de atendimento no WhatsApp"),
+    ("2026-08-28", "SDR v2",
+     "novo método de SDR e novos parâmetros de qualificação do lead Dono 14%"),
+]
+INICIO_AGENTE = MARCOS[0][0]   # mantido por compatibilidade com os textos antigos
 FIM_ANTES = "2026-07-16"       # ultimo dia sem o agente
 COORTE_DIAS = 7                # dias de vida para a comparacao de maturacao equalizada
 FIM = sys.argv[1] if len(sys.argv) > 1 else "2026-08-12"
@@ -176,7 +186,24 @@ def janela(ini, fim=None):
 
 G = janela(PRIMEIRO)                      # global
 A = janela(PRIMEIRO, FIM_ANTES)           # antes do agente
-B = janela(INICIO_AGENTE)                 # depois do agente
+B = janela(INICIO_AGENTE)                 # depois do agente, todas as eras somadas
+
+
+def dia_anterior(d):
+    return (date.fromisoformat(d) - timedelta(days=1)).isoformat()
+
+
+# ---- eras: cada marco vira uma janela que termina na vespera do marco seguinte
+ERAS = []
+bordas = [PRIMEIRO] + [m[0] for m in MARCOS]
+nomes = [("Antes dos marcos", "operação sem agente e com o SDR original")] + [(m[1], m[2]) for m in MARCOS]
+for i, ini in enumerate(bordas):
+    fim_era = dia_anterior(bordas[i + 1]) if i + 1 < len(bordas) else FIM
+    if fim_era < ini:                      # marco no futuro, era ainda nao comecou
+        continue
+    nome, oquemudou = nomes[i]
+    ERAS.append(dict(nome=nome, mudou=oquemudou, ini=ini, fim=fim_era,
+                     dias=dias(ini, fim_era) + 1, dados=janela(ini, fim_era)))
 
 # leads por semana, nas duas janelas
 por_semana = defaultdict(lambda: [0, 0])
@@ -243,6 +270,29 @@ PASSAGENS = [
     ("Compareceu e fechou", lambda J: (J["ganho"], J["compareceu"])),
     ("Lead vira contrato, ponta a ponta", lambda J: (J["ganho"], J["leads"])),
 ]
+
+
+
+def linha_era(e):
+    """Uma linha da tabela de eras. Era recem-aberta aparece como aguardando dados."""
+    d = e["dados"]
+    novo = d["leads"] == 0
+    if novo:
+        return f"""<tr class="nova">
+  <td class="k"><b>{e['nome']}</b><em>{e['mudou']}</em></td>
+  <td class="n">{e['ini'][8:10]}/{e['ini'][5:7]}<br><span class="obs">{e['dias']}d</span></td>
+  <td class="n" colspan="6"><em>era recém-aberta, aguardando os primeiros leads para comparação</em></td>
+</tr>"""
+    return f"""<tr>
+  <td class="k"><b>{e['nome']}</b><em>{e['mudou']}</em></td>
+  <td class="n">{e['ini'][8:10]}/{e['ini'][5:7]}<br><span class="obs">{e['dias']}d</span></td>
+  <td class="n forte">{d['leads']}</td>
+  <td class="n">{num(d['leads']/e['dias'],1)}</td>
+  <td class="n">{d['d14']} <em>({num(pct(d['d14'], d['leads']),0)}%)</em></td>
+  <td class="n">{d['agendou']} <em>({num(pct(d['agendou'], d['d14']),0)}%)</em></td>
+  <td class="n">{d['compareceu']} <em>({num(pct(d['compareceu'], d['agendou']),0)}%)</em></td>
+  <td class="n forte">{d['ganho']} <em>({num(pct(d['ganho'], d['leads']),1)}%)</em></td>
+</tr>"""
 
 
 def linha_passagem(nome, fn):
@@ -361,6 +411,16 @@ html = f"""<!DOCTYPE html>
   ul.nom li em{{font-style:normal;color:var(--muted);font-size:.79rem}}
   .tgs{{margin-left:auto;color:var(--gold);font-size:.71rem;text-align:right}}
   .zerado{{color:var(--win);font-size:.84rem;margin:6px 0 0}}
+  tr.nova{{background:rgba(242,193,78,.09)}}
+  tr.nova td.k b{{color:var(--warn)}}
+  .tl{{display:flex;flex-wrap:wrap;gap:0;margin:14px 0 6px;border-radius:12px;overflow:hidden;border:1px solid var(--line)}}
+  .tl .ep{{flex:1 1 180px;background:var(--card);padding:14px 16px;border-right:1px solid var(--line)}}
+  .tl .ep:last-child{{border-right:none}}
+  .tl .ep.atual{{background:linear-gradient(180deg,rgba(242,193,78,.14),var(--card))}}
+  .tl .dt{{color:var(--gold);font-size:.72rem;letter-spacing:.1em;text-transform:uppercase}}
+  .tl .ep.atual .dt{{color:var(--warn)}}
+  .tl .nm{{color:#fff;font-weight:700;font-size:.98rem;margin:3px 0 5px}}
+  .tl .ds{{color:var(--muted);font-size:.78rem;line-height:1.35}}
   .placar{{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px;margin:12px 0}}
   .item{{background:var(--bg2);border:1px solid var(--line);border-radius:11px;padding:13px 15px}}
   .item.limpo{{border-color:rgba(55,211,153,.45)}}
@@ -381,7 +441,7 @@ html = f"""<!DOCTYPE html>
 <header>
   <div class="kicker">Documento oficial · Funil do CRM · Mentoria Dono 14%</div>
   <h1>O funil do CRM em três janelas, e o que o agente de WhatsApp mudou de fato.</h1>
-  <p class="lead">Três janelas na mesma régua. Global, de {PRIMEIRO[8:10]}/{PRIMEIRO[5:7]} a {FIM[8:10]}/{FIM[5:7]} ({dias_g} dias). Antes do agente, até {FIM_ANTES[8:10]}/{FIM_ANTES[5:7]} ({dias_a} dias). Depois do agente, de {INICIO_AGENTE[8:10]}/{INICIO_AGENTE[5:7]} em diante ({dias_b} dias). Antes e Depois não se sobrepõem, então servem de comparação real, e a seção 3 usa as duas para responder se o agente melhorou o funil. Fonte: contact_submissions, crm_cards e as tags do CRM de produção. Snapshot de {gerado}, com dados fechados até {FIM[8:10]}/{FIM[5:7]}.</p>
+  <p class="lead">Três janelas na mesma régua. Global, de {PRIMEIRO[8:10]}/{PRIMEIRO[5:7]} a {FIM[8:10]}/{FIM[5:7]} ({dias_g} dias). Antes do agente, até {FIM_ANTES[8:10]}/{FIM_ANTES[5:7]} ({dias_a} dias). Depois do agente, de {INICIO_AGENTE[8:10]}/{INICIO_AGENTE[5:7]} em diante ({dias_b} dias). Antes e Depois não se sobrepõem, então servem de comparação real, e a seção 4 usa as duas para responder se o agente melhorou o funil. Fonte: contact_submissions, crm_cards e as tags do CRM de produção. Snapshot de {gerado}, com dados fechados até {FIM[8:10]}/{FIM[5:7]}.</p>
 </header>
 
 <div class="kpis">
@@ -421,7 +481,32 @@ html = f"""<!DOCTYPE html>
   <p><b>O período com agente concentra quase metade do CRM em menos tempo.</b> São {B['leads']} dos {G['leads']} leads ({num(pct(B['leads'], G['leads']),0)}%) em {dias_b} dos {dias_g} dias. O ritmo passou de {num(A['leads']/dias_a,1)} para {num(B['leads']/dias_b,1)} leads por dia, alta de {num(100*((B['leads']/dias_b)/(A['leads']/dias_a)-1),0)}%.</p>
 </div>
 
-<h2>2. As taxas de passagem, número e percentual</h2>
+<h2>2. Marcos do funil</h2>
+<p class="sub">Cada mudança de processo abre uma era. As eras não se sobrepõem, então a comparação entre elas é direta. Uma era recém-aberta aparece marcada, sem número, até acumular leads suficientes para comparar.</p>
+
+<div class="tl">
+{''.join(f"""<div class="ep{' atual' if i == len(ERAS)-1 else ''}">
+    <div class="dt">{e['ini'][8:10]}/{e['ini'][5:7]}{' · em curso' if i == len(ERAS)-1 else f" a {e['fim'][8:10]}/{e['fim'][5:7]}"}</div>
+    <div class="nm">{e['nome']}</div>
+    <div class="ds">{e['mudou']}</div>
+  </div>""" for i, e in enumerate(ERAS))}
+</div>
+
+<div class="tbox"><table>
+<thead><tr>
+  <th>Era</th><th>Início<br>duração</th><th>Leads</th><th>Leads<br>por dia</th>
+  <th>Dono 14%</th><th>Agendou</th><th>Compareceu</th><th>Fechou</th>
+</tr></thead>
+<tbody>
+{''.join(linha_era(e) for e in ERAS)}
+</tbody></table></div>
+
+<div class="aviso">
+  <p><b>A era que abre hoje é o motivo desta seção existir.</b> Em {MARCOS[-1][0][8:10]}/{MARCOS[-1][0][5:7]} mudaram duas coisas ao mesmo tempo: o método de SDR e os parâmetros de qualificação do lead Dono 14%. Como o critério de qualificação mudou, <b>a linha "Dono 14%" deixa de ser comparável entre as eras</b>: um lead marcado como qualificado antes de {MARCOS[-1][0][8:10]}/{MARCOS[-1][0][5:7]} passou por uma régua diferente da de hoje. As etapas seguintes seguem comparáveis, e a taxa de lead para contrato, ponta a ponta, é a que menos sofre com a mudança de régua.</p>
+  <p><b>O que observar nas próximas semanas:</b> se a régua nova ficou mais estreita, o percentual de leads Dono 14% cai e a taxa de agendamento sobre esse grupo sobe, porque sobra gente mais certa. Se subir os dois, a régua nova está deixando passar mais gente. O número que decide continua sendo lead para contrato.</p>
+</div>
+
+<h2>3. As taxas de passagem, número e percentual</h2>
 <p class="sub">Cada linha é uma passagem do funil, com a conta fechada e o percentual nas duas janelas. A última coluna mostra a diferença em pontos percentuais entre o recorte do agente e o histórico completo.</p>
 <div class="tbox"><table>
 <thead>
@@ -458,10 +543,10 @@ html = f"""<!DOCTYPE html>
 </div>
 
 <div class="alerta">
-  <p><b>Cuidado ao comparar a primeira linha.</b> A taxa de lead que vira lead Dono 14% está subestimada no período antes do agente: {len(A['aud']['sem_tag_produto'])} dos {len(A['cards'])} cards nunca receberam tag de produto, contra {len(B['aud']['sem_tag_produto'])} de {len(B['cards'])} depois. As tags do CRM só nasceram em {TAGS_CRIADAS[8:10]}/{TAGS_CRIADAS[5:7]}. Ou seja, o salto de {num(pct(A['d14'], A['leads']))}% para {num(pct(B['d14'], B['leads']))}% mede sobretudo a melhora do processo de marcação, não a mudança de público. A seção 3 trata esse viés.</p>
+  <p><b>Cuidado ao comparar a primeira linha.</b> A taxa de lead que vira lead Dono 14% está subestimada no período antes do agente: {len(A['aud']['sem_tag_produto'])} dos {len(A['cards'])} cards nunca receberam tag de produto, contra {len(B['aud']['sem_tag_produto'])} de {len(B['cards'])} depois. As tags do CRM só nasceram em {TAGS_CRIADAS[8:10]}/{TAGS_CRIADAS[5:7]}. Ou seja, o salto de {num(pct(A['d14'], A['leads']))}% para {num(pct(B['d14'], B['leads']))}% mede sobretudo a melhora do processo de marcação, não a mudança de público. A seção 4 trata esse viés.</p>
 </div>
 
-<h2>3. O agente melhorou o funil? A leitura com os vieses tratados</h2>
+<h2>4. O agente melhorou o funil? A leitura com os vieses tratados</h2>
 <p class="sub">Esta é a pergunta que as três janelas existem para responder. Comparar antes com depois direto na tabela acima leva a conclusão errada, por dois motivos que precisam ser neutralizados antes de qualquer veredito.</p>
 
 <div class="alerta">
@@ -510,7 +595,7 @@ html = f"""<!DOCTYPE html>
   <p><b>O que ainda pode mudar o veredito:</b> os {B['contrato']} contratos em aberto do período novo valem {brl(B['valor_contrato'])}. Se metade fechar, a taxa de fechamento do depois sai de {num(pct(B['ganho_qualquer'], B['leads']))}% para cerca de {num(pct(B['ganho_qualquer'] + B['contrato'] // 2, B['leads']))}%, acima do antes. O julgamento final do agente depende dessa fila.</p>
 </div>
 
-<h2>4. Onde o agente mudou o jogo: velocidade</h2>
+<h2>5. Onde o agente mudou o jogo: velocidade</h2>
 <p class="sub">Se a taxa de conversão está estável e o fechamento ainda não maturou, o efeito do agente aparece em outro lugar: no tempo. Aqui não há viés de marcação nem de maturação, porque cada medição usa as datas do próprio card.</p>
 <div class="tbox"><table>
 <thead><tr><th>Etapa</th><th>Antes</th><th>Depois</th><th>Diferença</th><th>Leitura</th></tr></thead>
@@ -536,7 +621,7 @@ html = f"""<!DOCTYPE html>
   <p><b>O veredito honesto sobre o agente, hoje.</b> Ele não mudou a taxa de conversão do funil, que segue estável em torno de {num(pct(B['ag_qualquer'], B['leads']),0)}% de agendamento sobre os leads que entram. O que ele mudou, e muito, foi o <b>tempo até o agendamento, de {num(A['vel_lead_ag'])} para {num(B['vel_lead_ag'])} dias</b>, e a <b>disciplina de marcação, de {num(pct(A['sem_prod'], len(A['cards'])),0)}% para {num(pct(B['sem_prod'], len(B['cards'])),0)}% de cards sem triagem</b>. São dois ganhos operacionais reais, que aumentam a capacidade de atender mais lead sem aumentar equipe. Se isso vira mais receita, os {B['contrato']} contratos em aberto dirão nas próximas semanas.</p>
 </div>
 
-<h2>5. Qualidade da marcação no CRM</h2><p class="sub">Reverificação feita depois da sua auditoria. Cada bloco conta quantos cards estão com marcação inconsistente, no histórico completo e no recorte do agente.</p>
+<h2>6. Qualidade da marcação no CRM</h2><p class="sub">Reverificação feita depois da sua auditoria. Cada bloco conta quantos cards estão com marcação inconsistente, no histórico completo e no recorte do agente.</p>
 
 <div class="placar">
 {''.join(f'''<div class="item {'limpo' if not B['aud'][chave] else 'sujo'}">
@@ -558,7 +643,7 @@ html = f"""<!DOCTYPE html>
   <p><b>O que ainda vale arrumar.</b> Sobram {len(B['aud']['tag_sem_data'])} cards no recorte com tag de agendamento e sem data de sessão. Não distorcem a contagem de agendamento, porque a tag já basta para contar, mas impedem medir tempo entre agendar e comparecer. Preencher a data nesses cards fecha a última lacuna do período.</p>
 </div>
 
-<h2>6. Onde estão as pessoas hoje</h2>
+<h2>7. Onde estão as pessoas hoje</h2>
 <p class="sub">Distribuição por estágio do CRM nas duas janelas.</p>
 <div class="tbox"><table>
 <thead><tr><th>Estágio</th><th>Histórico</th><th>%</th><th>Desde o agente</th><th>%</th></tr></thead>
@@ -566,7 +651,7 @@ html = f"""<!DOCTYPE html>
 {''.join(f'''<tr><td class="k">{s}</td><td class="n">{v}</td><td class="n dim">{num(pct(v, len(A['cards'])),0)}%</td><td class="n">{B['stages'].get(s, 0)}</td><td class="n dim">{num(pct(B['stages'].get(s, 0), len(B['cards'])),0)}%</td></tr>''' for s, v in sorted(A['stages'].items(), key=lambda kv: -kv[1]))}
 </tbody></table></div>
 
-<h2>7. Ritmo de entrada de leads</h2>
+<h2>8. Ritmo de entrada de leads</h2>
 <p class="sub">Leads por semana em todo o histórico. A barra verde marca as semanas já sob o agente de WhatsApp.</p>
 <div class="tbox"><table>
 <thead><tr><th>Semana de</th><th>Leads</th><th>Sob o agente</th><th></th></tr></thead>
@@ -574,7 +659,7 @@ html = f"""<!DOCTYPE html>
 {''.join(f'''<tr><td class="k">{k[8:10]}/{k[5:7]}</td><td class="n">{v[0]}</td><td class="n dim">{v[1] if v[1] else ''}</td><td><div class="barra"><i class="{'b' if v[1] == v[0] and v[0] else ''}" style="width:{round(320 * v[0] / max(x[0] for x in por_semana.values()))}px"></i></div></td></tr>''' for k, v in sorted(por_semana.items()))}
 </tbody></table></div>
 
-<h2>8. Leitura dos números</h2>
+<h2>9. Leitura dos números</h2>
 <div class="painel">
   <h4>O gargalo é o agendamento, nas duas janelas</h4>
   <p>De cada 10 leads triados como Dono 14%, {num(pct(B['agendou'], B['d14'])/10, 1)} agendam sessão no recorte do agente, contra {num(pct(A['agendou'], A['d14'])/10, 1)} no histórico. É a passagem mais estreita do funil e a de maior alavanca: cada ponto ganho aqui vale mais que qualquer melhora nas etapas seguintes, porque elas já operam em nível alto.</p>
