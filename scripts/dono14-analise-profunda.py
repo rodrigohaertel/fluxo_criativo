@@ -312,7 +312,7 @@ subs_utm = sb_get("contact_submissions", {
     "or": "(source.ilike.mentoria*,source.ilike.sess*)",
     "created_at": f"gte.{inicio_utm_utc}", "order": "created_at.asc"})
 cards_com = sb_get("crm_cards", {
-    "select": "id,stage,valor_contrato,submission_id,sessao_agendada,contrato_produto",
+    "select": "id,stage,valor_contrato,submission_id,sessao_agendada,contrato_produto,contrato_status",
     "deleted_at": "is.null"})
 card_por_sub_com = {c["submission_id"]: c for c in cards_com if c.get("submission_id")}
 
@@ -361,6 +361,13 @@ for s in subs_utm:
     if str(c.get("stage")) == "ganho":
         com_por_ad[ad]["ganho"] += 1
         com_por_ad[ad]["receita"] += float(c.get("valor_contrato") or 0)
+    # VENDA FECHADA, FALTA ASSINAR (Rodrigo, 29/08): card em Fechamento com o
+    # contrato ja ENVIADO para assinatura e sinal marcado e venda ganha na pratica,
+    # so nao virou receita ainda. Contar separado evita duas leituras erradas:
+    # ignorar (subestima o criativo) ou somar em receita (infla o resultado).
+    elif str(c.get("stage")) == "contrato" and str(c.get("contrato_status") or "") == "enviado":
+        com_por_ad[ad]["assinatura"] += 1
+        com_por_ad[ad]["valor_assinatura"] += float(c.get("valor_contrato") or 0)
 
 # gasto por criativo SO na janela creditavel (a partir de 19/07), para o CAC
 gasto_ad_utm = defaultdict(float)
@@ -548,6 +555,8 @@ for idx, nome in enumerate(nomes_ativos):
     ld_real = int(cm.get("leads", 0))
     n_sessao, n_ganho = int(cm.get("sessao", 0)), int(cm.get("ganho", 0))
     n_painel, n_d14 = int(cm.get("painel", 0)), int(cm.get("dono14", 0))
+    n_assin = int(cm.get("assinatura", 0))
+    v_assin = float(cm.get("valor_assinatura", 0))
     receita_ad = float(cm.get("receita", 0))
     gasto_utm = gasto_ad_utm.get(nome, 0.0)
     cpl_real_ad = gasto_utm / ld_real if ld_real else None
@@ -564,6 +573,7 @@ for idx, nome in enumerate(nomes_ativos):
       {(sem_cpl(cpl_real_ad)[1] + ' ' + brl(cpl_real_ad)) if cpl_real_ad else '-'}</b></span>
   <span class="badge">sessões agendadas: <b>{n_sessao}</b> <span class="cinza">({tx_sessao:.0f}% dos leads)</span></span>
   <span class="badge">fechamentos: <b class="{'top' if n_ganho else ''}">{n_ganho}</b> <span class="cinza">({tx_venda:.0f}% dos leads)</span></span>
+  <span class="badge">aguardando assinatura: <b>{n_assin}</b> <span class="cinza">{('(' + brl(v_assin) + ', contrato enviado)') if n_assin else ''}</span></span>
 </div>
 <div class="badges">
   <span class="badge">Dono 14%: <b>{n_d14}</b></span>

@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-08-24"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-08-29"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -500,8 +500,8 @@ html = f"""<!DOCTYPE html>
 </div>
 
 <div class="fix">
-  <p><b>O fato que domina esta leitura: o dinheiro está saindo depois da assinatura, não antes.</b> Já são {FIN['contrato_perdido_total']} contratos com valor fechado que foram para perdido, somando <b>{brl(FIN['contrato_perdido_valor'])}</b>. E em 19/08 uma venda que já estava no estágio ganho voltou para perdido: o cliente cancelou durante a execução, com a mentoria em andamento. A receita caiu de R$ 75.000 para <b>{brl(RECEITA)}</b> e o ROAS do funil de 6,18x para <b>{num(ROAS_FUNIL,2)}x</b> sem que nenhum criativo tenha piorado.</p>
-  <p>Isso reposiciona a leitura inteira desta página. A aquisição está melhor do que nunca: o A40 traz lead a {brl(por['A40']['cpl_banco'])} com {num(por['A40']['taxa_q'],0)}% dentro do filtro. O funil perde no fim, e nenhum criativo novo alcança esse degrau.</p>
+  <p><b>Entrou venda, e a maior da série.</b> {brl(18000)} fechados em 28/08, atribuídos ao A39. A receita subiu para <b>{brl(RECEITA)}</b> em {FIN['vendas_total']} vendas, e o ROAS do funil voltou para <b>{num(ROAS_FUNIL,2)}x</b>. O pipeline vivo está em {brl(FIN['pipeline_total'])}, com dois contratos do A39 e um do A40.</p>
+  <p><b>A fuga do fim do funil continua.</b> Já são {FIN['contrato_perdido_total']} contratos com valor fechado que foram para perdido, somando {brl(FIN['contrato_perdido_valor'])}. Para cada real que virou receita, quase um e meio caiu depois da assinatura. É o degrau mais caro da operação e nenhum criativo alcança ele.</p>
 </div>
 
 <div class="aviso">
@@ -678,11 +678,11 @@ html = f"""<!DOCTYPE html>
   </div>
 </div>
 <div class="aviso">
-  <p><b>O A40 virou a máquina de topo da conta, com folga.</b> {por['A40']['leads_banco']} leads a {brl(por['A40']['cpl_banco'])}, contra {por['A39']['leads_banco']} a {brl(por['A39']['cpl_banco'])} do A39. CPM de {brl(por['A40']['cpm'],2)} contra {brl(por['A39']['cpm'],2)}, P50 de {num(por['A40']['p50'])}% contra {num(por['A39']['p50'])}%, e {num(por['A40']['taxa_q'],0)}% dos leads dentro do filtro contra {num(por['A39']['taxa_q'],0)}%. Para trazer gente barata e qualificada, ele ganha em todos os quesitos.</p>
-  <p><b>E continua sem vender.</b> {por['A40']['sess_realizadas']} sessões realizadas, {por['A40']['sess_convertidas']} convertida. O A39 fez {por['A39']['sess_realizadas']} sessões e converteu {por['A39']['sess_convertidas']}, uma taxa de {num(por['A39']['taxa_sessao'],0)}% contra {num(por['A40']['taxa_sessao'],0)}%. A vantagem do A39 na sessão encolheu de 75% para {num(por['A39']['taxa_sessao'],0)}% em duas semanas, e encolheu porque os contratos dele caíram, não porque ele parou de trazer gente certa.</p>
-  <p><b>A ressalva da qualificação segue de pé.</b> O A40 continua atraindo declaração de faturamento fora da curva. Tirando as declarações implausíveis, a vantagem dele na taxa de lead qualificado desaparece.</p>
-  <p><b>O teto de CPL desabou e isso muda a régua.</b> Cada lead vale hoje {brl(RECEITA_POR_LEAD)} de contrato fechado, contra R$ 694 em 11/08. A queda vem das duas pontas: a receita caiu com o cancelamento e o número de leads subiu. Com o teto em {brl(RECEITA_POR_LEAD)}, o limite para 3x é {brl(RECEITA_POR_LEAD/3)}, e o CPL do A39 ({brl(por['A39']['cpl_banco'])}) passou a encostar nesse limite. O do A40 ({brl(por['A40']['cpl_banco'])}) segue folgado.</p>
-  <p><b>A frequência dos dois passou de 2.</b> {num(por['A39']['freq'],2)} no A39 e {num(por['A40']['freq'],2)} no A40. Público novo deixou de ser recomendação e virou pendência.</p>
+  <p><b>Agora a comparação está pareada, e ela é dura.</b> As duas peças chegaram ao mesmo número de sessões realizadas: {por['A39']['sess_realizadas']} cada. O A39 converteu {por['A39']['sess_convertidas']} delas, o A40 converteu {por['A40']['sess_convertidas']}. Mesma quantidade de conversas, quatro vezes mais contrato. É a evidência mais limpa que a conta produziu até aqui, porque não depende de volume nem de maturação.</p>
+  <p><b>O A40 segue imbatível no topo.</b> {por['A40']['leads_banco']} leads a {brl(por['A40']['cpl_banco'])}, contra {por['A39']['leads_banco']} a {brl(por['A39']['cpl_banco'])}. CPM de {brl(por['A40']['cpm'],2)} contra {brl(por['A39']['cpm'],2)}, P50 de {num(por['A40']['p50'])}% contra {num(por['A39']['p50'])}%, e taxa de lead dentro do filtro praticamente empatada ({num(por['A40']['taxa_q'],0)}% contra {num(por['A39']['taxa_q'],0)}%). Ele custa metade e entrega o dobro de gente.</p>
+  <p><b>E o dinheiro vem todo do outro.</b> O A39 tem {por['A39']['vendas']} vendas e {brl(por['A39']['receita'])}, com ROAS de {num(por['A39']['roas'],2)}x. O A40 tem zero, com {por['A40']['leads_banco']} leads e {brl(por['A40']['gasto_rast'])} investidos. A hipótese que sustenta os dois fatos é a mesma desde o começo: o A39 abre pelo problema e traz quem quer resolver, o A40 abre pela ferramenta e traz quem quer conhecer a ferramenta.</p>
+  <p><b>O teto de CPL voltou a subir</b> com a venda nova, para {brl(RECEITA_POR_LEAD)} por lead. O limite para 3x é {brl(RECEITA_POR_LEAD/3)}, e as duas peças cabem com folga: {brl(por['A39']['cpl_banco'])} e {brl(por['A40']['cpl_banco'])}.</p>
+  <p><b>A frequência das duas passou de 2</b> ({num(por['A39']['freq'],2)} e {num(por['A40']['freq'],2)}). Público novo segue sendo a pendência mais antiga desta análise.</p>
 </div>
 
 <h2>7. O DNA por família de ângulo</h2>
