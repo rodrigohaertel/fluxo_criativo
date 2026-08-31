@@ -19,7 +19,7 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 CAMPANHA = "120247419652220527"   # [DONO14] [CONV] [LEADS] ABO
-PLANO_ATUAL = 160.00              # R$/dia combinado com o Rodrigo em 24/08
+PLANO_ATUAL = 120.00              # R$/dia: so A39, apos pausar o A40 em 31/08 (sobe com o A42)
 
 
 def token():
