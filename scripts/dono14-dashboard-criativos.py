@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-08-29"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-09-01"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -106,6 +106,30 @@ TX_VENDA = round(100 * FIN["vendas_total"] / LEADS_PERIODO, 1)
 RECEITA_POR_LEAD = round(RECEITA / LEADS_PERIODO, 2)
 CAIXA_IMEDIATO = FIN["entrada_por_venda"] * FIN["vendas_total"]
 TETOS = [(1, RECEITA_POR_LEAD), (3, RECEITA_POR_LEAD / 3), (5, RECEITA_POR_LEAD / 5), (10, RECEITA_POR_LEAD / 10)]
+
+
+MESES_PT = {"01": "janeiro", "02": "fevereiro", "03": "março", "04": "abril", "05": "maio",
+            "06": "junho", "07": "julho", "08": "agosto", "09": "setembro", "10": "outubro",
+            "11": "novembro", "12": "dezembro"}
+FECHAMENTO = D.get("fechamento_mensal", {})
+# o mes corrente entra marcado como em curso, para nao ser lido como queda
+MES_CORRENTE = D.get("gerado_em", "")[:7]
+
+
+def linha_mes(m, v):
+    corrente = m == MES_CORRENTE
+    rot = MESES_PT.get(m[5:7], m) + ("<em> em curso</em>" if corrente else "")
+    roas = f'<b class="win">{num(v["roas"],2)}x</b>' if v.get("roas") else "<em>sem venda</em>"
+    return f"""<tr class="{'apagado' if corrente else ''}">
+  <td class="k">{rot}</td>
+  <td class="n">{brl(v['gasto'])}</td>
+  <td class="n forte">{v['leads']}</td>
+  <td class="n">{v['q100']} <em>({num(v['taxa_q'],0)}%)</em></td>
+  <td class="n">{brl(v['cpl'])}</td>
+  <td class="n forte">{v['vendas']}</td>
+  <td class="n forte">{brl(v['receita'])}</td>
+  <td class="n">{roas}</td>
+</tr>"""
 
 
 def linha_roas(l):
@@ -499,9 +523,13 @@ html = f"""<!DOCTYPE html>
   <div class="kpi win"><b>{num(ROAS_FUNIL,2)}x</b><span>ROAS do funil da mentoria</span></div>
 </div>
 
+<div class="ok">
+  <p><b>Agosto fechou como o melhor mês da operação.</b> {FECHAMENTO.get('2026-08',{}).get('vendas',0)} vendas e {brl(FECHAMENTO.get('2026-08',{}).get('receita',0))} de receita, contra 2 vendas e {brl(30000)} em julho, com investimento praticamente igual. O CPL do mês caiu para {brl(FECHAMENTO.get('2026-08',{}).get('cpl',0))} e o ROAS do mês foi de {num(FECHAMENTO.get('2026-08',{}).get('roas',0),2)}x. No acumulado, a receita chegou a {brl(RECEITA)} em {FIN['vendas_total']} vendas, com ROAS de {num(ROAS_FUNIL,2)}x no funil.</p>
+  <p><b>As quatro vendas do mês vieram do A39.</b> O A40 segue sem vender, com {por['A40']['leads_banco']} leads e {brl(por['A40']['gasto_rast'])} investidos.</p>
+</div>
+
 <div class="fix">
-  <p><b>Entrou venda, e a maior da série.</b> {brl(18000)} fechados em 28/08, atribuídos ao A39. A receita subiu para <b>{brl(RECEITA)}</b> em {FIN['vendas_total']} vendas, e o ROAS do funil voltou para <b>{num(ROAS_FUNIL,2)}x</b>. O pipeline vivo está em {brl(FIN['pipeline_total'])}, com dois contratos do A39 e um do A40.</p>
-  <p><b>A fuga do fim do funil continua.</b> Já são {FIN['contrato_perdido_total']} contratos com valor fechado que foram para perdido, somando {brl(FIN['contrato_perdido_valor'])}. Para cada real que virou receita, quase um e meio caiu depois da assinatura. É o degrau mais caro da operação e nenhum criativo alcança ele.</p>
+  <p><b>E o vazamento do fim do funil continua sendo o maior custo da operação.</b> {FIN['contrato_perdido_total']} contratos com valor fechado foram para perdido, somando <b>{brl(FIN['contrato_perdido_valor'])}</b>. É mais do que toda a receita já realizada. O pipeline de contratos abertos está zerado, então esse número não vai crescer por inércia: ele só cresce se um contrato novo cair.</p>
 </div>
 
 <div class="aviso">
@@ -614,7 +642,23 @@ html = f"""<!DOCTYPE html>
   <p><b>Ressalva de base.</b> Quatro vendas em {LEADS_PERIODO} leads é amostra pequena para uma taxa estável. A taxa de {num(TX_VENDA)}% e o valor de {brl(RECEITA_POR_LEAD)} por lead são a melhor estimativa disponível hoje, não uma constante. Reavaliar a cada cinco vendas novas.</p>
 </div>
 
-<h2>4. O degrau que separa os líderes: a sessão</h2>
+<h2>4. Fechamento mês a mês</h2>
+<p class="sub">Cada linha fecha um mês. A venda conta no mês em que o card virou ganho, não no mês em que o lead entrou. O mês corrente aparece esmaecido, porque ainda está aberto e não deve ser comparado com os fechados.</p>
+<div class="tbox"><table>
+<thead><tr>
+  <th>Mês</th><th>Investido</th><th>Leads</th><th>Dentro do filtro</th>
+  <th>CPL</th><th>Vendas</th><th>Receita</th><th>ROAS do mês</th>
+</tr></thead>
+<tbody>
+{''.join(linha_mes(m, v) for m, v in FECHAMENTO.items())}
+</tbody></table></div>
+
+<div class="ok">
+  <p><b>Agosto é o melhor mês da série, e por margem larga.</b> Com praticamente o mesmo investimento de julho ({brl(FECHAMENTO.get('2026-08',{}).get('gasto',0))} contra {brl(FECHAMENTO.get('2026-07',{}).get('gasto',0))}), entraram {FECHAMENTO.get('2026-08',{}).get('leads',0)} leads contra {FECHAMENTO.get('2026-07',{}).get('leads',0)}, o CPL caiu de {brl(FECHAMENTO.get('2026-07',{}).get('cpl',0))} para {brl(FECHAMENTO.get('2026-08',{}).get('cpl',0))} e a receita saiu de {brl(FECHAMENTO.get('2026-07',{}).get('receita',0))} para {brl(FECHAMENTO.get('2026-08',{}).get('receita',0))}. O ROAS do mês mais que dobrou, de {num(FECHAMENTO.get('2026-07',{}).get('roas',0),2)}x para {num(FECHAMENTO.get('2026-08',{}).get('roas',0),2)}x.</p>
+  <p><b>As quatro vendas de agosto saíram do A39</b>, e três delas nos últimos quatro dias do mês (28, 30 e 31). O pipeline de contratos abertos zerou: tudo que estava assinado ou fechou ou caiu.</p>
+</div>
+
+<h2>5. O degrau que separa os líderes: a sessão</h2>
 <p class="sub">Trazer lead barato e qualificado é meio caminho. O que fecha contrato é a sessão converter. Aqui estão só os criativos que já levaram alguém até a call, com coorte de {D.get('maturacao_dias',7)} dias para a comparação ser justa.</p>
 <div class="tbox"><table>
 <thead><tr><th>Criativo</th><th>Leads</th><th>Coorte madura</th><th>Avançaram</th><th>Sessões agendadas</th><th>Sessões realizadas</th><th>Viraram contrato ou venda</th><th>Taxa da sessão</th></tr></thead>
@@ -636,7 +680,7 @@ html = f"""<!DOCTYPE html>
   <p><b>O que ainda não está decidido.</b> O A40 tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões agendadas que ainda não aconteceram. Se elas fecharem, a leitura muda. Enquanto não acontecerem, três sessões sem conversão é sinal, não sentença.</p>
 </div>
 
-<h2>5. A escada de métricas</h2>
+<h2>6. A escada de métricas</h2>
 <p class="sub">Cada degrau responde uma pergunta diferente e culpa um elemento diferente do método. Um criativo não se julga por um número, se julga pela escada inteira.</p>
 <div class="degraus">
 {escada('Parou o scroll (hook rate)', 'hook', nota='Culpa do gancho e da Urgência Oculta. Faixa apertada nesta conta: o hook não separa vencedor de perdedor.')}
@@ -647,7 +691,7 @@ html = f"""<!DOCTYPE html>
 {escada('Custou quanto por lead', 'cpl_meta', '', inverso=True, nota='Leitura pela atribuição da Meta. Só serve para comparar entre criativos do mesmo período.')}
 </div>
 
-<h2>6. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
+<h2>7. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
 <p class="sub">Cada bolha é um criativo. Quanto mais à direita, mais gente clicou. Quanto mais acima, mais gente cadastrou depois de chegar. O tamanho é o quanto foi investido. O canto superior direito é onde o dinheiro rende.</p>
 {scatter()}
 
@@ -685,13 +729,13 @@ html = f"""<!DOCTYPE html>
   <p><b>A frequência das duas passou de 2</b> ({num(por['A39']['freq'],2)} e {num(por['A40']['freq'],2)}). Público novo segue sendo a pendência mais antiga desta análise.</p>
 </div>
 
-<h2>7. O DNA por família de ângulo</h2>
+<h2>8. O DNA por família de ângulo</h2>
 <p class="sub">Os doze criativos agrupados pelo ângulo da Mandala, com o número de cada família. É aqui que a decisão de roteiro se sustenta.</p>
 <div class="fams">
 {''.join(card_familia(f) for f in fam_ord)}
 </div>
 
-<h2>8. A direção da leva A42, A43 e A44</h2>
+<h2>9. A direção da leva A42, A43 e A44</h2>
 <p class="sub">Tudo acima aponta para o mesmo lugar: partir do A39, que é o único que vende, e corrigir onde ele é fraco.</p>
 <div class="plano">
   <div class="p">
@@ -718,7 +762,7 @@ html = f"""<!DOCTYPE html>
   <p><b>Duas ações valem mais que criativo novo, e são para agora.</b> Primeira: a frequência do A39 está em {num(por['A39']['freq'],2)} e a do A40 em {num(por['A40']['freq'],2)}, as duas subindo. As peças estão provadas, o público é que acabou. Ampliar segmentação ou lookalike antes que o CPM suba mais. Segunda: há {brl(FIN['pipeline_total'])} parados em contrato assinado que ainda não viraram receita. Destravar isso rende mais que qualquer ponto de CPL.</p>
 </div>
 
-<h2>9. O que não repetir</h2>
+<h2>10. O que não repetir</h2>
 <ul class="nao">
   <li><b>Convocação e "procura-se", com ressalva.</b> Teste encerrado: o A41 gastou {brl(por['A41']['gasto_rast'])} e trouxe {por['A41']['leads_banco']} leads, sendo {por['A41']['q100']} dentro do filtro, a {brl(por['A41']['cpl_q'])} o lead qualificado. É de longe o pior da leva nova (o A40 faz o mesmo por {brl(por['A40']['cpl_q'])}), e o único lead que prestou entrou no último dia, com sessão ainda por acontecer. A mesma família do A30, que custou {brl(por['A30']['cpl_meta'])} por lead. Não repetir o formato, mas esperar a sessão desse lead antes de enterrar o ângulo de vez.</li>
   <li><b>História de origem longa em rosto puro.</b> O A33 gastou {brl(por['A33']['gasto'])}, não gerou lead nenhum e tem a pior retenção da série, com 94 segundos.</li>
@@ -727,7 +771,7 @@ html = f"""<!DOCTYPE html>
   <li><b>Coroar ou enterrar peça pela atribuição da Meta.</b> O A35 mostrava {por['A35']['leads_meta']} leads no gerenciador e {por['A35']['leads_banco']} lead real. Veredito só com o banco e o CRM na mão.</li>
 </ul>
 
-<h2>10. Ressalvas de leitura</h2>
+<h2>11. Ressalvas de leitura</h2>
 <div class="aviso">
   <p><b>A comparação entre lotes não é limpa.</b> Entre o A38 e o A39 mudou a oferta (de mentoria para sessão gratuita), mudou a página e mudou a estrutura de campanha. Só a família do ângulo é comparável, não o CPL absoluto.</p>
   <p><b>O A40 ainda não está julgado.</b> Ele tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões marcadas que não aconteceram. Três sessões sem conversão é sinal forte, mas a amostra é pequena e a peça é mais nova que o A39. O veredito real sai quando essas sessões acontecerem.</p>

@@ -168,6 +168,7 @@ conta_mes = meta_get(path=f"act_{ACCOUNT}/insights", params={
     "level": "account", "time_range": json.dumps({"since": SINCE, "until": UNTIL}),
     "time_increment": "monthly", "fields": "spend"}).get("data", [])
 
+conta_mes_por_mes = {r["date_start"][:7]: n(r["spend"]) for r in conta_mes}
 GASTO_CONTA = n(conta_total[0]["spend"]) if conta_total else 0.0
 GASTO_CONTA_JANELA = n(conta_janela[0]["spend"]) if conta_janela else 0.0
 
@@ -249,7 +250,7 @@ subs = sb("contact_submissions", {
     "select": "id,name,source,ab_variant,utm_content,utm_term,landing_url,faturamento_medio,created_at",
     "created_at": f"gte.{SINCE}", "order": "created_at.asc", "limit": "5000"})
 cards = sb("crm_cards", {
-    "select": "submission_id,stage,motivo_perda,valor_contrato,sessao_agendada,faturamento_medio,created_at,deleted_at",
+    "select": "submission_id,stage,motivo_perda,valor_contrato,sessao_agendada,faturamento_medio,created_at,stage_changed_at,deleted_at",
     "deleted_at": "is.null", "limit": "5000"})
 print(f"    {len(subs)} leads, {len(cards)} cartoes")
 
@@ -408,6 +409,31 @@ for c in sorted(meta_agg, key=lambda x: int(x[1:])):
         correcao=CORRECOES.get(c),
     ))
 
+
+# ------------------------------------------------- fechamento mes a mes
+# Serve para leitura de fechamento: quanto entrou, quanto custou e quanto
+# voltou em cada mes. A venda conta no mes em que o card virou ganho.
+fechamento = {}
+for s_ in subs:
+    m = s_["created_at"][:7]
+    f_ = fechamento.setdefault(m, {"leads": 0, "q100": 0, "vendas": 0, "receita": 0.0})
+    f_["leads"] += 1
+    if (s_.get("faturamento_medio") or 0) >= 100000:
+        f_["q100"] += 1
+for c in cards:
+    if c.get("stage") == "ganho" and c.get("stage_changed_at"):
+        m = c["stage_changed_at"][:7]
+        f_ = fechamento.setdefault(m, {"leads": 0, "q100": 0, "vendas": 0, "receita": 0.0})
+        f_["vendas"] += 1
+        f_["receita"] += n(c.get("valor_contrato"))
+for m, v in fechamento.items():
+    g = n(conta_mes_por_mes.get(m, 0))
+    v["gasto"] = round(g, 2)
+    v["cpl"] = round(g / v["leads"], 2) if v["leads"] else None
+    v["roas"] = round(v["receita"] / g, 2) if g and v["receita"] else None
+    v["taxa_q"] = pct(v["q100"], v["leads"])
+    v["receita"] = round(v["receita"], 2)
+
 print(">>> [6/6] Montando o dataset consolidado")
 saida = dict(
     gerado_em=UNTIL,
@@ -445,6 +471,7 @@ saida = dict(
         entrada_por_venda=500.0,
         parcelas="R$ 500 de sinal, R$ 1.000 na primeira parcela e 9 de R$ 1.500",
     ),
+    fechamento_mensal=dict(sorted(fechamento.items())),
     correcoes=CORRECOES,
     inicio_rastreio=INICIO_RASTREIO,
     maturacao_dias=MATURACAO_DIAS,
