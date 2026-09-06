@@ -85,7 +85,7 @@ for f in familias.values():
     f["conv_m"] = round(100 * f["leads_meta"] / f["lpv"], 1) if f["lpv"] else 0
     f["cpl_m"] = round(f["gasto"] / f["leads_meta"], 2) if f["leads_meta"] else None
 
-ORDEM_FAM = ["Prova de mercado", "Demonstração (Painel)", "Paradoxo puro", "Paradoxo numérico",
+ORDEM_FAM = ["Prova de mercado", "Demonstração (Painel)", "Paradoxo puro", "Desafio / teste", "Paradoxo numérico",
              "Inimigo comum", "Filtro / convocação", "História de origem"]
 fam_ord = [f for f in ORDEM_FAM if f in familias] + [f for f in familias if f not in ORDEM_FAM]
 
@@ -366,6 +366,7 @@ VEREDITOS = {
  "Inimigo comum": ("ruim", "Prende como nenhuma outra e não converte. A38 tem a melhor retenção e o pior CPL da conta."),
  "Filtro / convocação": ("ruim", "Pior família das sete. O A41 não trouxe nenhum lead dentro do filtro, apesar do filtro mais explícito de todos."),
  "História de origem": ("ruim", "R$ 275, zero lead, a pior retenção da série. 94 segundos de rosto puro."),
+ "Desafio / teste": ("meio", "Família estreante, criada com o A44. Ainda sem histórico. A hipótese é que o teste filtre na entrada e traga menos lead e mais qualificado, então julgue por P50 e taxa de qualificação, não por volume."),
 }
 
 alvo = por["A40"]
@@ -735,27 +736,32 @@ html = f"""<!DOCTYPE html>
 {''.join(card_familia(f) for f in fam_ord)}
 </div>
 
-<h2>9. A direção da leva A42, A43 e A44</h2>
-<p class="sub">Tudo acima aponta para o mesmo lugar: partir do A39, que é o único que vende, e corrigir onde ele é fraco.</p>
+<h2>9. A leva A42, A43 e A44, no ar</h2>
+<p class="sub">As três foram produzidas e publicadas. O critério da leva é <b>taxa de sessão</b>, não CPL: o que decide é a intenção de quem entra, porque foi ela que separou o A39 (38%) do A40 (12%) com o mesmo número de calls. Cada peça tem a sua métrica-chave, alinhada ao que ela foi projetada para corrigir.</p>
 <div class="plano">
   <div class="p">
-    <div class="cod">A42 · aposta principal</div>
-    <h4>Dilema, ancorado no dado que já vendeu</h4>
-    <p>Ângulo inédito na conta, com a prova de mercado que faz o A39 converter. A estrutura de dilema é a que mais segura no meio, porque a pessoa fica para descobrir a saída, e é exatamente o meio que o A39 perde hoje.</p>
-    <div class="meta">Meta: manter a taxa de sessão de <b>{num(por['A39']['taxa_sessao'],0)}%</b> e subir o P50 de <b>{num(por['A39']['p50'])}%</b> para <b>20%</b>. Duração alvo: 60 a 75s.</div>
+    <div class="cod">A42 · no ar</div>
+    <h4>O desconto que você não escolheu dar</h4>
+    <p>React ao IPCA do IBGE: de janeiro a julho o insumo subiu quase 4% e o cardápio subiu menos que isso. Agravante da ABRASEL: só 8 em cada 100 donos reajustaram acima da inflação. Prova de mercado, a família que vende, com dilema segurando o meio. Tela de notícia, sem Painel.</p>
+    <div class="meta">79s. Meta: manter a taxa de sessão de <b>{num(por['A39']['taxa_sessao'],0)}%</b> do A39 e subir o P50 de <b>{num(por['A39']['p50'])}%</b> para <b>18%</b> ou mais. CPL alvo até <b>R$ 90</b>.</div>
   </div>
   <div class="p">
-    <div class="cod">A43 · o alvo literal</div>
-    <h4>A conta dos 72% montada na tela</h4>
-    <p>Pega a conta empilhada que deu ao A34 o melhor clique da conta e monta ela linha a linha no Painel, em vez de contar de boca. Junta o melhor gancho com o payoff visual que o A40 provou reter.</p>
-    <div class="meta">Rosto no gancho e no CTA, tela no miolo. Meta: hook acima de <b>28%</b>, CTR de link acima de <b>1,7%</b> e P50 acima de <b>20%</b>.</div>
+    <div class="cod">A43 · no ar</div>
+    <h4>Dois restaurantes, mesmo faturamento</h4>
+    <p>Comparação certo contra errado: um trabalha o mês inteiro para pagar conta, o outro lucra 14%. O inimigo é a operação que consome o dono, e o ensino é que a diferença está no custo de cada prato. Rosto em quatro cenários, um por beat, sem Painel.</p>
+    <div class="meta">75s. Métrica-chave: <b>CTR de link acima de 1,6%</b>, porque é a família de melhor clique da conta. Gate de formato: hook abaixo de 25% indica que o rosto puro cobrou o preço.</div>
   </div>
-  <div class="p gate">
-    <div class="cod">A44 · travado pela prova</div>
-    <h4>Antes e depois no Painel</h4>
-    <p>Só sai quando houver número de saída verificável de um mentorado, com print conferido. Sem a prova real, não sobe. Substituto, se o número não vier: uma segunda demonstração com outro Painel e outro porte de restaurante.</p>
-    <div class="meta">A família de demonstração é a que qualifica melhor e ainda tem só <b>duas peças</b>. Ampliar essa família vale mais que abrir uma família nova.</div>
+  <div class="p">
+    <div class="cod">A44 · no ar</div>
+    <h4>O teste dos cinco segundos</h4>
+    <p>Família inédita na conta. Pergunta o custo do prato mais vendido, silencia quatro segundos e devolve a pesquisa própria com 482 donos, em que 91% não souberam responder. O filtro acontece dentro da pessoa, não na copy. O antes e depois de mentorado segue travado, sem número de saída verificável.</p>
+    <div class="meta">74s. Métrica-chave: <b>P50 acima de 20%</b> (a pausa existe para isso) e <b>qualificação acima de 70%</b>. Espere menos leads e melhores: CPL aceito até <b>R$ 120</b>. P50 abaixo de 12% significa encurtar a pausa, não enterrar o ângulo.</div>
   </div>
+</div>
+<div class="aviso">
+  <p><b>O que o teste de 7 dias consegue medir, e o que não consegue.</b> Com R$ 60 por dia por peça, saem de 4 a 7 leads e 1 ou 2 sessões realizadas. <b>Taxa de sessão, que é o critério da leva, não é mensurável nesse volume</b>: o A39 precisou de {por['A39']['sess_realizadas']} sessões para mostrar os {num(por['A39']['taxa_sessao'],0)}%. Os 7 dias servem como triagem, para decidir quem merece orçamento maior, não como veredito. O que estabiliza rápido e pode ser lido com confiança é hook, CTR, P50 e connect.</p>
+  <p><b>Gate de 72 horas:</b> hook abaixo de 25% e CTR abaixo de 1,2% ao mesmo tempo, pausar antes de queimar os R$ 420. <b>Faixas de CPL:</b> até R$ 84 aprovado, de R$ 85 a R$ 120 zona cinza (decide pela métrica-chave da peça), acima de R$ 130 reprovado, que é o nível do A41.</p>
+  <p><b>Leitura obrigatória de contexto.</b> As três sobem com o público atual saturado (frequência do A39 em {num(por['A39']['freq'],2)} e do A40 em {num(por['A40']['freq'],2)}). Se o CPL das três vier alto de forma parecida, a causa mais provável é público esgotado, não copy ruim. Olhar frequência e CPM antes de reprovar qualquer uma.</p>
 </div>
 
 <div class="aviso">

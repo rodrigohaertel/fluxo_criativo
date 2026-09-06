@@ -345,6 +345,12 @@ FICHA = {
              textura="Tela dividida (Painel)", dur=86, nota=9.6, lote="Rodada nova (jul/26)", conceito="o lucro imaginado"),
  "A41": dict(titulo="Procura-se dono de restaurante", mandala="Convocação / convite direto", familia="Filtro / convocação",
              textura="Rosto puro", dur=44, nota=9.4, lote="Rodada nova (jul/26)", conceito="o vazamento"),
+ "A42": dict(titulo="O desconto que você não escolheu dar", mandala="Prova de mercado (react IBGE + ABRASEL)", familia="Prova de mercado",
+             textura="Tela de notícia", dur=79, nota=9.7, lote="Leva A42-A44 (set/26)", conceito="o desconto que você não escolheu dar"),
+ "A43": dict(titulo="Dois restaurantes, mesmo faturamento", mandala="Comparação certo vs errado", familia="Paradoxo puro",
+             textura="Rosto em 4 cenários", dur=75, nota=9.5, lote="Leva A42-A44 (set/26)", conceito="o prato que paga a conta"),
+ "A44": dict(titulo="O teste dos cinco segundos", mandala="Desafio / teste com pausa", familia="Desafio / teste",
+             textura="Rosto, uma tomada", dur=74, nota=9.6, lote="Leva A42-A44 (set/26)", conceito="o teste dos cinco segundos"),
 }
 FICHA_PADRAO = dict(titulo="(sem ficha editorial cadastrada)", mandala="a definir", familia="a definir",
                     textura="a definir", dur=0, nota=0, lote="novo", conceito="a definir")
