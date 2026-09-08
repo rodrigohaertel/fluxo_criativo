@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-09-01"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-09-07"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -130,6 +130,38 @@ def linha_mes(m, v):
   <td class="n forte">{brl(v['receita'])}</td>
   <td class="n">{roas}</td>
 </tr>"""
+
+
+CURVA = D.get("curva_semanal", {})
+DIAS_MIN_SEMANA = 4   # semana com menos dias que isso vira ruido, nao tendencia
+
+
+def tabela_curva(cod):
+    linhas = [l for l in CURVA.get(cod, []) if l["dias"] >= DIAS_MIN_SEMANA]
+    parciais = [l for l in CURVA.get(cod, []) if l["dias"] < DIAS_MIN_SEMANA]
+    if not linhas:
+        return ""
+    corpo = ""
+    for l in linhas:
+        corpo += f"""<tr>
+  <td class="k">{l['semana'][8:10]}/{l['semana'][5:7]}<em>{l['dias']}d</em></td>
+  <td class="n">{brl(l['gasto'])}</td>
+  <td class="n">{num(l['freq'],2)}</td>
+  <td class="n">{brl(l['cpm'])}</td>
+  <td class="n">{num(l['ctr_link'],2)}%</td>
+  <td class="n">{num(l['hook'])}%</td>
+  <td class="n">{num(l['p50'])}%</td>
+  <td class="n forte">{l['leads']}</td>
+  <td class="n">{brl(l['cpl']) if l['cpl'] else '<em>sem lead</em>'}</td>
+</tr>"""
+    nota = ""
+    if parciais:
+        d = ", ".join(f"{x['semana'][8:10]}/{x['semana'][5:7]}" for x in parciais)
+        nota = f'<p class="obs">Semana parcial fora da tabela ({d}): menos de {DIAS_MIN_SEMANA} dias de veiculação vira ruído, não tendência.</p>'
+    return f"""<h4>{cod} · {por[cod]['titulo']}</h4>
+<div class="tbox"><table>
+<thead><tr><th>Semana</th><th>Gasto</th><th>Freq</th><th>CPM</th><th>CTR link</th><th>Hook</th><th>P50</th><th>Leads</th><th>CPL</th></tr></thead>
+<tbody>{corpo}</tbody></table></div>{nota}"""
 
 
 def linha_roas(l):
@@ -659,7 +691,20 @@ html = f"""<!DOCTYPE html>
   <p><b>As quatro vendas de agosto saíram do A39</b>, e três delas nos últimos quatro dias do mês (28, 30 e 31). O pipeline de contratos abertos zerou: tudo que estava assinado ou fechou ou caiu.</p>
 </div>
 
-<h2>5. O degrau que separa os líderes: a sessão</h2>
+<h2>5. Curva semanal, onde a fadiga se lê</h2>
+<p class="sub">A frequência acumulada sobe sozinha com o tempo, mesmo em campanha saudável, e por isso não serve para diagnosticar desgaste. O que serve é a curva semana a semana: frequência da semana, CPM, hook e CPL. Fadiga de verdade aparece como CPM subindo junto com hook caindo, por duas semanas seguidas.</p>
+
+{tabela_curva("A39")}
+{tabela_curva("A40")}
+{tabela_curva("A42")}
+{tabela_curva("A43")}
+{tabela_curva("A44")}
+
+<div class="aviso">
+  <p><b>Como ler esta seção.</b> Uma semana ruim isolada não é fadiga, é oscilação. O A39 teve a semana de 17/08 com apenas 3 leads e CPL de R$ 231, e na semana seguinte fez 7 leads e três vendas. Só a repetição por duas semanas seguidas, com CPM e hook se movendo juntos na direção errada, autoriza pausar uma peça.</p>
+</div>
+
+<h2>6. O degrau que separa os líderes: a sessão</h2>
 <p class="sub">Trazer lead barato e qualificado é meio caminho. O que fecha contrato é a sessão converter. Aqui estão só os criativos que já levaram alguém até a call, com coorte de {D.get('maturacao_dias',7)} dias para a comparação ser justa.</p>
 <div class="tbox"><table>
 <thead><tr><th>Criativo</th><th>Leads</th><th>Coorte madura</th><th>Avançaram</th><th>Sessões agendadas</th><th>Sessões realizadas</th><th>Viraram contrato ou venda</th><th>Taxa da sessão</th></tr></thead>
@@ -681,7 +726,7 @@ html = f"""<!DOCTYPE html>
   <p><b>O que ainda não está decidido.</b> O A40 tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões agendadas que ainda não aconteceram. Se elas fecharem, a leitura muda. Enquanto não acontecerem, três sessões sem conversão é sinal, não sentença.</p>
 </div>
 
-<h2>6. A escada de métricas</h2>
+<h2>7. A escada de métricas</h2>
 <p class="sub">Cada degrau responde uma pergunta diferente e culpa um elemento diferente do método. Um criativo não se julga por um número, se julga pela escada inteira.</p>
 <div class="degraus">
 {escada('Parou o scroll (hook rate)', 'hook', nota='Culpa do gancho e da Urgência Oculta. Faixa apertada nesta conta: o hook não separa vencedor de perdedor.')}
@@ -692,7 +737,7 @@ html = f"""<!DOCTYPE html>
 {escada('Custou quanto por lead', 'cpl_meta', '', inverso=True, nota='Leitura pela atribuição da Meta. Só serve para comparar entre criativos do mesmo período.')}
 </div>
 
-<h2>7. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
+<h2>8. O alvo: gancho que faz clicar com fecho que faz cadastrar</h2>
 <p class="sub">Cada bolha é um criativo. Quanto mais à direita, mais gente clicou. Quanto mais acima, mais gente cadastrou depois de chegar. O tamanho é o quanto foi investido. O canto superior direito é onde o dinheiro rende.</p>
 {scatter()}
 
@@ -730,13 +775,13 @@ html = f"""<!DOCTYPE html>
   <p><b>A frequência das duas passou de 2</b> ({num(por['A39']['freq'],2)} e {num(por['A40']['freq'],2)}). Público novo segue sendo a pendência mais antiga desta análise.</p>
 </div>
 
-<h2>8. O DNA por família de ângulo</h2>
+<h2>9. O DNA por família de ângulo</h2>
 <p class="sub">Os doze criativos agrupados pelo ângulo da Mandala, com o número de cada família. É aqui que a decisão de roteiro se sustenta.</p>
 <div class="fams">
 {''.join(card_familia(f) for f in fam_ord)}
 </div>
 
-<h2>9. A leva A42, A43 e A44, no ar</h2>
+<h2>10. A leva A42, A43 e A44, no ar</h2>
 <p class="sub">As três foram produzidas e publicadas. O critério da leva é <b>taxa de sessão</b>, não CPL: o que decide é a intenção de quem entra, porque foi ela que separou o A39 (38%) do A40 (12%) com o mesmo número de calls. Cada peça tem a sua métrica-chave, alinhada ao que ela foi projetada para corrigir.</p>
 <div class="plano">
   <div class="p">
@@ -768,7 +813,7 @@ html = f"""<!DOCTYPE html>
   <p><b>Duas ações valem mais que criativo novo, e são para agora.</b> Primeira: a frequência do A39 está em {num(por['A39']['freq'],2)} e a do A40 em {num(por['A40']['freq'],2)}, as duas subindo. As peças estão provadas, o público é que acabou. Ampliar segmentação ou lookalike antes que o CPM suba mais. Segunda: há {brl(FIN['pipeline_total'])} parados em contrato assinado que ainda não viraram receita. Destravar isso rende mais que qualquer ponto de CPL.</p>
 </div>
 
-<h2>10. O que não repetir</h2>
+<h2>11. O que não repetir</h2>
 <ul class="nao">
   <li><b>Convocação e "procura-se", com ressalva.</b> Teste encerrado: o A41 gastou {brl(por['A41']['gasto_rast'])} e trouxe {por['A41']['leads_banco']} leads, sendo {por['A41']['q100']} dentro do filtro, a {brl(por['A41']['cpl_q'])} o lead qualificado. É de longe o pior da leva nova (o A40 faz o mesmo por {brl(por['A40']['cpl_q'])}), e o único lead que prestou entrou no último dia, com sessão ainda por acontecer. A mesma família do A30, que custou {brl(por['A30']['cpl_meta'])} por lead. Não repetir o formato, mas esperar a sessão desse lead antes de enterrar o ângulo de vez.</li>
   <li><b>História de origem longa em rosto puro.</b> O A33 gastou {brl(por['A33']['gasto'])}, não gerou lead nenhum e tem a pior retenção da série, com 94 segundos.</li>
@@ -777,7 +822,7 @@ html = f"""<!DOCTYPE html>
   <li><b>Coroar ou enterrar peça pela atribuição da Meta.</b> O A35 mostrava {por['A35']['leads_meta']} leads no gerenciador e {por['A35']['leads_banco']} lead real. Veredito só com o banco e o CRM na mão.</li>
 </ul>
 
-<h2>11. Ressalvas de leitura</h2>
+<h2>12. Ressalvas de leitura</h2>
 <div class="aviso">
   <p><b>A comparação entre lotes não é limpa.</b> Entre o A38 e o A39 mudou a oferta (de mentoria para sessão gratuita), mudou a página e mudou a estrutura de campanha. Só a família do ângulo é comparável, não o CPL absoluto.</p>
   <p><b>O A40 ainda não está julgado.</b> Ele tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões marcadas que não aconteceram. Três sessões sem conversão é sinal forte, mas a amostra é pequena e a peça é mais nova que o A39. O veredito real sai quando essas sessões acontecerem.</p>

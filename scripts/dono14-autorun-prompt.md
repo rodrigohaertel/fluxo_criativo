@@ -73,6 +73,16 @@ Rode `py -3 scripts/dono14-orcamento.py`. Ele devolve o orçamento diário dos c
 
 **Use esse número para julgar o gasto do dia**, nunca o plano de memória. E **nunca mais escreva "não foi possível confirmar o orçamento via API"**: esse aviso falso se repetiu de 24 a 27/08 porque a chamada era feita inline e barrada pelo detector do terminal. O script resolve isso. Se ele próprio falhar, aí sim registre o erro real que apareceu.
 
+## Vigia da conversao de visita em cadastro (aberto em 07/09/2026)
+
+Calcular sempre, no relatorio e no marcador: **cadastros do banco / visitas (landing_page_view) da semana**. A base historica, de 27/07 a 30/08, e **11,7%** (86 cadastros em 732 visitas).
+
+A semana de 31/08 a 06/09 fechou em **6,8%** (10 em 146). Isso fica a 1,84 sigma da base, ou seja, 3,3% de chance de ser so acaso. **Nao e prova, e suspeita.** A pagina `/sessao` nao e alterada desde 10/08 (conferido no repositorio) e foi testada ao vivo em 07/09: dobra correta, CTA apontando para `/sessao-cadastro`, formulario com os 4 campos, sem erro de console. O mix de trafego (idade, genero, aparelho) tambem nao mudou.
+
+**Regra:** se a semana seguinte (07/09 a 13/09) fechar **abaixo de 9%**, sao duas semanas seguidas fora da faixa e a suspeita vira caso a investigar a fundo, com AVISO EM DESTAQUE. Se voltar para a casa dos 11%, foi oscilacao e o vigia se encerra, registrando isso.
+
+**Nao tratar a taxa de UM dia como sinal.** Com 20 visitas por dia, um dia de 5% e um dia de 15% sao ambos normais. So a semana fechada tem tamanho para julgar.
+
 ## Passo 3. Clarity
 Rode `py -3 scripts/dono14-clarity.py` (Data Export API direto, token no .env; devolve sessões, scroll médio, tempo ativo e dead/rage clicks por URL do último dia). **UMA execução só: a API aceita no máximo 10 chamadas/dia.** Use o resultado para o placar de engajamento das páginas da Sessão.
 

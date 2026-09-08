@@ -157,6 +157,14 @@ pos = meta_paginado(f"act_{ACCOUNT}/insights", {
     "fields": "ad_name,spend,impressions,inline_link_clicks,actions", "limit": 300})
 print(f"    {len(pos)} linhas")
 
+print(f">>> [3b] Meta, nivel anuncio, dia a dia (desde {INICIO_RASTREIO}), para a curva semanal")
+diario = meta_paginado(f"act_{ACCOUNT}/insights", {
+    "level": "ad", "time_range": json.dumps({"since": INICIO_RASTREIO, "until": UNTIL}),
+    "time_increment": 1,
+    "fields": "ad_name,date_start,spend,impressions,reach,inline_link_clicks,actions,video_p50_watched_actions",
+    "limit": 500})
+print(f"    {len(diario)} linhas")
+
 print(">>> [4/6] Meta, nivel conta, gasto total e por mes")
 conta_total = meta_get(path=f"act_{ACCOUNT}/insights", params={
     "level": "account", "time_range": json.dumps({"since": SINCE, "until": UNTIL}),
@@ -440,6 +448,56 @@ for m, v in fechamento.items():
     v["taxa_q"] = pct(v["q100"], v["leads"])
     v["receita"] = round(v["receita"], 2)
 
+
+# ------------------------------------------------- curva semanal por criativo
+# A frequencia da semana e o indicador de fadiga. A acumulada nao serve:
+# ela sobe com o tempo mesmo em campanha saudavel.
+from datetime import timedelta
+
+def inicio_semana(d):
+    dt = date.fromisoformat(d)
+    return (dt - timedelta(days=dt.weekday())).isoformat()
+
+
+semanal = defaultdict(lambda: defaultdict(float))
+for r in diario:
+    c = cod(r.get("ad_name"))
+    if not da_analise(c):
+        continue
+    k = (c, inicio_semana(r["date_start"]))
+    a = r.get("actions") or []
+    semanal[k]["spend"] += n(r.get("spend"))
+    semanal[k]["imp"] += n(r.get("impressions"))
+    semanal[k]["reach"] += n(r.get("reach"))
+    semanal[k]["lc"] += n(r.get("inline_link_clicks"))
+    semanal[k]["v3"] += act(a, "video_view")
+    semanal[k]["p50"] += act(r.get("video_p50_watched_actions"), "video_view")
+    semanal[k]["lpv"] += act(a, "landing_page_view")
+    semanal[k]["dias"] += 1
+
+# leads reais por semana de entrada, do banco
+leads_semana = defaultdict(int)
+for s_ in subs:
+    c = cod(s_.get("utm_content"), s_.get("utm_term"))
+    if da_analise(c):
+        leads_semana[(c, inicio_semana(s_["created_at"][:10]))] += 1
+
+curva = defaultdict(list)
+for (c, sem), v in sorted(semanal.items(), key=lambda kv: (kv[0][0], kv[0][1])):
+    ld = leads_semana.get((c, sem), 0)
+    curva[c].append(dict(
+        semana=sem, dias=int(v["dias"]), gasto=round(v["spend"], 2),
+        impressoes=int(v["imp"]),
+        freq=round(v["imp"] / v["reach"], 2) if v["reach"] else 0,
+        cpm=round(1000 * v["spend"] / v["imp"], 2) if v["imp"] else 0,
+        ctr_link=pct(v["lc"], v["imp"]),
+        hook=pct(v["v3"], v["imp"]),
+        p50=pct(v["p50"], v["v3"]),
+        lpv=int(v["lpv"]),
+        leads=ld,
+        cpl=round(v["spend"] / ld, 2) if ld else None,
+    ))
+
 print(">>> [6/6] Montando o dataset consolidado")
 saida = dict(
     gerado_em=UNTIL,
@@ -478,6 +536,7 @@ saida = dict(
         parcelas="R$ 500 de sinal, R$ 1.000 na primeira parcela e 9 de R$ 1.500",
     ),
     fechamento_mensal=dict(sorted(fechamento.items())),
+    curva_semanal={k: v for k, v in sorted(curva.items())},
     correcoes=CORRECOES,
     inicio_rastreio=INICIO_RASTREIO,
     maturacao_dias=MATURACAO_DIAS,
