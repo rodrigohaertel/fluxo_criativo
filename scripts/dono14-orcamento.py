@@ -15,11 +15,12 @@ import sys
 import time
 import urllib.parse
 import urllib.request
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 CAMPANHA = "120247419652220527"   # [DONO14] [CONV] [LEADS] ABO
-PLANO_ATUAL = 240.00              # Rodizio de 4 criativos a R$ 60/dia: A39 + A42 + A43 + A44 (decidido em 05/09)
+PLANO_ATUAL = 240.00              # Rodizio de 4 criativos a R$ 60/dia (05/09). Em 10/09 o A45 ocupou a vaga do A42, que venceu.
 
 
 def token():
@@ -29,7 +30,7 @@ def token():
     sys.exit("FB_ACCESS_TOKEN_PERMANENTE nao encontrado no .env")
 
 
-p = {"fields": "name,daily_budget,effective_status", "limit": 100,
+p = {"fields": "name,daily_budget,effective_status,end_time", "limit": 100,
      "access_token": token(), "_": str(int(time.time()))}
 url = f"https://graph.facebook.com/v21.0/{CAMPANHA}/adsets?" + urllib.parse.urlencode(p)
 dados = json.loads(urllib.request.urlopen(url, timeout=90).read()).get("data", [])
@@ -37,13 +38,47 @@ dados = json.loads(urllib.request.urlopen(url, timeout=90).read()).get("data", [
 print("=" * 62)
 print("ORCAMENTO REAL NA CONTA (conjuntos ATIVOS)")
 print("=" * 62)
+SP = timezone(timedelta(hours=-3))
+AGORA = datetime.now(SP)
+
+
+def venceu(s):
+    """Conjunto com cronograma ja terminado nao entrega mais, mesmo que a API
+    continue devolvendo effective_status ACTIVE. Em 09/09/2026 o A42 apareceu
+    assim e inflou o programado em R$ 60, gerando alarme falso de divergencia."""
+    bruto = s.get("end_time")
+    if not bruto:
+        return False
+    try:
+        return datetime.fromisoformat(bruto.replace("+0000", "+00:00")).astimezone(SP) < AGORA
+    except ValueError:
+        return False
+
+
 total = 0.0
+encerrados = []
 for s in sorted(dados, key=lambda x: x.get("name", "")):
     if s.get("effective_status") != "ACTIVE":
         continue
+    nome = (s.get("name") or "?")[:38]
     orc = int(s.get("daily_budget") or 0) / 100
+    if venceu(s):
+        encerrados.append((nome, orc, s.get("end_time")))
+        continue
     total += orc
-    print(f"  {(s.get('name') or '?')[:38]:<40} R$ {orc:>7.2f}/dia")
+    fim = s.get("end_time")
+    if fim:
+        try:
+            fim = datetime.fromisoformat(fim.replace("+0000", "+00:00")).astimezone(SP).strftime("  (termina %d/%m %Hh%M)")
+        except ValueError:
+            fim = ""
+    print(f"  {nome:<40} R$ {orc:>7.2f}/dia{fim or ''}")
+
+if encerrados:
+    print("\n  Cronograma ja vencido, nao entregam mais (fora da soma):")
+    for nome, orc, fim in encerrados:
+        print(f"    {nome:<38} R$ {orc:>7.2f}/dia, terminou em {str(fim)[:10]}")
+
 pausados = sum(1 for s in dados if s.get("effective_status") != "ACTIVE")
 print(f"\n  PROGRAMADO/DIA: R$ {total:.2f}   ({pausados} conjunto(s) pausado(s))")
 print(f"  PLANO COMBINADO: R$ {PLANO_ATUAL:.2f}/dia")
