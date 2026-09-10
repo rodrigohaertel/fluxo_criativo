@@ -21,7 +21,7 @@ BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
 D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
-LEITURA_NARRATIVA = "2026-09-07"   # data em que os vereditos em texto foram escritos
+LEITURA_NARRATIVA = "2026-09-09"   # data em que os vereditos em texto foram escritos
 DEFASADO = D.get("gerado_em", LEITURA_NARRATIVA) > LEITURA_NARRATIVA
 AVISO_DEFASAGEM = ("""<div class="fix"><p><b>Números novos, leitura antiga.</b> Os dados desta página foram coletados em """
     + D.get("gerado_em", "") + """ e estão atualizados. Já os vereditos em texto (as conclusões das seções 5 a 9) foram escritos na leitura de """
@@ -781,36 +781,57 @@ html = f"""<!DOCTYPE html>
 {''.join(card_familia(f) for f in fam_ord)}
 </div>
 
-<h2>10. A leva A42, A43 e A44, no ar</h2>
-<p class="sub">As três foram produzidas e publicadas. O critério da leva é <b>taxa de sessão</b>, não CPL: o que decide é a intenção de quem entra, porque foi ela que separou o A39 (38%) do A40 (12%) com o mesmo número de calls. Cada peça tem a sua métrica-chave, alinhada ao que ela foi projetada para corrigir.</p>
-<div class="plano">
-  <div class="p">
-    <div class="cod">A42 · no ar</div>
-    <h4>O desconto que você não escolheu dar</h4>
-    <p>React ao IPCA do IBGE: de janeiro a julho o insumo subiu quase 4% e o cardápio subiu menos que isso. Agravante da ABRASEL: só 8 em cada 100 donos reajustaram acima da inflação. Prova de mercado, a família que vende, com dilema segurando o meio. Tela de notícia, sem Painel.</p>
-    <div class="meta">79s. Meta: manter a taxa de sessão de <b>{num(por['A39']['taxa_sessao'],0)}%</b> do A39 e subir o P50 de <b>{num(por['A39']['p50'])}%</b> para <b>18%</b> ou mais. CPL alvo até <b>R$ 90</b>.</div>
-  </div>
-  <div class="p">
-    <div class="cod">A43 · no ar</div>
-    <h4>Dois restaurantes, mesmo faturamento</h4>
-    <p>Comparação certo contra errado: um trabalha o mês inteiro para pagar conta, o outro lucra 14%. O inimigo é a operação que consome o dono, e o ensino é que a diferença está no custo de cada prato. Rosto em quatro cenários, um por beat, sem Painel.</p>
-    <div class="meta">75s. Métrica-chave: <b>CTR de link acima de 1,6%</b>, porque é a família de melhor clique da conta. Gate de formato: hook abaixo de 25% indica que o rosto puro cobrou o preço.</div>
-  </div>
-  <div class="p">
-    <div class="cod">A44 · no ar</div>
-    <h4>O teste dos cinco segundos</h4>
-    <p>Família inédita na conta. Pergunta o custo do prato mais vendido, silencia quatro segundos e devolve a pesquisa própria com 482 donos, em que 91% não souberam responder. O filtro acontece dentro da pessoa, não na copy. O antes e depois de mentorado segue travado, sem número de saída verificável.</p>
-    <div class="meta">74s. Métrica-chave: <b>P50 acima de 20%</b> (a pausa existe para isso) e <b>qualificação acima de 70%</b>. Espere menos leads e melhores: CPL aceito até <b>R$ 120</b>. P50 abaixo de 12% significa encurtar a pausa, não enterrar o ângulo.</div>
-  </div>
-</div>
-<div class="aviso">
-  <p><b>O que o teste de 7 dias consegue medir, e o que não consegue.</b> Com R$ 60 por dia por peça, saem de 4 a 7 leads e 1 ou 2 sessões realizadas. <b>Taxa de sessão, que é o critério da leva, não é mensurável nesse volume</b>: o A39 precisou de {por['A39']['sess_realizadas']} sessões para mostrar os {num(por['A39']['taxa_sessao'],0)}%. Os 7 dias servem como triagem, para decidir quem merece orçamento maior, não como veredito. O que estabiliza rápido e pode ser lido com confiança é hook, CTR, P50 e connect.</p>
-  <p><b>Gate de 72 horas:</b> hook abaixo de 25% e CTR abaixo de 1,2% ao mesmo tempo, pausar antes de queimar os R$ 420. <b>Faixas de CPL:</b> até R$ 84 aprovado, de R$ 85 a R$ 120 zona cinza (decide pela métrica-chave da peça), acima de R$ 130 reprovado, que é o nível do A41.</p>
-  <p><b>Leitura obrigatória de contexto.</b> As três sobem com o público atual saturado (frequência do A39 em {num(por['A39']['freq'],2)} e do A40 em {num(por['A40']['freq'],2)}). Se o CPL das três vier alto de forma parecida, a causa mais provável é público esgotado, não copy ruim. Olhar frequência e CPM antes de reprovar qualquer uma.</p>
+<h2>10. O veredito do A42 e o estado do A43 e do A44</h2>
+<p class="sub">O A42 foi encerrado em 08/09 com sete dias completos. O A43 e o A44 entraram em 06/09 e estão no quarto dia. A comparação abaixo usa a única régua honesta: os primeiros dias de vida de cada peça, com a mesma dose diária de orçamento, e não a vida inteira de umas contra a estreia das outras.</p>
+
+<h4>Os sete primeiros dias de cada peça da leva nova</h4>
+<div class="tbox"><table>
+<thead><tr><th>Peça</th><th>Gasto</th><th>CPM</th><th>Hook</th><th>P50</th><th>CTR link</th><th>Connect</th><th>Visitas</th><th>Leads</th><th>Visita para lead</th><th>CPL</th></tr></thead>
+<tbody>
+<tr><td class="k"><b>A39</b><em>Salão cheio não é lucro, 21 a 27/07</em></td><td class="n">R$ 445</td><td class="n">R$ 102</td><td class="n">27,1%</td><td class="n">14,3%</td><td class="n">1,52%</td><td class="n">78,8%</td><td class="n">52</td><td class="n forte">6</td><td class="n forte">11,5%</td><td class="n">R$ 74</td></tr>
+<tr><td class="k"><b>A40</b><em>Você jura que tem 15%, 28/07 a 03/08</em></td><td class="n">R$ 417</td><td class="n">R$ 87</td><td class="n">30,1%</td><td class="n">24,5%</td><td class="n">1,25%</td><td class="n">80,0%</td><td class="n">48</td><td class="n forte">5</td><td class="n forte">10,4%</td><td class="n">R$ 83</td></tr>
+<tr><td class="k"><b>A41</b><em>Procura-se dono, 04 a 10/08</em></td><td class="n">R$ 417</td><td class="n">R$ 135</td><td class="n">25,4%</td><td class="n">12,0%</td><td class="n">1,33%</td><td class="n">82,9%</td><td class="n">34</td><td class="n">3</td><td class="n">8,8%</td><td class="n">R$ 139</td></tr>
+<tr class="novo"><td class="k"><b>A42</b><em>O desconto que você não escolheu dar, 02 a 08/09, encerrado</em></td><td class="n">R$ 416</td><td class="n">R$ 83</td><td class="n">25,2%</td><td class="n">11,2%</td><td class="n">1,06%</td><td class="n">84,9%</td><td class="n">45</td><td class="n forte">1</td><td class="n forte">2,2%</td><td class="n">R$ 416</td></tr>
+</tbody></table></div>
+<p class="obs">O A41, que já era o pior teste da conta, converteu 8,8% das visitas em cadastro. O A42 converteu 2,2%. Ele não ficou abaixo dos campeões, ficou abaixo do piso conhecido da conta.</p>
+
+<div class="fix">
+  <p><b>Onde o A42 quebrou.</b> A queda está inteira em um degrau: visita da página para cadastro. Entregou 45 visitas, praticamente o mesmo que o A39 (52) e o A40 (48) tinham entregado nos seus sete primeiros dias, e transformou uma única visita em lead. Com a taxa de 10% que a conta pratica, 45 visitas deveriam render 4 ou 5 cadastros. A chance de sair 1 ou menos, se a peça fosse tão boa quanto as outras, é de aproximadamente 5%. Não é oscilação de amostra pequena, é diferença real.</p>
+  <p><b>A causa provável está na retenção, não no clique.</b> O P50 do A42 foi de 11,2%, o pior da família de prova de mercado, e abaixo dos 14,3% do próprio A39 que a peça foi criada para melhorar. Quem clica sem ter visto o meio do vídeo chega na página sem o argumento montado, e não preenche. O CTR de 1,06% reforça: é o menor da leva nova. O A42 comprou visita barata de gente pouco convencida.</p>
 </div>
 
 <div class="aviso">
-  <p><b>Duas ações valem mais que criativo novo, e são para agora.</b> Primeira: a frequência do A39 está em {num(por['A39']['freq'],2)} e a do A40 em {num(por['A40']['freq'],2)}, as duas subindo. As peças estão provadas, o público é que acabou. Ampliar segmentação ou lookalike antes que o CPM suba mais. Segunda: há {brl(FIN['pipeline_total'])} parados em contrato assinado que ainda não viraram receita. Destravar isso rende mais que qualquer ponto de CPL.</p>
+  <p><b>O que não explica a queda.</b> Não foi entrega: o CPM de R$ 83 é o segundo melhor de toda a leva, e a frequência ficou em 1,45, longe de saturação. Não foi a página: no mesmo período o A39 seguia cadastrando na mesma página, na taxa de sempre. Não foi rastreamento: os 12 leads de setembro têm 100% de utm_content preenchido, e a Meta, que conta pelo pixel, também registrou 1 lead para o A42. Dois sistemas independentes chegaram no mesmo número. Não foi tempo nem orçamento: R$ 416 em 7 dias é exatamente a dose que o A39, o A40 e o A41 receberam nas suas estreias.</p>
+  <p><b>A leitura de fundo.</b> O A42 mudou o vilão de lugar. O A39 aponta para dentro, o dono descobre que o salão cheio dele não vira lucro, e sai da peça precisando ver o próprio número. O A42 aponta para fora, o insumo subiu e o cardápio não acompanhou, e a conclusão natural de quem assiste é que o problema é do mercado. Problema externo gera concordância, não gera cadastro. É a hipótese que melhor explica um funil que só quebra no último degrau.</p>
+</div>
+
+<h4>A43 e A44 no quarto dia</h4>
+<div class="tbox"><table>
+<thead><tr><th>Peça</th><th>Gasto</th><th>CPM</th><th>Hook</th><th>P50</th><th>CTR link</th><th>Connect</th><th>Visitas</th><th>Leads</th><th>Visita para lead</th><th>CPL</th></tr></thead>
+<tbody>
+<tr class="novo"><td class="k"><b>A43</b><em>Dois restaurantes, mesmo faturamento, desde 06/09</em></td><td class="n">{brl(por['A43']['gasto_rast'])}</td><td class="n">{brl(por['A43']['cpm'])}</td><td class="n">{num(por['A43']['hook'])}%</td><td class="n">{num(por['A43']['p50'])}%</td><td class="n forte">{num(por['A43']['ctr_link'],2)}%</td><td class="n">{num(por['A43']['connect'])}%</td><td class="n">{por['A43']['lpv']}</td><td class="n forte">{por['A43']['leads_banco']}</td><td class="n">5,4%</td><td class="n">{brl(por['A43']['cpl_banco'])}</td></tr>
+<tr class="novo"><td class="k"><b>A44</b><em>O teste dos cinco segundos, desde 06/09</em></td><td class="n">{brl(por['A44']['gasto_rast'])}</td><td class="n">{brl(por['A44']['cpm'])}</td><td class="n">{num(por['A44']['hook'])}%</td><td class="n">{num(por['A44']['p50'])}%</td><td class="n">{num(por['A44']['ctr_link'],2)}%</td><td class="n">{num(por['A44']['connect'])}%</td><td class="n">{por['A44']['lpv']}</td><td class="n">{por['A44']['leads_banco']}</td><td class="n">3,3%</td><td class="n">{brl(por['A44']['cpl_banco'])}</td></tr>
+</tbody></table></div>
+<p class="obs">Quatro dias não julgam CPL. Nesse volume o que já pode ser lido é hook, CTR, P50 e connect, porque estabilizam rápido. Lead e sessão precisam de duas semanas.</p>
+
+<div class="plano">
+  <div class="p">
+    <div class="cod">A43 · manter</div>
+    <h4>Dois restaurantes, mesmo faturamento</h4>
+    <p>Bateu a métrica-chave que tinha sido definida para ela: CTR de link de {num(por['A43']['ctr_link'],2)}%, o melhor da conta inteira, acima do 1,6% pedido e acima do próprio A39. O hook de {num(por['A43']['hook'])}% derruba o receio de que rosto puro cobraria o preço da atenção, e o connect de {num(por['A43']['connect'])}% é o maior já medido. O P50 de {num(por['A43']['p50'])}% fica na faixa do A39, não na do A40.</p>
+    <div class="meta">{por['A43']['leads_banco']} leads em {por['A43']['lpv']} visitas, a {brl(por['A43']['cpl_banco'])} o lead. É a única da leva nova que abriu no ritmo do A39. <b>Manter e decidir com 14 dias.</b></div>
+  </div>
+  <div class="p gate">
+    <div class="cod">A44 · sob observação</div>
+    <h4>O teste dos cinco segundos</h4>
+    <p>O gancho funciona: hook de {num(por['A44']['hook'])}% e connect de {num(por['A44']['connect'])}%, os dois no topo da conta. O que não funcionou foi justamente a aposta do roteiro. A pausa de quatro segundos existia para segurar o meio do vídeo, e a meta era P50 acima de 20%. Deu {num(por['A44']['p50'])}%, o pior da leva. A pausa está perdendo gente em vez de prender.</p>
+    <div class="meta">Um lead qualificado em {por['A44']['lpv']} visitas, e ele já virou <b>sessão agendada e realizada</b>, o primeiro sinal comercial da leva nova. Amostra de um, não é prova. <b>Encurtar a pausa antes de enterrar o ângulo.</b></div>
+  </div>
+</div>
+
+<div class="aviso">
+  <p><b>O A39 não morreu, e continua sendo o eixo.</b> Nos últimos dezesseis dias ele trouxe 14 leads, com hook estável entre 27% e 31% e frequência semanal entre 1,07 e 1,11. O gasto diário dele caiu de R$ 130 para R$ 58 quando o A43 e o A44 entraram, e mesmo assim ele segue entregando cerca de um lead por dia. A queda de volume da conta em setembro é divisão de orçamento entre quatro peças, não fadiga do A39.</p>
+  <p><b>Duas ações valem mais que criativo novo.</b> Primeira: há {brl(FIN['contrato_perdido_valor'])} em {FIN['contrato_perdido_total']} contratos assinados que foram para perdido, mais que toda a receita realizada de {brl(FIN['receita_total'])}. Destravar isso rende mais que qualquer ponto de CPL. Segunda: a frequência acumulada do A39 chegou a {num(por['A39']['freq'],2)} e a do A40 a {num(por['A40']['freq'],2)}. As peças estão provadas, o público é que precisa de ampliação ou de lookalike novo.</p>
 </div>
 
 <h2>11. O que não repetir</h2>
