@@ -831,7 +831,7 @@ html = f"""<!DOCTYPE html>
 
 <div class="aviso">
   <p><b>O A39 não morreu, e continua sendo o eixo.</b> Nos últimos dezesseis dias ele trouxe 14 leads, com hook estável entre 27% e 31% e frequência semanal entre 1,07 e 1,11. O gasto diário dele caiu de R$ 130 para R$ 58 quando o A43 e o A44 entraram, e mesmo assim ele segue entregando cerca de um lead por dia. A queda de volume da conta em setembro é divisão de orçamento entre quatro peças, não fadiga do A39.</p>
-  <p><b>Duas ações valem mais que criativo novo.</b> Primeira: há {brl(FIN['contrato_perdido_valor'])} em {FIN['contrato_perdido_total']} contratos assinados que foram para perdido, mais que toda a receita realizada de {brl(FIN['receita_total'])}. Destravar isso rende mais que qualquer ponto de CPL. Segunda: a frequência acumulada do A39 chegou a {num(por['A39']['freq'],2)} e a do A40 a {num(por['A40']['freq'],2)}. As peças estão provadas, o público é que precisa de ampliação ou de lookalike novo.</p>
+  <p><b>Duas ações valem mais que criativo novo.</b> Primeira: há {brl(FIN['contrato_perdido_valor'])} em {FIN['contrato_perdido_total']} contratos assinados que foram para perdido, mais que toda a receita realizada de {brl(FIN['receita_total'])}. Destravar isso rende mais que qualquer ponto de CPL. Segunda, e isto corrige uma frase anterior deste cockpit: frequência acumulada não é sinal de público esgotado. A do A39 chegou a {num(por['A39']['freq'],2)} porque soma tudo desde 21/07, mas a frequência semanal dele segue entre 1,07 e 1,11, estável. O público não está saturado. O que caiu foi a conversão da visita, e as causas estão na seção 11.</p>
 </div>
 
 <h2>11. Por que a visita virou cadastro cada vez menos</h2>
