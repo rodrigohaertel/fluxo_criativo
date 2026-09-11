@@ -809,8 +809,8 @@ html = f"""<!DOCTYPE html>
 <div class="tbox"><table>
 <thead><tr><th>Peça</th><th>Gasto</th><th>CPM</th><th>Hook</th><th>P50</th><th>CTR link</th><th>Connect</th><th>Visitas</th><th>Leads</th><th>Visita para lead</th><th>CPL</th></tr></thead>
 <tbody>
-<tr class="novo"><td class="k"><b>A43</b><em>Dois restaurantes, mesmo faturamento, desde 06/09</em></td><td class="n">{brl(por['A43']['gasto_rast'])}</td><td class="n">{brl(por['A43']['cpm'])}</td><td class="n">{num(por['A43']['hook'])}%</td><td class="n">{num(por['A43']['p50'])}%</td><td class="n forte">{num(por['A43']['ctr_link'],2)}%</td><td class="n">{num(por['A43']['connect'])}%</td><td class="n">{por['A43']['lpv']}</td><td class="n forte">{por['A43']['leads_banco']}</td><td class="n">5,4%</td><td class="n">{brl(por['A43']['cpl_banco'])}</td></tr>
-<tr class="novo"><td class="k"><b>A44</b><em>O teste dos cinco segundos, desde 06/09</em></td><td class="n">{brl(por['A44']['gasto_rast'])}</td><td class="n">{brl(por['A44']['cpm'])}</td><td class="n">{num(por['A44']['hook'])}%</td><td class="n">{num(por['A44']['p50'])}%</td><td class="n">{num(por['A44']['ctr_link'],2)}%</td><td class="n">{num(por['A44']['connect'])}%</td><td class="n">{por['A44']['lpv']}</td><td class="n">{por['A44']['leads_banco']}</td><td class="n">3,3%</td><td class="n">{brl(por['A44']['cpl_banco'])}</td></tr>
+<tr class="novo"><td class="k"><b>A43</b><em>Dois restaurantes, mesmo faturamento, desde 06/09</em></td><td class="n">{brl(por['A43']['gasto_rast'])}</td><td class="n">{brl(por['A43']['cpm'])}</td><td class="n">{num(por['A43']['hook'])}%</td><td class="n">{num(por['A43']['p50'])}%</td><td class="n forte">{num(por['A43']['ctr_link'],2)}%</td><td class="n">{num(por['A43']['connect'])}%</td><td class="n">{por['A43']['lpv']}</td><td class="n forte">{por['A43']['leads_banco']}</td><td class="n">{num(100*por['A43']['leads_banco']/por['A43']['lpv'])}%</td><td class="n">{brl(por['A43']['cpl_banco'])}</td></tr>
+<tr class="novo"><td class="k"><b>A44</b><em>O teste dos cinco segundos, desde 06/09</em></td><td class="n">{brl(por['A44']['gasto_rast'])}</td><td class="n">{brl(por['A44']['cpm'])}</td><td class="n">{num(por['A44']['hook'])}%</td><td class="n">{num(por['A44']['p50'])}%</td><td class="n">{num(por['A44']['ctr_link'],2)}%</td><td class="n">{num(por['A44']['connect'])}%</td><td class="n">{por['A44']['lpv']}</td><td class="n">{por['A44']['leads_banco']}</td><td class="n">{num(100*por['A44']['leads_banco']/por['A44']['lpv'])}%</td><td class="n">{brl(por['A44']['cpl_banco'])}</td></tr>
 </tbody></table></div>
 <p class="obs">Quatro dias não julgam CPL. Nesse volume o que já pode ser lido é hook, CTR, P50 e connect, porque estabilizam rápido. Lead e sessão precisam de duas semanas.</p>
 
@@ -834,7 +834,94 @@ html = f"""<!DOCTYPE html>
   <p><b>Duas ações valem mais que criativo novo.</b> Primeira: há {brl(FIN['contrato_perdido_valor'])} em {FIN['contrato_perdido_total']} contratos assinados que foram para perdido, mais que toda a receita realizada de {brl(FIN['receita_total'])}. Destravar isso rende mais que qualquer ponto de CPL. Segunda: a frequência acumulada do A39 chegou a {num(por['A39']['freq'],2)} e a do A40 a {num(por['A40']['freq'],2)}. As peças estão provadas, o público é que precisa de ampliação ou de lookalike novo.</p>
 </div>
 
-<h2>11. O que não repetir</h2>
+<h2>11. Por que a visita virou cadastro cada vez menos</h2>
+<p class="sub">A taxa de visita para cadastro da conta caiu de 12,5% na semana de 24/08 para 6,8% na semana de 31/08 e 4,4% na semana de 07/09. Esta seção separa o que caiu de verdade do que apenas mudou de composição.</p>
+
+<h4>Primeiro, a queda é real, não é erro de medição</h4>
+<div class="tbox"><table>
+<thead><tr><th>Semana</th><th>Gasto</th><th>Cliques</th><th>Visitas</th><th>Connect</th><th>Leads</th><th>Lead por clique</th><th>Lead por visita</th></tr></thead>
+<tbody>
+<tr><td class="k">20/07</td><td class="n">R$ 1.015</td><td class="n">109</td><td class="n">90</td><td class="n">83%</td><td class="n">6</td><td class="n">5,5%</td><td class="n">6,7%</td></tr>
+<tr><td class="k">27/07</td><td class="n">R$ 873</td><td class="n">119</td><td class="n">93</td><td class="n">78%</td><td class="n">11</td><td class="n">9,2%</td><td class="n">11,8%</td></tr>
+<tr><td class="k">03/08</td><td class="n">R$ 1.387</td><td class="n">180</td><td class="n">155</td><td class="n">86%</td><td class="n">19</td><td class="n forte">10,6%</td><td class="n forte">12,3%</td></tr>
+<tr><td class="k">10/08</td><td class="n">R$ 1.420</td><td class="n">210</td><td class="n">179</td><td class="n">85%</td><td class="n">21</td><td class="n">10,0%</td><td class="n">11,7%</td></tr>
+<tr><td class="k">17/08</td><td class="n">R$ 1.389</td><td class="n">180</td><td class="n">153</td><td class="n">85%</td><td class="n">15</td><td class="n">8,3%</td><td class="n">9,8%</td></tr>
+<tr><td class="k">24/08</td><td class="n">R$ 1.173</td><td class="n">192</td><td class="n">152</td><td class="n">79%</td><td class="n">19</td><td class="n forte">9,9%</td><td class="n forte">12,5%</td></tr>
+<tr class="novo"><td class="k">31/08</td><td class="n">R$ 1.262</td><td class="n">173</td><td class="n">146</td><td class="n">84%</td><td class="n">10</td><td class="n forte">5,8%</td><td class="n forte">6,8%</td></tr>
+<tr class="novo"><td class="k">07/09</td><td class="n">R$ 805</td><td class="n">95</td><td class="n">91</td><td class="n">96%</td><td class="n">4</td><td class="n forte">4,2%</td><td class="n forte">4,4%</td></tr>
+</tbody></table></div>
+<p class="obs">O teste decisivo está nas duas últimas colunas. Se apenas a taxa por visita tivesse caído, o problema seria contagem de visita. As duas caíram juntas, na mesma proporção, e o connect ficou entre 78% e 86% o tempo todo. A visita é real, e é a conversão dela que caiu.</p>
+
+<h4>A causa principal: a peça que convertia foi desligada</h4>
+<div class="tbox"><table>
+<thead><tr><th>Peça</th><th>Visitas na vida toda</th><th>Leads</th><th>Visita para cadastro</th><th>Situação</th></tr></thead>
+<tbody>
+<tr><td class="k"><b>A40</b><em>Você jura que tem 15% de lucro</em></td><td class="n">{por['A40']['lpv']}</td><td class="n">{por['A40']['leads_banco']}</td><td class="n forte">{num(100*por['A40']['leads_banco']/por['A40']['lpv'])}%</td><td class="n">pausado em 31/08</td></tr>
+<tr><td class="k"><b>A39</b><em>Salão cheio não é lucro</em></td><td class="n">{por['A39']['lpv']}</td><td class="n">{por['A39']['leads_banco']}</td><td class="n">{num(100*por['A39']['leads_banco']/por['A39']['lpv'])}%</td><td class="n">no ar</td></tr>
+<tr><td class="k"><b>A41</b><em>Procura-se dono</em></td><td class="n">{por['A41']['lpv']}</td><td class="n">{por['A41']['leads_banco']}</td><td class="n">{num(100*por['A41']['leads_banco']/por['A41']['lpv'])}%</td><td class="n">encerrado</td></tr>
+<tr><td class="k"><b>A43</b><em>Dois restaurantes</em></td><td class="n">{por['A43']['lpv']}</td><td class="n">{por['A43']['leads_banco']}</td><td class="n">{num(100*por['A43']['leads_banco']/por['A43']['lpv'])}%</td><td class="n">no ar</td></tr>
+<tr><td class="k"><b>A44</b><em>Teste dos cinco segundos</em></td><td class="n">{por['A44']['lpv']}</td><td class="n">{por['A44']['leads_banco']}</td><td class="n">{num(100*por['A44']['leads_banco']/por['A44']['lpv'])}%</td><td class="n">no ar</td></tr>
+<tr><td class="k"><b>A42</b><em>O desconto que você não escolheu</em></td><td class="n">{por['A42']['lpv']}</td><td class="n">{por['A42']['leads_banco']}</td><td class="n forte">{num(100*por['A42']['leads_banco']/por['A42']['lpv'])}%</td><td class="n">encerrado em 08/09</td></tr>
+</tbody></table></div>
+
+<div class="fix">
+  <p><b>O A40 convertia visita em cadastro quase o dobro do A39, e ele saiu do ar em 31/08.</b> Na semana de 24/08 ele sozinho trouxe 12 dos 19 leads da conta, com 75 visitas. Na semana seguinte entregou 4 visitas e 1 lead. A média da conta não quebrou, ela perdeu quem a segurava. Isso é aritmética, não hipótese: sem o A40, a conta passa a valer o que o A39 vale, e o A39 vale 8,6%.</p>
+  <p><b>E o que entrou no lugar converte pior que o A39.</b> As três peças novas juntas somam {por['A42']['lpv'] + por['A43']['lpv'] + por['A44']['lpv']} visitas e {por['A42']['leads_banco'] + por['A43']['leads_banco'] + por['A44']['leads_banco']} leads. A conta trocou a peça de 15% por peças de 2% a 8%.</p>
+  <p><b>A ironia que precisa ficar registrada:</b> o A40 foi pausado porque não vendeu. {por['A40']['leads_banco']} leads, {por['A40']['sess_realizadas']} sessões realizadas e zero venda. Ele era o melhor em trazer cadastro e o pior em virar dinheiro. Pausar foi defensável pela receita, e ao mesmo tempo derrubou a taxa de cadastro da conta. As duas coisas são verdade juntas.</p>
+</div>
+
+<h4>A segunda causa: o Instagram Feed comprou a conta</h4>
+<div class="tbox"><table>
+<thead><tr><th>Posicionamento</th><th>Gasto</th><th>Visitas</th><th>Leads</th><th>Visita para cadastro</th><th>CPC de link</th><th>CPL</th><th>Fatia das visitas em agosto</th><th>Fatia em setembro</th></tr></thead>
+<tbody>
+<tr class="novo"><td class="k"><b>Instagram Feed</b></td><td class="n">R$ 3.111</td><td class="n">455</td><td class="n">27</td><td class="n forte">5,9%</td><td class="n">R$ 6,10</td><td class="n">R$ 115</td><td class="n">37%</td><td class="n forte">61%</td></tr>
+<tr><td class="k"><b>Instagram Reels</b></td><td class="n">R$ 2.449</td><td class="n">203</td><td class="n">32</td><td class="n forte">15,8%</td><td class="n">R$ 9,92</td><td class="n">R$ 77</td><td class="n">19%</td><td class="n">14%</td></tr>
+<tr><td class="k"><b>Facebook Reels</b></td><td class="n">R$ 2.202</td><td class="n">250</td><td class="n">28</td><td class="n">11,2%</td><td class="n">R$ 7,24</td><td class="n">R$ 79</td><td class="n">29%</td><td class="n">12%</td></tr>
+<tr><td class="k"><b>Facebook Feed</b></td><td class="n">R$ 1.788</td><td class="n">169</td><td class="n">17</td><td class="n">10,1%</td><td class="n">R$ 8,09</td><td class="n">R$ 105</td><td class="n">15%</td><td class="n">13%</td></tr>
+</tbody></table></div>
+<p class="obs">Contagem de lead pelo pixel da Meta nesta seção, porque a quebra por posicionamento só existe do lado dela. Células com menos de 300 impressões ficaram de fora.</p>
+
+<div class="fix">
+  <p><b>Correção de leitura, registrada em 10/09.</b> A tabela acima soma criativos diferentes, e cada criativo recebeu uma mistura de posicionamento diferente. Lida assim, ela diz que Reels ganha do Feed. Quebrada por peça, ela diz o contrário. A comparação de posicionamento entre criativos misturados não vale, e a versão anterior desta seção concluía errado a partir dela.</p>
+</div>
+
+<h4>O mesmo corte, agora dentro de cada peça</h4>
+<div class="tbox"><table>
+<thead><tr><th>Peça e posicionamento</th><th>Gasto</th><th>Fatia do gasto da peça</th><th>Visitas</th><th>Leads</th><th>Visita para cadastro</th><th>CPL</th></tr></thead>
+<tbody>
+<tr class="novo"><td class="k"><b>A39</b><em>Instagram Feed</em></td><td class="n">R$ 1.897</td><td class="n">43%</td><td class="n">263</td><td class="n">19</td><td class="n">7,2%</td><td class="n">R$ 100</td></tr>
+<tr class="novo"><td class="k"><b>A39</b><em>Facebook Feed</em></td><td class="n">R$ 1.188</td><td class="n">27%</td><td class="n">115</td><td class="n">14</td><td class="n forte">12,2%</td><td class="n forte">R$ 85</td></tr>
+<tr class="novo"><td class="k"><b>A39</b><em>Instagram Reels</em></td><td class="n">R$ 754</td><td class="n">17%</td><td class="n">59</td><td class="n">6</td><td class="n">10,2%</td><td class="n">R$ 126</td></tr>
+<tr class="novo"><td class="k"><b>A39</b><em>Facebook Reels</em></td><td class="n">R$ 612</td><td class="n">14%</td><td class="n">57</td><td class="n">3</td><td class="n">5,3%</td><td class="n">R$ 204</td></tr>
+<tr class="apagado"><td class="k"><b>A40</b><em>Instagram Reels</em></td><td class="n">R$ 1.046</td><td class="n">37%</td><td class="n">96</td><td class="n">23</td><td class="n forte">24,0%</td><td class="n forte">R$ 45</td></tr>
+<tr class="apagado"><td class="k"><b>A40</b><em>Facebook Reels</em></td><td class="n">R$ 1.215</td><td class="n">43%</td><td class="n">163</td><td class="n">22</td><td class="n">13,5%</td><td class="n">R$ 55</td></tr>
+<tr class="apagado"><td class="k"><b>A40</b><em>Instagram Feed</em></td><td class="n">R$ 390</td><td class="n">14%</td><td class="n">73</td><td class="n">5</td><td class="n">6,8%</td><td class="n">R$ 78</td></tr>
+<tr class="apagado"><td class="k"><b>A40</b><em>Facebook Feed</em></td><td class="n">R$ 146</td><td class="n">5%</td><td class="n">19</td><td class="n">2</td><td class="n">10,5%</td><td class="n">R$ 73</td></tr>
+</tbody></table></div>
+
+<div class="fix">
+  <p><b>A vantagem do Reels pertence ao A40, não ao Reels.</b> O A40 recebeu 80% do orçamento dele em Reels e foi lá que ele fez cadastro barato: R$ 45 e R$ 55 por lead. O A39 recebeu 70% do orçamento dele em Feed, e é lá que ele faz o lead mais barato: R$ 85 no Facebook Feed e R$ 100 no Instagram Feed, contra R$ 126 e R$ 204 no Reels. Como o A40 vendeu zero e o A39 fez toda a receita rastreada, concentrar em Reels seria mudar a peça que dá dinheiro para o pior lugar dela.</p>
+  <p><b>Ressalva de tamanho:</b> as duas células de Reels do A39 têm 6 e 3 leads. Nove leads não decidem orçamento. O que esses nove fazem é derrubar a certeza que a tabela agregada dava, e isso já basta para não concentrar em Reels por causa dela.</p>
+</div>
+
+<div class="aviso">
+  <p><b>O que sobrevive sobre o Instagram Feed.</b> Dentro de toda peça, sem exceção, ele é o que menos transforma visita em cadastro: 7,2% no A39, 6,8% no A40, 1,4% na leva nova. Isso não é efeito de mistura, se repete peça a peça. Mas o clique dele é o mais barato da conta (R$ 6,10 contra R$ 9,92 do Reels do Instagram), e por isso ele não é o pior em custo por lead. A conclusão precisa é esta: <b>o Instagram Feed sempre teve a pior razão entre visita e cadastro, e em setembro ele passou de 37% para 61% das visitas.</b> Boa parte da piora da razão é essa troca de mistura, e a troca de mistura não está encarecendo o lead.</p>
+  <p><b>Onde a conta encareceu de verdade.</b> O CPL de setembro é de R$ 140 contra R$ 74 de agosto. Isso vem do A42, que gastou R$ 416 por um lead, e do desgaste do próprio A39. Não vem de posicionamento.</p>
+</div>
+
+<div class="aviso">
+  <p><b>A terceira causa é o próprio A39 desgastando.</b> A taxa dele foi de 11,9%, 11,5% e 10,3% nas três primeiras semanas para 7,3%, 4,2%, 9,1%, 8,6% e 5,0% nas cinco seguintes. A virada acontece na semana de 10/08, quando o orçamento dele subiu de cerca de R$ 500 para R$ 700 e depois R$ 800 por semana, e o custo do clique caiu de R$ 7,81 para R$ 6,06. Clique mais barato com cadastro mais raro é a assinatura de escala: a entrega desce a escada da intenção. Na mesma semana a página passou por duas mudanças de layout, em 08/08 e 10/08, então as duas explicações se sobrepõem e os dados desta conta não conseguem separá-las.</p>
+</div>
+
+<div class="aviso">
+  <p><b>A página não quebrou, mas carrega um peso conhecido.</b> Medido pelo time do site em 10/09: 100% dos cadastros da página vêm de celular e 98% acontecem dentro do navegador do Instagram ou do Facebook. A página pesava 378 KB e tinha 8.751 pixels de altura, com a foto do topo no caminho crítico e um VSL que em 28 dias teve no máximo 20 reproduções contra cerca de 2.850 visualizações de página. A correção entrou em 10/09 às 10h51 e levou a página para 333 KB e 7.565 pixels. Isso não causou a queda, porque já era assim antes dela. O que explica é por que o Instagram Feed, que é o tráfego mais casual e mais pesado, converte pior dentro de toda peça.</p>
+</div>
+
+<div class="aviso">
+  <p><b>Como testar posicionamento sem cair na mesma armadilha.</b> A única leitura válida é a mesma peça em dois conjuntos, um com posicionamento automático e outro restrito, mesmo orçamento, decidindo por CPL e por qualificação em 14 dias. Nunca comparar posicionamento numa conta em que criativos diferentes receberam misturas diferentes, que foi o erro corrigido aqui. E não agora: em 10/09 mudaram duas coisas ao mesmo tempo, a página emagreceu e o A45 entrou no ar. Uma terceira mudança deixa as três ilegíveis.</p>
+</div>
+
+<h2>12. O que não repetir</h2>
 <ul class="nao">
   <li><b>Convocação e "procura-se", com ressalva.</b> Teste encerrado: o A41 gastou {brl(por['A41']['gasto_rast'])} e trouxe {por['A41']['leads_banco']} leads, sendo {por['A41']['q100']} dentro do filtro, a {brl(por['A41']['cpl_q'])} o lead qualificado. É de longe o pior da leva nova (o A40 faz o mesmo por {brl(por['A40']['cpl_q'])}), e o único lead que prestou entrou no último dia, com sessão ainda por acontecer. A mesma família do A30, que custou {brl(por['A30']['cpl_meta'])} por lead. Não repetir o formato, mas esperar a sessão desse lead antes de enterrar o ângulo de vez.</li>
   <li><b>História de origem longa em rosto puro.</b> O A33 gastou {brl(por['A33']['gasto'])}, não gerou lead nenhum e tem a pior retenção da série, com 94 segundos.</li>
@@ -843,7 +930,7 @@ html = f"""<!DOCTYPE html>
   <li><b>Coroar ou enterrar peça pela atribuição da Meta.</b> O A35 mostrava {por['A35']['leads_meta']} leads no gerenciador e {por['A35']['leads_banco']} lead real. Veredito só com o banco e o CRM na mão.</li>
 </ul>
 
-<h2>12. Ressalvas de leitura</h2>
+<h2>13. Ressalvas de leitura</h2>
 <div class="aviso">
   <p><b>A comparação entre lotes não é limpa.</b> Entre o A38 e o A39 mudou a oferta (de mentoria para sessão gratuita), mudou a página e mudou a estrutura de campanha. Só a família do ângulo é comparável, não o CPL absoluto.</p>
   <p><b>O A40 ainda não está julgado.</b> Ele tem {por['A40']['sess_agendadas'] - por['A40']['sess_realizadas']} sessões marcadas que não aconteceram. Três sessões sem conversão é sinal forte, mas a amostra é pequena e a peça é mais nova que o A39. O veredito real sai quando essas sessões acontecerem.</p>
