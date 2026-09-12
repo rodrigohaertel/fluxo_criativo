@@ -20,7 +20,15 @@ from pathlib import Path
 
 sys.stdout.reconfigure(encoding="utf-8")
 CAMPANHA = "120247419652220527"   # [DONO14] [CONV] [LEADS] ABO
-PLANO_ATUAL = 300.00              # 11/09: A39 + A43 + A44 + A45 + A46 a R$ 60. A partir de 13/09 o esperado e R$ 270 (saem A43/A44, entra o LAL a R$ 90).
+# O plano agora e por data, porque os conjuntos rodam em janelas com fim programado.
+# Vale a ultima linha cuja data ja chegou. Fonte: decisoes do Rodrigo registradas no
+# scripts/dono14-autorun-prompt.md. Datas futuras saem dos fins ja programados na conta.
+PLANO_POR_DATA = [
+    ("2026-09-11", 300.00, "A39 + A43 + A44 + A45 + A46"),
+    ("2026-09-13", 270.00, "A39 + A45 + A46 + LAL (A43 e A44 vencem em 12/09)"),
+    ("2026-09-17", 210.00, "A39 + A46 + LAL (A45 vence em 16/09)"),
+    ("2026-09-18", 150.00, "A39 + LAL (A46 vence em 17/09)"),
+]
 
 
 def token():
@@ -30,7 +38,7 @@ def token():
     sys.exit("FB_ACCESS_TOKEN_PERMANENTE nao encontrado no .env")
 
 
-p = {"fields": "name,daily_budget,effective_status,end_time", "limit": 100,
+p = {"fields": "name,daily_budget,effective_status,start_time,end_time", "limit": 100,
      "access_token": token(), "_": str(int(time.time()))}
 url = f"https://graph.facebook.com/v21.0/{CAMPANHA}/adsets?" + urllib.parse.urlencode(p)
 dados = json.loads(urllib.request.urlopen(url, timeout=90).read()).get("data", [])
@@ -40,6 +48,24 @@ print("ORCAMENTO REAL NA CONTA (conjuntos ATIVOS)")
 print("=" * 62)
 SP = timezone(timedelta(hours=-3))
 AGORA = datetime.now(SP)
+
+
+def quando(s, campo):
+    bruto = s.get(campo)
+    if not bruto:
+        return None
+    try:
+        return datetime.fromisoformat(bruto.replace("+0000", "+00:00")).astimezone(SP)
+    except ValueError:
+        return None
+
+
+def ainda_nao_comecou(s):
+    """Conjunto com inicio programado no futuro nao gasta hoje. A API ja o devolve
+    como ACTIVE, e isso inflou o programado em R$ 90 em 12/09 (conjunto Lookalike
+    marcado para comecar em 13/09), gerando alarme falso de divergencia."""
+    ini = quando(s, "start_time")
+    return bool(ini and ini > AGORA)
 
 
 def venceu(s):
@@ -57,6 +83,7 @@ def venceu(s):
 
 total = 0.0
 encerrados = []
+agendados = []
 for s in sorted(dados, key=lambda x: x.get("name", "")):
     if s.get("effective_status") != "ACTIVE":
         continue
@@ -64,6 +91,9 @@ for s in sorted(dados, key=lambda x: x.get("name", "")):
     orc = int(s.get("daily_budget") or 0) / 100
     if venceu(s):
         encerrados.append((nome, orc, s.get("end_time")))
+        continue
+    if ainda_nao_comecou(s):
+        agendados.append((nome, orc, quando(s, "start_time")))
         continue
     total += orc
     fim = s.get("end_time")
@@ -74,6 +104,12 @@ for s in sorted(dados, key=lambda x: x.get("name", "")):
             fim = ""
     print(f"  {nome:<40} R$ {orc:>7.2f}/dia{fim or ''}")
 
+if agendados:
+    print()
+    print("  Ainda nao comecaram, entram no programado so na data (fora da soma de hoje):")
+    for nome, orc, ini in agendados:
+        print(f"    {nome:<38} R$ {orc:>7.2f}/dia, comeca em {ini.strftime('%d/%m %Hh%M')}")
+
 if encerrados:
     print("\n  Cronograma ja vencido, nao entregam mais (fora da soma):")
     for nome, orc, fim in encerrados:
@@ -81,7 +117,10 @@ if encerrados:
 
 pausados = sum(1 for s in dados if s.get("effective_status") != "ACTIVE")
 print(f"\n  PROGRAMADO/DIA: R$ {total:.2f}   ({pausados} conjunto(s) pausado(s))")
-print(f"  PLANO COMBINADO: R$ {PLANO_ATUAL:.2f}/dia")
+hoje_iso = AGORA.strftime("%Y-%m-%d")
+vigente = [x for x in PLANO_POR_DATA if x[0] <= hoje_iso] or [PLANO_POR_DATA[0]]
+desde, PLANO_ATUAL, composicao = vigente[-1]
+print(f"  PLANO COMBINADO: R$ {PLANO_ATUAL:.2f}/dia   (desde {desde[8:10]}/{desde[5:7]}: {composicao})")
 if abs(total - PLANO_ATUAL) < 1:
     print("  STATUS: APLICADO. Comparar o gasto do dia com este valor.")
 else:
