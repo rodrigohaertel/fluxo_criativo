@@ -7,8 +7,8 @@ Le o dataset consolidado (Meta nivel anuncio + banco Supabase + CRM) e monta
 um HTML standalone, sem dependencia externa, no padrao visual do produto.
 
 Uso: py -3 scripts/dono14-dashboard-criativos.py
-Fonte: meus-produtos/dono-14/trafego/analise/dataset-criativos-a30-a41.json
-Saida: meus-produtos/dono-14/trafego/analise/criativos-a30-a41-{data}.html
+Fonte: meus-produtos/dono-14/trafego/analise/dataset-criativos-a30-a46.json
+Saida: meus-produtos/dono-14/trafego/analise/criativos-a30-a46-{data}.html
 """
 import json
 import sys
@@ -18,7 +18,7 @@ from pathlib import Path
 sys.stdout.reconfigure(encoding="utf-8")
 RAIZ = Path(__file__).resolve().parent.parent
 BASE = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "analise"
-D = json.loads((BASE / "dataset-criativos-a30-a41.json").read_text(encoding="utf-8"))
+D = json.loads((BASE / "dataset-criativos-a30-a46.json").read_text(encoding="utf-8"))
 C = D["criativos"]
 por = {l["criativo"]: l for l in C}
 LEITURA_NARRATIVA = "2026-09-09"   # data em que os vereditos em texto foram escritos
@@ -950,11 +950,11 @@ html = f"""<!DOCTYPE html>
 </html>
 """
 
-saida = BASE / f"criativos-a30-a41-{datetime.now().strftime('%Y-%m-%d-%H%M')}.html"
+saida = BASE / f"criativos-a30-a46-{datetime.now().strftime('%Y-%m-%d-%H%M')}.html"
 saida.write_text(html, encoding="utf-8")
 
 # copia de nome fixo, sempre a versao mais recente (link estavel para abrir)
-atual = BASE / "criativos-a30-a41-ATUAL.html"
+atual = BASE / "criativos-a30-a46-ATUAL.html"
 atual.write_text(html, encoding="utf-8")
 
 print("dashboard:", saida)

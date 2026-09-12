@@ -11,7 +11,7 @@ Faz, em uma passada:
   5. Supabase: contact_submissions (leads reais) e crm_cards (estagio e valores)
   6. Monta o dataset consolidado usado pelo dashboard
 
-Saida: meus-produtos/dono-14/trafego/analise/dataset-criativos-a30-a41.json
+Saida: meus-produtos/dono-14/trafego/analise/dataset-criativos-a30-a46.json
 Depois deste script, rodar scripts/dono14-dashboard-criativos.py para gerar o HTML.
 
 Uso: py -3 scripts/dono14-analise-criativos.py
@@ -542,7 +542,7 @@ saida = dict(
     maturacao_dias=MATURACAO_DIAS,
 )
 
-destino = DESTINO / "dataset-criativos-a30-a41.json"
+destino = DESTINO / "dataset-criativos-a30-a46.json"
 destino.write_text(json.dumps(saida, ensure_ascii=False, indent=1), encoding="utf-8")
 print(f">>> dataset salvo: {destino}")
 print()
