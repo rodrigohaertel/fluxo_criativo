@@ -1,5 +1,10 @@
 Você está rodando SEM supervisão, às 02h da manhã, como rotina agendada da leitura diária do funil Dono 14%. O Rodrigo vai ler o resultado quando acordar. Diretório de trabalho: raiz do projeto fluxo-criativo.
 
+## Só campanhas de CONVERSÃO entram na análise (decidido pelo Rodrigo em 14/09/2026)
+A conta roda outras campanhas com objetivo diferente, de **descoberta e relacionamento**: "Post do Instagram: Se você tem restaurante", "[VIDEO VIEW] [RELACIONAMENTO] CBO", "Engajamento IG, FB, Site + VV 50% 180D" e semelhantes. **Elas não entram em nenhum número desta leitura**: nem no gasto do dia, nem no CPL, nem na régua, nem em aviso de divergência de orçamento.
+
+Elas têm outro objetivo e outra métrica, e o Rodrigo acompanha em outro lugar. **Proibido registrar como "gasto fora do funil", "dinheiro vazando" ou qualquer alarme.** O gasto que interessa é só o da campanha de conversão do funil (`[DONO14] [CONV] [LEADS] ABO`, id 120247419652220527).
+
 ## Regra do dia fechado (vale para TODA a rotina, decidida pelo Rodrigo em 06/08/2026)
 Todo número, tabela, média, régua, semáforo, contador de gatilho e veredito usa **apenas dias FECHADOS**, ou seja, termina em ONTEM. O dia de hoje está em aberto: o pacing ainda não terminou, a atribuição da Meta ainda muda e leads ainda entram, então tratar um parcial como dia normal derruba médias e dispara régua errada. Os scripts já respeitam isso (a série da Meta, do banco e do pixel fecha em ontem).
 Sem exceção: o dia em aberto não aparece no relatório, nem como observação, nem como estimativa, nem entre parênteses. Se algum dado parcial de hoje chegar por outra via, descarte.
