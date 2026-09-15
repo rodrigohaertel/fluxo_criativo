@@ -27,8 +27,7 @@ PLANO_POR_DATA = [
     ("2026-09-11", 300.00, "A39 + A43 + A44 + A45 + A46"),
     ("2026-09-12", 390.00, "A39 + A43 + A44 + A45 + A46 + LAL (LAL antecipado pelo Rodrigo)"),
     ("2026-09-13", 270.00, "A39 + A45 + A46 + LAL (A43 e A44 vencem em 12/09)"),
-    ("2026-09-17", 210.00, "A39 + A46 + LAL (A45 vence em 16/09)"),
-    ("2026-09-18", 150.00, "A39 + LAL (A46 vence em 17/09)"),
+    ("2026-09-15", 150.00, "A39 a R$ 90 + A40 a R$ 60 (A45, A46 e LAL pausados pelo Rodrigo)"),
 ]
 
 
