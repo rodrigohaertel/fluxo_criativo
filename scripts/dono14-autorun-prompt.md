@@ -66,6 +66,13 @@ Quando os dois diferirem, diga isso no marcador em uma linha, sem tratar como pr
 
 **Cadastro falso não conta como lead.** Quando o Rodrigo identifica um, ele apaga do banco, e a partir daí os scripts já param de contar sozinhos. O que NÃO se corrige sozinho é a série `leads_banco` do `.contexto.json`, que guarda o número do dia em que o falso ainda existia. Se o total do `.contexto.json` divergir do que o `dono14-banco.py` devolve, **o banco vence**: corrija o dia no contexto e registre a correção no marcador. Casos já tratados: Bryan (23/07) e João Silva (10/08, apagado em 11/08, o dia caiu de 3 para 2 leads).
 
+## Reentrada herda o criativo do PRIMEIRO cadastro (descoberto em 18/09/2026)
+O site grava o `utm_content` pelo cookie de atribuicao, que guarda o primeiro toque por 90 dias. Quem ja tinha cadastro e volta por outro anuncio fica creditado ao criativo ANTIGO, mesmo que ele nem esteja no ar. Em 17/09 isso fez o A47 aparecer com 1 lead (CPL R$ 114) quando teve 3 (CPL R$ 38).
+
+A correcao fica em `meus-produtos/dono-14/trafego/reatribuicoes.json`, que os scripts de analise por criativo ja leem sozinhos. **Em toda leitura, conferir:** algum lead do dia fechado foi creditado a um criativo que NAO entregou impressao no dia? Se sim, registrar em AVISOS EM DESTAQUE com nome, criativo gravado e os criativos que tiveram lead na Meta naquele dia. **Nao incluir na lista pela madrugada**: a inclusao exige prova (quebra horaria da Meta ou um unico criativo com lead no dia) e e feita na sessao interativa.
+
+**Reentrada nao e cadastro falso.** Nao chamar de suspeito quem ja tinha cadastro anterior, mesmo com faturamento declarado estranho.
+
 ## Passo 2b. Comercial detalhado (venda, valor e pipeline)
 Rode `py -3 scripts/dono14-comercial.py` (autorizado na allowlist desde 08/08). Ele traz cada card com stage, valor de contrato, tags e os motivos de perda.
 

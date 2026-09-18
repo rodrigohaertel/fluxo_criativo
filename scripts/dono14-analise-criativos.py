@@ -262,6 +262,18 @@ cards = sb("crm_cards", {
     "deleted_at": "is.null", "limit": "5000"})
 print(f"    {len(subs)} leads, {len(cards)} cartoes")
 
+# Reentrada herda o criativo do PRIMEIRO cadastro (cookie de atribuicao de 90 dias).
+# A lista corrige, com prova, os casos em que o criativo gravado nem estava no ar.
+_reatrib = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "reatribuicoes.json"
+if _reatrib.exists():
+    _mapa = {r["submission_id"]: r["correto"]
+             for r in json.loads(_reatrib.read_text(encoding="utf-8")).get("reatribuicoes", [])}
+    for s in subs:
+        if s["id"] in _mapa:
+            s["utm_content"] = _mapa[s["id"]]
+            s["utm_term"] = None
+    print(f"    {sum(1 for s in subs if s['id'] in _mapa)} reentrada(s) reatribuida(s) pela lista")
+
 card_por_sub = {c["submission_id"]: c for c in cards if c.get("submission_id")}
 
 

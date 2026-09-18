@@ -311,6 +311,16 @@ subs_utm = sb_get("contact_submissions", {
     "select": "id,name,created_at,utm_content,source",
     "or": "(source.ilike.mentoria*,source.ilike.sess*)",
     "created_at": f"gte.{inicio_utm_utc}", "order": "created_at.asc"})
+
+# Reentrada herda o criativo do PRIMEIRO cadastro (cookie de atribuicao de 90 dias).
+# A lista abaixo corrige, com prova, os casos em que o criativo gravado nem estava no ar.
+_reatrib = RAIZ / "meus-produtos" / "dono-14" / "trafego" / "reatribuicoes.json"
+if _reatrib.exists():
+    _mapa = {r["submission_id"]: r["correto"]
+             for r in json.loads(_reatrib.read_text(encoding="utf-8")).get("reatribuicoes", [])}
+    for s in subs_utm:
+        if s["id"] in _mapa:
+            s["utm_content"] = _mapa[s["id"]]
 cards_com = sb_get("crm_cards", {
     "select": "id,stage,valor_contrato,submission_id,sessao_agendada,contrato_produto,contrato_status",
     "deleted_at": "is.null"})
