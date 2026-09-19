@@ -29,6 +29,10 @@ PLANO_POR_DATA = [
     ("2026-09-13", 270.00, "A39 + A45 + A46 + LAL (A43 e A44 vencem em 12/09)"),
     ("2026-09-15", 150.00, "A39 a R$ 90 + A40 a R$ 60 (A45, A46 e LAL pausados pelo Rodrigo)"),
     ("2026-09-17", 200.00, "A39 a R$ 100 + conjunto A47+A48+A49 a R$ 100 (criativos do briefing, fim 23/09)"),
+    ("2026-09-18", 140.00, "A47 sozinho a R$ 100 (sem data de fim) + A39 a R$ 40"),
+    ("2026-09-19", 200.00, "A47 R$ 100 + A39 R$ 40 + A48 R$ 60 (teste do A48 de 19/09 a 25/09)"),
+    ("2026-09-26", 200.00, "A47 R$ 100 + A39 R$ 40 + A49 R$ 60 (teste do A49 de 26/09 a 02/10)"),
+    ("2026-10-03", 140.00, "A47 R$ 100 + A39 R$ 40 (fim dos testes do A48 e A49)"),
 ]
 
 
