@@ -114,7 +114,7 @@ def duracao_seg(iso: str) -> int:
 def detalhes_videos(ids: list, token: str) -> dict:
     saida = {}
     for i in range(0, len(ids), 50):
-        r = get(f"{DATA}/videos", {"part": "snippet,contentDetails,statistics", "id": ",".join(ids[i:i + 50])}, token)
+        r = get(f"{DATA}/videos", {"part": "snippet,contentDetails,statistics,status", "id": ",".join(ids[i:i + 50])}, token)
         for item in r.get("items", []):
             seg = duracao_seg(item["contentDetails"].get("duration"))
             saida[item["id"]] = {
@@ -124,6 +124,7 @@ def detalhes_videos(ids: list, token: str) -> dict:
                 # Aproximação: até 3 minutos pode ser Short, mas só o YouTube Studio confirma o formato
                 "possivel_short": seg <= 180,
                 "views_total": int(item.get("statistics", {}).get("viewCount", 0)),
+                "privacidade": {"public": "público", "unlisted": "não listado", "private": "privado"}.get(item.get("status", {}).get("privacyStatus"), "?"),
             }
     return saida
 
@@ -166,7 +167,7 @@ def cmd_lista(args, token, raiz):
     print(f"{len(linhas)} vídeos. Mais recentes primeiro:")
     for v in linhas[:40]:
         marca = "short?" if v["possivel_short"] else "longo "
-        print(f"  {v['publicado_em']} | {marca} | {v['duracao_seg']:>5}s | {v['views_total']:>7} views | {v['id']} | {v['titulo'][:70]}")
+        print(f"  {v['publicado_em']} | {marca} | {v['privacidade']:<11} | {v['duracao_seg']:>5}s | {v['views_total']:>7} views | {v['id']} | {v['titulo'][:60]}")
     print(f"JSON completo: {arq}")
 
 

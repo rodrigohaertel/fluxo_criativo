@@ -17,7 +17,6 @@ Todas as regras globais do CLAUDE.md valem aqui: credencial só no `.env`, valor
 | `GOOGLE_OAUTH_CLIENT_ID` | ID do cliente criado no Google Cloud | Aluno cola, Severino salva |
 | `GOOGLE_OAUTH_CLIENT_SECRET` | Chave secreta do mesmo cliente | Aluno cola, Severino salva |
 | `GOOGLE_OAUTH_REFRESH_TOKEN` | Autorização permanente da conta | Gravada sozinha por `autorizar.py` |
-| `GOOGLE_ADS_DEVELOPER_TOKEN` | Token de desenvolvedor do Google Ads | Só depois da aprovação do Google |
 | `GOOGLE_ADS_CUSTOMER_ID` | Número da conta de anúncios (só dígitos) | Severino salva |
 | `GOOGLE_ADS_LOGIN_CUSTOMER_ID` | Número da conta de administrador (só dígitos) | Severino salva |
 
@@ -35,7 +34,7 @@ Instrua, um bloco por vez, esperando o "feito" de cada um:
 
 1. Acessar `https://console.cloud.google.com/` com a mesma conta Google dona do canal e criar um projeto (ex: "Severino").
 2. Em "APIs e serviços", "Biblioteca", ativar três APIs: **YouTube Analytics API**, **YouTube Data API v3** e **Google Ads API**.
-3. Em "Tela de permissão OAuth" (Google Auth Platform): tipo de usuário **Externo**, preencher nome do app e e-mail. Depois, em "Público-alvo", clicar em **Publicar app** (status "Em produção").
+3. Em "Tela de permissão OAuth" (Google Auth Platform): tipo de usuário **Externo**, preencher nome do app e e-mail. Em "Branding", preencher também a página inicial, o link da política de privacidade, o link dos termos e o domínio autorizado (sem isso o botão de publicar fica cinza, com a mensagem "conclua a configuração na página de branding"). Depois, em "Público-alvo", clicar em **Publicar app** (status "Em produção"). Fazer a autorização do Passo 3 só depois de publicar: autorização emitida em modo de teste expira em 7 dias.
    - Motivo: com o app em modo de teste, a autorização expira a cada 7 dias. Em produção ela não expira.
    - Como o app não é verificado, na hora de autorizar o Google mostra um aviso "app não verificado". É esperado: clicar em "Avançado" e continuar. O app é do próprio aluno.
 4. Em "Credenciais", "Criar credenciais", "ID do cliente OAuth", tipo **App para computador**. O Google mostra o ID do cliente e a chave secreta.
@@ -91,7 +90,9 @@ Regra de leitura: a origem "Anúncio (pago)" separa a visualização comprada da
 
 ## Google Ads (fase seguinte)
 
-A leitura e a escrita de campanhas pela API exigem o token de desenvolvedor, que só é emitido dentro de uma conta de administrador do Google Ads (Central de API) e passa por aprovação do Google. Enquanto `GOOGLE_ADS_DEVELOPER_TOKEN` não existir, as campanhas são operadas pelo painel.
+A leitura e a escrita de campanhas pela API dependem do nível de acesso da API Google Ads, que desde 2026 é gerenciado no Google Cloud, em `https://console.cloud.google.com/google/ads-apis/overview` (a Central de API dentro do Google Ads passou a servir só para a API App Conversion Tracking). Níveis: Teste (só contas de teste), Exploração (já permite contas de produção) e os níveis acima. O upgrade é pedido pelo botão "Inscrever-se para receber acesso" nessa página. Enquanto o projeto estiver em Teste, as campanhas são operadas pelo painel.
+
+Testado em 2026-09-20: com o nível Exploração aprovado, a API (versão v25) responde só com a autorização OAuth do projeto, sem cabeçalho de token de desenvolvedor. Endpoint de leitura: `POST https://googleads.googleapis.com/v25/customers/{GOOGLE_ADS_CUSTOMER_ID}/googleAds:search` com a consulta em GAQL. As versões da API são descontinuadas com frequência: se vier erro 404, conferir a versão atual nas notas de lançamento. O nível Básico exige verificação de marca e não é necessário para uso próprio.
 
 Quando a skill de escrita no Google Ads existir, ela herda o mesmo gate de confirmação no chat usado na Meta: bloco de confirmação antes de qualquer criação, pausa, ativação ou mudança de orçamento, e nunca exibir o comando com credencial.
 
