@@ -154,7 +154,7 @@ Rode `py -3 scripts/dono14-analise-profunda.py`. O script gera `analise-profunda
 
 **FORMATO PADRÃO, aprovado pelo Rodrigo em 08/08/2026.** O script já entrega tudo isto sozinho. Nunca gerar o HTML à mão e nunca aceitar versão sem estes itens:
 1. Janela GLOBAL de cada criativo, da primeira aparição até o dia fechado (o ciclo comercial é mais longo que 7 dias).
-2. Lupa comercial por criativo, com leads do banco casados por `utm_content`: leads reais, CPL real, sessões agendadas, fechamentos, quantos Dono 14% e quantos Painel do Dono, receita, CAC e ROAS.
+2. Lupa comercial por criativo, com leads do banco casados por `utm_content`: leads reais, CPL real, sessões agendadas, fechamentos, **a divisão por produto em TRÊS linhas (Dono 14%, Projeto 14% e Painel do Dono) mais os sem classificação**, receita, CAC e ROAS. A separação dos três é obrigatória desde 22/09/2026: antes disso o script procurava só o número "14" solto e contava todo card de Projeto 14% como Dono 14%.
 3. Colunas de freq e CPM na tabela, além de leads do banco e CPL real por período.
 4. Filtro "Por dia" e "Por semana", com linha de TOTAL da vida do criativo.
 5. **Análise do criativo fechando cada cartão** (texto determinístico: topo, retenção, ponte, lead, comercial, tendência e veredito pela régua). Substituiu o gráfico semanal, removido em 11/08 por decisão do Rodrigo.

@@ -338,17 +338,25 @@ except Exception:  # noqa: BLE001
 
 
 def produto_do_card(c):
-    """Devolve 'dono14', 'painel' ou None, olhando tags e contrato_produto."""
-    texto = " ".join(tags_por_card.get(c.get("id"), [])) + " " + str(c.get("contrato_produto") or "")
-    t = texto.lower()
-    if "14" in t:
+    """Devolve 'dono14', 'projeto14', 'painel' ou None, pelas tags do card.
+
+    ATENCAO (corrigido em 22/09/2026): a versao anterior procurava so o numero
+    "14" solto, entao TODO card de "Projeto 14%" era contado como "Dono 14%".
+    Sao tres ofertas distintas, com ticket proprio, e cada uma precisa aparecer
+    separada na lupa por criativo.
+    """
+    tags = " | ".join(tags_por_card.get(c.get("id"), [])).lower()
+    prod = str(c.get("contrato_produto") or "").lower()
+    if "dono 14" in tags or "dono14" in prod:
         return "dono14"
-    if "painel" in t:
+    if "projeto 14" in tags or "projeto14" in prod:
+        return "projeto14"
+    if "painel" in tags or "painel" in prod:
         return "painel"
     return None
 
 
-CAMPOS_COM = ("leads", "sessao", "ganho", "painel", "dono14", "receita")
+CAMPOS_COM = ("leads", "sessao", "ganho", "painel", "dono14", "projeto14", "receita")
 com_por_ad = defaultdict(lambda: defaultdict(float))   # acumulado por criativo
 leads_ad_dia = defaultdict(lambda: defaultdict(int))   # [criativo][AAAA-MM-DD] = leads reais
 for s in subs_utm:
@@ -565,6 +573,8 @@ for idx, nome in enumerate(nomes_ativos):
     ld_real = int(cm.get("leads", 0))
     n_sessao, n_ganho = int(cm.get("sessao", 0)), int(cm.get("ganho", 0))
     n_painel, n_d14 = int(cm.get("painel", 0)), int(cm.get("dono14", 0))
+    n_p14 = int(cm.get("projeto14", 0))
+    n_semtag = max(ld_real - n_d14 - n_p14 - n_painel, 0)
     n_assin = int(cm.get("assinatura", 0))
     v_assin = float(cm.get("valor_assinatura", 0))
     receita_ad = float(cm.get("receita", 0))
@@ -587,7 +597,9 @@ for idx, nome in enumerate(nomes_ativos):
 </div>
 <div class="badges">
   <span class="badge">Dono 14%: <b>{n_d14}</b></span>
+  <span class="badge">Projeto 14%: <b>{n_p14}</b></span>
   <span class="badge">Painel do Dono: <b>{n_painel}</b></span>
+  <span class="badge">sem classificação: <b>{n_semtag}</b></span>
   <span class="badge">receita: <b>{brl(receita_ad)}</b></span>
   <span class="badge">CAC do criativo: <b class="{'top' if cac_ad else ''}">{brl(cac_ad) if cac_ad else 'sem venda ainda'}</b></span>
   <span class="badge">ROAS: <b>{(f'{roas_ad:.1f}x') if roas_ad else '-'}</b></span>
