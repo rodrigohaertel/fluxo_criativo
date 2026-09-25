@@ -161,6 +161,42 @@ def sem_cpl(v):
     return ("top", "💚")
 
 
+# CPL DE PERFIL (Rodrigo, 24/09/2026). Gasto dividido SO pelos cadastros que
+# declararam R$ 100 mil ou mais de faturamento. Existe porque as 5 vendas com
+# formulario preenchido declararam R$ 130 mil ou mais, e das Sessoes agendadas
+# 38 vieram desse balde contra 4 de baixo dele. A regua e a de CPL dividida pela
+# taxa de perfil da conta (58% dos cadastros creditaveis desde 19/07).
+#
+# NAO usar sozinha para declarar vencedor: o A40 fechou com 65% de perfil, CPL de
+# perfil de R$ 89 (o melhor da conta) e 17 Sessoes, e nao vendeu nada. A quebra
+# entre A39 e A40 acontece DEPOIS da Sessao.
+PERFIL_MIN = 100_000      # piso do balde que vira Sessao e venda
+PERFIL_TETO = 1_000_000   # acima disso, so conta depois do SDR confirmar
+PERFIL_BASE_MIN = 5       # cadastros de perfil para haver veredito
+
+
+def no_perfil(fat):
+    """Cadastro conta como perfil? Aplica a regra de higiene do teto.
+
+    Faturamento declarado acima de R$ 1 milhao nao entra ate o SDR confirmar:
+    nesta conta esse padrao ja apareceu em cadastro aleatorio duas vezes
+    (R$ 5.154.000 em 25/08 e R$ 5.000.000 da Edvirgens em 20/09, ambos perdidos).
+    """
+    try:
+        f = float(fat or 0)
+    except (TypeError, ValueError):
+        return False
+    return PERFIL_MIN <= f <= PERFIL_TETO
+
+
+def sem_cpl_perfil(v):
+    if not v: return ("", "-")
+    if v > 260: return ("dead", "🔴")
+    if v >= 170: return ("bad", "🟡")
+    if v >= 120: return ("top", "🟢")
+    return ("top", "💚")
+
+
 # REGRA DA ROTINA (06/08/2026): toda leitura da Meta termina em ONTEM. O dia de
 # hoje esta em aberto (pacing, atribuicao e dedup ainda mudam) e um parcial
 # tratado como dia normal distorce serie, acumulado e semaforos.
@@ -308,7 +344,7 @@ INICIO_UTM = date(2026, 7, 19)
 inicio_utm_utc = datetime(2026, 7, 19, 3, tzinfo=timezone.utc).isoformat()
 
 subs_utm = sb_get("contact_submissions", {
-    "select": "id,name,created_at,utm_content,source",
+    "select": "id,name,created_at,utm_content,source,faturamento_medio",
     "or": "(source.ilike.mentoria*,source.ilike.sess*)",
     "created_at": f"gte.{inicio_utm_utc}", "order": "created_at.asc"})
 
@@ -356,7 +392,8 @@ def produto_do_card(c):
     return None
 
 
-CAMPOS_COM = ("leads", "sessao", "ganho", "painel", "dono14", "projeto14", "receita")
+CAMPOS_COM = ("leads", "perfil", "sessao", "sessao_perfil", "ganho",
+              "painel", "dono14", "projeto14", "receita")
 com_por_ad = defaultdict(lambda: defaultdict(float))   # acumulado por criativo
 leads_ad_dia = defaultdict(lambda: defaultdict(int))   # [criativo][AAAA-MM-DD] = leads reais
 for s in subs_utm:
@@ -368,11 +405,16 @@ for s in subs_utm:
         continue
     leads_ad_dia[ad][d.isoformat()] += 1
     com_por_ad[ad]["leads"] += 1
+    perfil = no_perfil(s.get("faturamento_medio"))
+    if perfil:
+        com_por_ad[ad]["perfil"] += 1
     c = card_por_sub_com.get(s["id"])
     if not c:
         continue
     if c.get("sessao_agendada"):
         com_por_ad[ad]["sessao"] += 1
+        if perfil:
+            com_por_ad[ad]["sessao_perfil"] += 1
     prod = produto_do_card(c)
     if prod:
         com_por_ad[ad][prod] += 1
@@ -580,6 +622,16 @@ for idx, nome in enumerate(nomes_ativos):
     receita_ad = float(cm.get("receita", 0))
     gasto_utm = gasto_ad_utm.get(nome, 0.0)
     cpl_real_ad = gasto_utm / ld_real if ld_real else None
+    # CPL DE PERFIL (Rodrigo, 24/09/2026): mesmo gasto, dividido so pelos cadastros
+    # que declararam de R$ 100 mil a R$ 1 milhao. Ver sem_cpl_perfil() la em cima.
+    n_perfil = int(cm.get("perfil", 0))
+    n_sessao_perfil = int(cm.get("sessao_perfil", 0))
+    cpl_perfil_ad = gasto_utm / n_perfil if n_perfil else None
+    tx_perfil = (n_perfil / ld_real * 100) if ld_real else 0
+    # Sessao sobre cadastro de PERFIL e o degrau 2 da escada: foi onde o A47 (31%)
+    # se separou do A48 (11%). Sem base minima, nao ha veredito, so numero.
+    tx_sessao_perfil = (n_sessao_perfil / n_perfil * 100) if n_perfil else 0
+    base_ok = n_perfil >= PERFIL_BASE_MIN
     cac_ad = gasto_utm / n_ganho if n_ganho else None
     roas_ad = receita_ad / gasto_utm if gasto_utm else None
     tx_sessao = (n_sessao / ld_real * 100) if ld_real else 0
@@ -592,6 +644,13 @@ for idx, nome in enumerate(nomes_ativos):
   <span class="badge">CPL real: <b class="{sem_cpl(cpl_real_ad)[0] if cpl_real_ad else ''}">
       {(sem_cpl(cpl_real_ad)[1] + ' ' + brl(cpl_real_ad)) if cpl_real_ad else '-'}</b></span>
   <span class="badge">sessões agendadas: <b>{n_sessao}</b> <span class="cinza">({tx_sessao:.0f}% dos leads)</span></span>
+</div>
+<div class="badges">
+  <span class="badge">no perfil (R$ 100 mil+): <b>{n_perfil}</b> <span class="cinza">({tx_perfil:.0f}% dos leads)</span></span>
+  <span class="badge">CPL de perfil: <b class="{sem_cpl_perfil(cpl_perfil_ad)[0] if cpl_perfil_ad else ''}">
+      {(sem_cpl_perfil(cpl_perfil_ad)[1] + ' ' + brl(cpl_perfil_ad)) if cpl_perfil_ad else '-'}</b>
+      <span class="cinza">{'' if base_ok else '(base abaixo de ' + str(PERFIL_BASE_MIN) + ', sem veredito)'}</span></span>
+  <span class="badge">sessão sobre cadastro de perfil: <b>{tx_sessao_perfil:.0f}%</b> <span class="cinza">({n_sessao_perfil} de {n_perfil})</span></span>
   <span class="badge">fechamentos: <b class="{'top' if n_ganho else ''}">{n_ganho}</b> <span class="cinza">({tx_venda:.0f}% dos leads)</span></span>
   <span class="badge">aguardando assinatura: <b>{n_assin}</b> <span class="cinza">{('(' + brl(v_assin) + ', contrato enviado)') if n_assin else ''}</span></span>
 </div>
@@ -605,7 +664,10 @@ for idx, nome in enumerate(nomes_ativos):
   <span class="badge">ROAS: <b>{(f'{roas_ad:.1f}x') if roas_ad else '-'}</b></span>
 </div>
 <div class="legenda">Vida do criativo: {ddmm(nasceu)} a {ddmm(ontem)} · gasto total {brl(a['sp'])}.
-CPL real, CAC e ROAS usam a janela creditável (19/07 em diante), porque antes disso o lead não guardava o criativo.</div>"""
+CPL real, CAC e ROAS usam a janela creditável (19/07 em diante), porque antes disso o lead não guardava o criativo.
+<br>CPL de perfil = mesmo gasto dividido só pelos cadastros que declararam de R$ 100 mil a R$ 1 milhão de faturamento.
+Régua (Rodrigo, 24/09): 💚 abaixo de R$ 120 · 🟢 R$ 120 a 170 · 🟡 R$ 170 a 260 · 🔴 acima de R$ 260. Base mínima para veredito: {PERFIL_BASE_MIN} cadastros de perfil.
+Ela julga o TOPO, nunca sozinha: o A40 teve 65% de perfil, CPL de perfil de R$ 89 e 17 sessões, e nenhuma venda.</div>"""
 
     # ---------- ANALISE DO CRIATIVO (fecha o cartao, no lugar do grafico)
     # Leitura deterministica: cada frase sai de um numero da propria tabela.

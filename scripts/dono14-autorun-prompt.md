@@ -95,6 +95,27 @@ A semana de 31/08 a 06/09 fechou em **6,8%** (10 em 146). Isso fica a 1,84 sigma
 
 **Nao tratar a taxa de UM dia como sinal.** Com 20 visitas por dia, um dia de 5% e um dia de 15% sao ambos normais. So a semana fechada tem tamanho para julgar.
 
+## CPL de perfil: a régua de topo adotada em 24/09/2026
+
+A partir de 24/09/2026 (decisão do Rodrigo), todo julgamento de criativo usa uma **escada de três degraus**, nesta ordem. Nunca pular degrau e nunca declarar vencedor pelo primeiro sozinho.
+
+1. **CPL de perfil** julga o TOPO. Gasto do criativo dividido só pelos cadastros que declararam de **R$ 100 mil a R$ 1 milhão** de faturamento. Régua: 💚 abaixo de R$ 120 · 🟢 R$ 120 a 170 · 🟡 R$ 170 a 260 · 🔴 acima de R$ 260.
+2. **Sessão sobre cadastro de perfil** julga o MEIO. Foi onde o A47 (67%) se separou do A48 (0%).
+3. **CAC real** julga o FUNDO, e segue sendo o único juiz de venda.
+
+**Por que existe.** Das 9 vendas, as 5 com formulário preenchido declararam R$ 130 mil ou mais. Das Sessões agendadas, 38 vieram de quem declarou R$ 100 mil ou mais e só 4 de baixo disso.
+
+**O que ela NÃO faz.** O A40 fechou com 65% de perfil, CPL de perfil de R$ 89 (o melhor da conta) e 17 Sessões, e não vendeu nada. Ela não separa quem compra. Nunca usar sozinha.
+
+**Higiene obrigatória (sem isso o número mente):**
+- Cadastro falso não conta (`cadastros-falsos.json`; os falsos já saem de `contact_submissions`, o arquivo cobre o evento que sobra).
+- Reentrada conta no criativo CORRIGIDO (`reatribuicoes.json`), nunca no gravado.
+- Faturamento declarado **acima de R$ 1 milhão não entra como perfil** até o SDR confirmar. Já apareceu duas vezes em cadastro aleatório (R$ 5.154.000 em 25/08 e R$ 5.000.000 da Edvirgens em 20/09, os dois em perdido).
+
+**Base mínima para veredito: 5 cadastros de perfil** (cerca de R$ 700 gastos). Abaixo disso o script marca "sem veredito" e a leitura reporta o número sem concluir.
+
+A régua oficial está em `meus-produtos/dono-14/trafego/reguas-criativos.md` e o cálculo já sai pronto no `dono14-analise-profunda.py`. **Ler do arquivo, nunca de memória.**
+
 ## Passo 3. Clarity
 Rode `py -3 scripts/dono14-clarity.py` (Data Export API direto, token no .env; devolve sessões, scroll médio, tempo ativo e dead/rage clicks por URL do último dia). **UMA execução só: a API aceita no máximo 10 chamadas/dia.** Use o resultado para o placar de engajamento das páginas da Sessão.
 
