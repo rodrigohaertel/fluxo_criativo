@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Autorização única da conta Google (YouTube Analytics, YouTube Data e Google Ads).
+"""Autorização única da conta Google (YouTube Analytics, YouTube Data, envio de Shorts e Google Ads).
 
 Lê GOOGLE_OAUTH_CLIENT_ID e GOOGLE_OAUTH_CLIENT_SECRET do .env, abre o navegador
 para o dono da conta autorizar e grava GOOGLE_OAUTH_REFRESH_TOKEN no .env.
@@ -21,6 +21,10 @@ REDIRECT_URI = f"http://127.0.0.1:{PORTA}/"
 ESCOPOS = [
     "https://www.googleapis.com/auth/yt-analytics.readonly",
     "https://www.googleapis.com/auth/youtube.readonly",
+    # Envio de vídeos (Shorts) pela rotina de publicação
+    "https://www.googleapis.com/auth/youtube.upload",
+    # Editar título, descrição e agendamento de vídeos já enviados
+    "https://www.googleapis.com/auth/youtube.force-ssl",
     "https://www.googleapis.com/auth/adwords",
 ]
 

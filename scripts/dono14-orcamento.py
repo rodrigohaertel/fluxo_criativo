@@ -35,6 +35,16 @@ PLANO_POR_DATA = [
     ("2026-10-03", 140.00, "A47 R$ 100 + A39 R$ 40 (fim dos testes do A48 e A49)"),
 ]
 
+# Divisao esperada POR CONJUNTO, a partir da data em que passou a valer.
+# Existe porque o total sozinho engana: em 26/09 a conta virou A39 R$ 80 + A47 R$ 60
+# + A49 R$ 60, que soma os mesmos R$ 200 do plano e o script dizia "APLICADO" por
+# tres dias seguidos enquanto as duas ancoras estavam com o orcamento TROCADO.
+COMPOSICAO_POR_DATA = [
+    ("2026-09-19", {"A47": 100.0, "A39": 40.0, "A48": 60.0}),
+    ("2026-09-26", {"A47": 100.0, "A39": 40.0, "A49": 60.0}),
+    ("2026-10-03", {"A47": 100.0, "A39": 40.0}),
+]
+
 
 def token():
     for linha in (Path(__file__).resolve().parent.parent / ".env").read_text(encoding="utf-8").splitlines():
@@ -87,6 +97,7 @@ def venceu(s):
 
 
 total = 0.0
+real_por_ad = {}
 encerrados = []
 agendados = []
 for s in sorted(dados, key=lambda x: x.get("name", "")):
@@ -101,6 +112,10 @@ for s in sorted(dados, key=lambda x: x.get("name", "")):
         agendados.append((nome, orc, quando(s, "start_time")))
         continue
     total += orc
+    for _sigla in ("A39", "A40", "A47", "A48", "A49"):
+        if nome.startswith(_sigla):
+            real_por_ad[_sigla] = real_por_ad.get(_sigla, 0.0) + orc
+            break
     fim = s.get("end_time")
     if fim:
         try:
@@ -126,8 +141,22 @@ hoje_iso = AGORA.strftime("%Y-%m-%d")
 vigente = [x for x in PLANO_POR_DATA if x[0] <= hoje_iso] or [PLANO_POR_DATA[0]]
 desde, PLANO_ATUAL, composicao = vigente[-1]
 print(f"  PLANO COMBINADO: R$ {PLANO_ATUAL:.2f}/dia   (desde {desde[8:10]}/{desde[5:7]}: {composicao})")
-if abs(total - PLANO_ATUAL) < 1:
-    print("  STATUS: APLICADO. Comparar o gasto do dia com este valor.")
-else:
-    print(f"  STATUS: DIVERGENTE (conta em R$ {total:.0f}, plano R$ {PLANO_ATUAL:.0f}).")
+vig_c = [x for x in COMPOSICAO_POR_DATA if x[0] <= hoje_iso]
+esperado = vig_c[-1][1] if vig_c else {}
+divergem = []
+for sigla in sorted(set(esperado) | set(real_por_ad)):
+    quer, tem = esperado.get(sigla, 0.0), real_por_ad.get(sigla, 0.0)
+    if abs(quer - tem) >= 1:
+        divergem.append((sigla, quer, tem))
+
+if abs(total - PLANO_ATUAL) >= 1:
+    print(f"  STATUS: DIVERGENTE NO TOTAL (conta em R$ {total:.0f}, plano R$ {PLANO_ATUAL:.0f}).")
     print("  Registrar no marcador e comparar o gasto com o valor REAL da conta.")
+elif divergem:
+    # O total bate e a divisao nao. Este ramo existe desde 29/09/2026: sem ele o
+    # script dizia APLICADO com as ancoras trocadas.
+    print("  STATUS: TOTAL BATE, DIVISAO DIVERGENTE. Conferir se foi decisao do Rodrigo.")
+    for sigla, quer, tem in divergem:
+        print(f"    {sigla}: plano R$ {quer:.0f}/dia, conta R$ {tem:.0f}/dia")
+else:
+    print("  STATUS: APLICADO (total e divisao). Comparar o gasto do dia com este valor.")
