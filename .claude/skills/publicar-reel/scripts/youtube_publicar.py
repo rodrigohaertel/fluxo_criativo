@@ -106,7 +106,7 @@ def main() -> None:
 
     if capa:
         arquivo, tipo = capa, "image/png" if capa.suffix.lower() == ".png" else "image/jpeg"
-        if capa.stat().st_size > 2_000_000:
+        if capa.stat().st_size > 8_000_000:
             arquivo = Path(tempfile.gettempdir()) / f"capa_{d['codigo']}.jpg"
             subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(capa), "-q:v", "3", str(arquivo)], check=True)
             tipo = "image/jpeg"

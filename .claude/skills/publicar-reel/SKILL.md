@@ -84,6 +84,8 @@ py -3 .claude/skills/publicar-reel/scripts/youtube_publicar.py R018 "2026-10-02 
 
 Rode com `run_in_background: true`. Sem `--enviar`, o script só mostra a prévia. Ao terminar, guarde `VIDEO_ID` e o link. Se a descrição tiver sido ajustada no Passo 3, edite o texto no HTML do Reel antes de rodar (o script lê do HTML).
 
+**Capa de Short (obrigatório quando o formato é `short`):** a API só preenche a miniatura horizontal. A miniatura vertical do Short só entra pelo Studio. Depois do envio, abra no Chrome `https://studio.youtube.com/video/{VIDEO_ID}/edit`, use `find` para achar o campo de arquivo da seção Miniatura, envie a capa em PNG com `file_upload`, clique em **Salvar** e confirme o aviso "Alterações salvas". Em vídeo normal (acima de 3 min) a capa da API basta.
+
 Se o YouTube devolver o vídeo como "bloqueado/privado" por app não verificado, avise o Rodrigo. No teste do R017 isso **não** aconteceu.
 
 ## Passo 5. Instagram + Facebook pelo Planner

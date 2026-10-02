@@ -32,7 +32,8 @@ PLANO_POR_DATA = [
     ("2026-09-18", 140.00, "A47 sozinho a R$ 100 (sem data de fim) + A39 a R$ 40"),
     ("2026-09-19", 200.00, "A47 R$ 100 + A39 R$ 40 + A48 R$ 60 (teste do A48 de 19/09 a 25/09)"),
     ("2026-09-26", 200.00, "A47 R$ 100 + A39 R$ 40 + A49 R$ 60 (teste do A49 de 26/09 a 02/10)"),
-    ("2026-10-03", 140.00, "A47 R$ 100 + A39 R$ 40 (fim dos testes do A48 e A49)"),
+    ("2026-09-30", 160.00, "A39 R$ 100 + A47 R$ 60 (Rodrigo aposentou o A49 em 30/09 as 11h34, "
+                           "dois dias antes do fim da janela, e remanejou a verba as 23h35)"),
 ]
 
 # Divisao esperada POR CONJUNTO, a partir da data em que passou a valer.
@@ -42,7 +43,11 @@ PLANO_POR_DATA = [
 COMPOSICAO_POR_DATA = [
     ("2026-09-19", {"A47": 100.0, "A39": 40.0, "A48": 60.0}),
     ("2026-09-26", {"A47": 100.0, "A39": 40.0, "A49": 60.0}),
-    ("2026-10-03", {"A47": 100.0, "A39": 40.0}),
+    # 30/09: conferido no registro de atividades da conta. As 11h34 o Rodrigo pausou o
+    # conjunto e o anuncio do A49 e baixou o A47 para R$ 40; as 11h40 pausou os conjuntos
+    # ja vencidos (A43, A44 e A48); as 23h35 subiu o A47 para R$ 60 e o A39 para R$ 100.
+    # O A39 virou a ancora principal, que e o que os dados de perfil pediam.
+    ("2026-09-30", {"A39": 100.0, "A47": 60.0}),
 ]
 
 

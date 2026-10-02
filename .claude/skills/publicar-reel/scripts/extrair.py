@@ -33,7 +33,7 @@ RODAPE_YT = (
 )
 LIMITE_SHORT = 180      # segundos, limite do YouTube Shorts
 LIMITE_FB_API = 90      # segundos, limite da API de Reels do Facebook
-LIMITE_CAPA_YT = 2_000_000  # bytes, limite da miniatura do YouTube
+LIMITE_CAPA_YT = 8_000_000  # bytes; PNG de 2,8 MB passou direto em 02/10/2026
 
 
 def achar_pasta(alvo: str) -> Path:
@@ -98,7 +98,7 @@ def main() -> None:
     if not capa:
         alertas.append("Nenhuma imagem de capa (arquivo com 'capa' no nome) na pasta.")
     elif capa.stat().st_size > LIMITE_CAPA_YT:
-        alertas.append("Capa acima de 2 MB: o script do YouTube converte para JPG antes de enviar.")
+        alertas.append("Capa acima de 8 MB: o script do YouTube converte para JPG antes de enviar.")
 
     htmls = list(pasta.glob("Reels_*.html"))
     if not htmls:
