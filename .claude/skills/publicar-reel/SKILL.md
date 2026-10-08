@@ -40,6 +40,8 @@ py -3 .claude/skills/publicar-reel/scripts/extrair.py R018
 
 Devolve JSON com vídeo, capa, duração, formato do YouTube (short até 3 min, normal acima), legenda, título e descrição do YouTube **já no padrão** (cabeçalho da Sessão + rodapé de redes, ver memória `youtube-descricao-padrao`) e `alertas`.
 
+**Dois formatos (aula de quarta, desde 07/10/2026):** quando a pasta tem um vídeo horizontal (16:9) e um vertical (9:16), o `extrair.py` separa sozinho. `youtube_video` e `youtube_capa` são o horizontal com a capa 16:9 (vai ao YouTube como vídeo normal, nunca Short), e `video` e `capa` são o vertical (Instagram + Facebook). Arquivo com "bruta" ou "bruto" no nome é ignorado. Na ficha, mostre os dois vídeos e as duas capas, cada um no seu canal, e no Passo 5 peça ao Rodrigo o **vertical** e a capa **vertical**, avisando para não pegar o horizontal.
+
 Se faltar vídeo, capa ou HTML, pare e diga ao Rodrigo o que falta na pasta. Não publique sem capa sem perguntar.
 
 ## Passo 3. Ficha de confirmação (obrigatória, uma vez só)
@@ -94,7 +96,7 @@ Carregue as ferramentas do Chrome em uma chamada ToolSearch (`tabs_context_mcp, 
 
 1. Abra `https://business.facebook.com/latest/content_calendar`.
 2. Clique na **seta ao lado de "Criar post"** (canto superior direito) → **"Criar reel"**. Confira que "Postar em" mostra **Rodrigo Haertel e rodrigohaertel**.
-3. Clique no campo **Texto** e digite a legenda completa (a do JSON).
+3. Tire um screenshot, clique no campo **Texto pela coordenada** (clicar pela referência do `find` nem sempre dá foco) e digite a legenda completa (a do JSON). **Confira com `javascript_tool`** que o campo `[contenteditable=true]` ficou com o tamanho e o final esperados. Se estiver vazio, clique de novo no campo e redigite. Não aperte Escape depois de digitar.
 4. Peça ao Rodrigo, em uma mensagem só, com os dois caminhos completos:
    *"No Planner: (1) clique em Adicionar vídeo e escolha {caminho do vídeo}; (2) quando carregar, em Miniatura → Carregar imagem, escolha {caminho da capa}. Não clique em Avançar. Me avise com 'pronto'."* Espere.
 5. **Capa: quem escolhe é o Rodrigo, sempre.** Nunca anexe a capa pelo Chrome (interceptar o campo de arquivo com JavaScript). Em 29/09 (R017) e 02/10 (R018) a capa anexada assim apareceu na tela como aplicada, mas a Meta não gravou, e o post do Instagram programado **não deixa editar a capa depois**: foi preciso refazer. Depois do "pronto", confira no screenshot que a **prévia grande à direita mostra a capa** (e não um quadro do vídeo). Se mostrar quadro do vídeo, peça para ele escolher a capa de novo antes de avançar.
@@ -103,6 +105,7 @@ Carregue as ferramentas do Chrome em uma chamada ToolSearch (`tabs_context_mcp, 
 8. Em **Opções de programação**, clique em **Programar**. Para Facebook e Instagram: clique na data e escolha o dia no calendário, depois use `find` ("hour and minute spinbutton") e digite hora e minuto em cada spinbutton. Confira com `zoom` que os dois mostram a data e a hora certas.
 9. Confira com `javascript_tool` que: horas = hora combinada nos dois canais, remix "Não permitir" marcado e legendas ocultas desmarcadas. **Não clique em "Compartilhar"**, que publica na hora.
 10. Clique em **Programar** (o botão azul no rodapé). A ficha do Passo 3 já foi aprovada, então não pergunte de novo, **a menos que algo tenha mudado** (data, capa ou configuração diferente da ficha).
+    **Vídeo longo (acima de uns 3 min):** depois do clique, a Meta pode abrir a tela "Criar playlist de reels", oferecendo cortar o vídeo em vários clipes de 30 s. O Reel principal já foi programado ("Seu reel está sendo processado"). Clique em **"Pular"** no aviso. **Nunca clique em "Publicar" nem em "Ver playlist"** nessa tela: publicaria os clipes.
 11. Volte ao Planner e confirme que aparecem **dois cards** no dia e na hora combinados (ícone do Facebook e do Instagram). A miniatura do card é um quadro do vídeo, não a capa, e isso é normal. **Não clique em espaço vazio do calendário**, porque isso abre um post novo em branco.
 
 ## Encerramento

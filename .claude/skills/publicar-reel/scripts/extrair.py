@@ -57,7 +57,9 @@ def texto_de(bloco: str) -> str:
     paragrafos = re.findall(r"<p[^>]*>(.*?)</p>", bloco, flags=re.S)
     saida = []
     for p in paragrafos:
-        p = re.sub(r"<br\s*/?>", "\n", p)
+        # Quebra de linha do código-fonte não é quebra de texto: só o <br> vale
+        p = re.sub(r"\s+", " ", p)
+        p = re.sub(r"\s*<br\s*/?>\s*", "\n", p)
         p = re.sub(r"<[^>]+>", "", p)
         p = html.unescape(p).strip()
         p = re.sub(r"[ \t]+", " ", p)
@@ -77,6 +79,16 @@ def duracao(video: Path) -> float:
     return float(r.stdout.strip() or 0)
 
 
+def dimensoes(arquivo: Path):
+    r = subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries",
+                        "stream=width,height", "-of", "csv=p=0", str(arquivo)], capture_output=True, text=True)
+    try:
+        w, h = r.stdout.strip().split(",")[:2]
+        return int(w), int(h)
+    except ValueError:
+        return 0, 0
+
+
 def main() -> None:
     if hasattr(sys.stdout, "reconfigure"):
         sys.stdout.reconfigure(encoding="utf-8")
@@ -85,20 +97,35 @@ def main() -> None:
     pasta = achar_pasta(sys.argv[1])
     alertas = []
 
-    videos = sorted(pasta.glob("*.mp4"), key=lambda f: f.stat().st_size, reverse=True)
-    if not videos:
-        raise SystemExit(f"Nenhum .mp4 na pasta {pasta}")
-    video = videos[0]
-    if len(videos) > 1:
-        alertas.append(f"Mais de um .mp4 na pasta; usei o maior: {video.name}")
+    # Material bruto não é vídeo final
+    todos = [f for f in pasta.glob("*.mp4") if not re.search(r"brut[ao]", f.name, re.I)]
+    if not todos:
+        raise SystemExit(f"Nenhum .mp4 final na pasta {pasta}")
+    por_tamanho = lambda fs: sorted(fs, key=lambda f: f.stat().st_size, reverse=True)
+    dims = {f: dimensoes(f) for f in todos}
+    verticais = por_tamanho([f for f in todos if dims[f][1] > dims[f][0]])
+    horizontais = por_tamanho([f for f in todos if dims[f][0] > dims[f][1]])
+    video = (verticais or por_tamanho(todos))[0]          # Instagram + Facebook
+    video_h = horizontais[0] if horizontais else None      # YouTube, quando existir
+    if len(verticais) > 1:
+        alertas.append(f"Mais de um vídeo vertical na pasta; usei o maior: {video.name}")
+    if len(horizontais) > 1:
+        alertas.append(f"Mais de um vídeo horizontal na pasta; usei o maior: {video_h.name}")
 
     capas = [f for f in pasta.iterdir()
              if f.suffix.lower() in (".png", ".jpg", ".jpeg") and re.search(r"capa", f.name, re.I)]
-    capa = sorted(capas, key=lambda f: f.stat().st_mtime, reverse=True)[0] if capas else None
+    recentes = lambda fs: sorted(fs, key=lambda f: f.stat().st_mtime, reverse=True)
+    cdims = {f: dimensoes(f) for f in capas}
+    capas_v = recentes([f for f in capas if cdims[f][1] >= cdims[f][0]])
+    capas_h = recentes([f for f in capas if cdims[f][0] > cdims[f][1]])
+    capa = capas_v[0] if capas_v else None                 # capa vertical (Meta e Short)
+    capa_h = capas_h[0] if capas_h else None               # capa 16:9 (YouTube horizontal)
     if not capa:
-        alertas.append("Nenhuma imagem de capa (arquivo com 'capa' no nome) na pasta.")
-    elif capa.stat().st_size > LIMITE_CAPA_YT:
-        alertas.append("Capa acima de 8 MB: o script do YouTube converte para JPG antes de enviar.")
+        alertas.append("Nenhuma capa vertical (arquivo com 'capa' no nome) na pasta.")
+    if len(capas_v) > 1:
+        alertas.append(f"Mais de uma capa vertical; usei a mais recente: {capa.name}")
+    if video_h and not capa_h:
+        alertas.append("Há vídeo horizontal, mas nenhuma capa horizontal (16:9) na pasta.")
 
     htmls = list(pasta.glob("Reels_*.html"))
     if not htmls:
@@ -124,10 +151,12 @@ def main() -> None:
         alertas.append("Título ou descrição do YouTube (seção 5) não encontrados no HTML.")
 
     seg = duracao(video)
-    formato_yt = "short" if seg <= LIMITE_SHORT else "normal"
+    seg_yt = duracao(video_h) if video_h else seg
+    # Vídeo horizontal nunca é Short, mesmo curto
+    formato_yt = "normal" if (video_h or seg_yt > LIMITE_SHORT) else "short"
     if formato_yt == "normal" and "#shorts" in titulo.lower():
         titulo = re.sub(r"\s*#shorts", "", titulo, flags=re.I).strip()
-        alertas.append("Vídeo acima de 3 min: tirei o #Shorts do título, entra como vídeo normal.")
+        alertas.append("Tirei o #Shorts do título: no YouTube entra como vídeo normal.")
     if formato_yt == "normal":
         corpo = re.sub(r"(^|\s)#shorts\b\s?", r"\1", corpo, flags=re.I)
 
@@ -153,6 +182,10 @@ def main() -> None:
         "duracao_s": round(seg, 1),
         "duracao": f"{int(seg // 60)}min{int(seg % 60):02d}",
         "capa": str(capa) if capa else None,
+        "youtube_video": str(video_h or video),
+        "youtube_video_mb": round((video_h or video).stat().st_size / 1e6),
+        "youtube_orientacao": "horizontal" if video_h else "vertical",
+        "youtube_capa": str(capa_h or capa) if (capa_h or capa) else None,
         "formato_youtube": formato_yt,
         "facebook_reel_pela_api": seg <= LIMITE_FB_API,
         "legenda": legenda,

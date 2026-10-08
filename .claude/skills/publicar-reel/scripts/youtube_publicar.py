@@ -54,7 +54,9 @@ def main() -> None:
     if r.returncode != 0:
         raise SystemExit(r.stderr or r.stdout)
     d = json.loads(r.stdout)
-    video, capa = Path(d["video"]), Path(d["capa"]) if d["capa"] else None
+    # No YouTube vai o horizontal com a capa 16:9 quando a pasta tiver; senão, o vertical
+    video = Path(d["youtube_video"])
+    capa = Path(d["youtube_capa"]) if d["youtube_capa"] else None
 
     meta = {
         "snippet": {"title": d["youtube_titulo"], "description": d["youtube_descricao"], "categoryId": "27",
@@ -64,7 +66,7 @@ def main() -> None:
                    "selfDeclaredMadeForKids": False, "embeddable": True},
     }
     if not enviar:
-        print(json.dumps({"previa": True, "formato": d["formato_youtube"], "video": video.name,
+        print(json.dumps({"previa": True, "formato": d["formato_youtube"], "orientacao": d["youtube_orientacao"], "video": video.name,
                           "capa": capa.name if capa else None, "agendado_brasilia": sys.argv[2], **meta},
                          ensure_ascii=False, indent=2))
         return
