@@ -30,6 +30,7 @@
 | Gerar Argumentos Incontestáveis | cerca de 45 segundos | segundos |
 | Gerar Identidade do Comunicador | cerca de 45 segundos | segundos |
 | Gerar 50 ideias de produto | cerca de 60 segundos | segundos |
+| Gerar o resumo do produto (resumo-produto.md) | cerca de 60 segundos | segundos |
 
 ---
 
@@ -40,9 +41,13 @@
 | Gerar página de vendas HTML (11 seções, estrutura 8D) | 3 a 5 minutos | minutos |
 | Gerar página de captura HTML | 2 a 3 minutos | minutos |
 | Gerar página de obrigado HTML | cerca de 90 segundos | segundos |
+| Página low ticket, Etapa 1 (promessa, 7 aberturas e tabela de testes) | 2 a 3 minutos | minutos |
+| Página low ticket, Etapa 2 (copy completa) | 3 a 5 minutos | minutos |
+| Página low ticket, Etapa 3 (prompt do Lovable) | 2 a 3 minutos | minutos |
 | Gerar copy de anúncio (18 tipos, Mandala) | 2 a 3 minutos | minutos |
 | Gerar sequência de emails (5 a 7 emails) | 2 a 3 minutos | minutos |
 | Gerar carrossel (10 slides) | cerca de 60 segundos | segundos |
+| Gerar 110 bullets (11 técnicas, com os 10 quentes) | 3 a 5 minutos | minutos |
 
 ---
 
@@ -87,6 +92,8 @@
 | Dashboard Instagram (download + HTML) | 3 a 5 minutos | minutos |
 | Dashboard TikTok (download + HTML) | 3 a 5 minutos | minutos |
 | Dashboard YouTube (download + HTML) | 3 a 5 minutos | minutos |
+| Dashboard de tráfego ao vivo (montar e publicar o artefato com o MCP da Meta) | 3 a 5 minutos | minutos |
+| Ajustar o dashboard de tráfego ao vivo (editar e publicar de novo) | cerca de 90 segundos | segundos |
 
 ---
 

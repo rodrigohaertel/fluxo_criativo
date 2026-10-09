@@ -13,6 +13,8 @@ Este projeto é o **Workshop Marketing IA**: um assistente de marketing digital,
 5. Quando o comando apontar skills ou referências, leia somente os arquivos necessários em `.claude/skills/`.
 6. Se houver conflito entre `CLAUDE.md`, uma skill e um command, prefira o command específico lido para a tarefa atual. Se o conflito afetar arquitetura, script ou risco de sobrescrita, avise o usuário antes de seguir.
 
+As pastas `.agents/` e `.codex/` são geradas a partir de `.claude/` por `scripts/exportar-para-codex.py`. Nunca edite essas pastas: altere o original em `.claude/` e rode o script de novo.
+
 No Codex, este repositório está em **Modo Codex**. Slash commands do Claude Code não executam automaticamente. Pedido como `/copy-pagina`, `copy-pagina`, `segue o comando copy-pagina` ou `quero ajustar a página` deve ser interpretado como: abrir o arquivo em `.claude/commands/` e executar o roteiro manualmente.
 
 ## Papel do Agente
@@ -211,11 +213,12 @@ Antes de criar, editar ou salvar qualquer entrega de produto:
 
 1. Leia `meus-produtos/.ativo`.
 2. Use o slug encontrado como base: `meus-produtos/{ativo}/`.
-3. Leia `meus-produtos/{ativo}/perfil.md`, se existir.
+3. Leia `meus-produtos/{ativo}/resumo-produto.md`, sem conferir antes se ele existe. É o contexto padrão de toda entrega, no lugar de `perfil.md`, `idconsumidor.md` e `pesquisa-mercado.md` inteiros. Se não for encontrado e o `perfil.md` tiver o Quadro preenchido, gere o resumo com o agente `gerador-resumo-produto` (modelo em `.claude/skills/resumo-produto/SKILL.md`) e leia o que ele gravar. Se não puder acionar o agente, gere o resumo você mesmo seguindo a seção 3 desse modelo e grave no mesmo caminho. Para um detalhe que o resumo não tem, leia só a seção indicada na tabela "Onde está o detalhe completo", no fim do resumo.
 4. Leia `meus-produtos/{ativo}/tipo.md`, se existir.
 5. Leia `meus-produtos/{ativo}/preco.md`, se existir.
-6. Leia `meus-produtos/{ativo}/idconsumidor.md`, se existir.
-7. Leia arquivos específicos da entrega atual, se existirem.
+6. Leia arquivos específicos da entrega atual, se existirem.
+
+Quem escreve, revisa ou gera a concepção (`produto-concepcao`, `gerar-furadeira`, `furadeira-visual`, `produto-zerar`, revisores e geradores) continua lendo os arquivos originais. Ao gravar `perfil.md`, `idconsumidor.md` ou `pesquisa-mercado.md`, apague o `resumo-produto.md` do produto (o hook `resumo-invalidar.js` faz isso sozinho quando está ativo); ele é gerado de novo na próxima entrega.
 
 Se `meus-produtos/.ativo` não existir ou estiver vazio:
 
@@ -240,6 +243,7 @@ meus-produtos/{slug}/tipo.md
 meus-produtos/{slug}/preco.md
 meus-produtos/{slug}/idconsumidor.md
 meus-produtos/{slug}/pesquisa-mercado.md
+meus-produtos/{slug}/resumo-produto.md
 meus-produtos/{slug}/nome.txt
 meus-produtos/{slug}/painel-entregas.html
 ```
@@ -303,7 +307,7 @@ Nunca dependa do caractere `/` funcionar como atalho interno no Codex.
 
 Use esta sequência quando o command não disser algo diferente:
 
-1. **Contexto:** ler produto ativo, `perfil.md`, `tipo.md`, `preco.md` e `idconsumidor.md`.
+1. **Contexto:** ler produto ativo, `resumo-produto.md` (gerar se não existir), `tipo.md` e `preco.md`.
 2. **Entrevista:** fazer somente as perguntas faltantes, de preferência uma por vez.
 3. **Confirmação:** resumir o que será criado e pedir OK, salvo quando o usuário pediu modo direto.
 4. **Geração:** criar o material usando a metodologia do command.
@@ -654,6 +658,7 @@ Quando o usuário pedir "o que posso fazer", "quais comandos existem" ou quando 
 - `/copy-pagina`: criar copy completa e, conforme o fluxo atual, encaminhar página HTML.
 - `/copy-anuncio`: criar anúncios para Meta Ads com Mandala da Criatividade.
 - `/copy-roteiro`: criar roteiro de vendas ou conteúdo.
+- `/copy-bullets`: gerar 110 bullets do produto nas 11 técnicas, salvos para as páginas reaproveitarem.
 - `/copy-social`: criar conteúdo para redes sociais.
 - `/copy-variacao-post`: criar variações de um post.
 - `/elementos-literarios`: aplicar 1 a 3 elementos literários em uma peça.
@@ -668,7 +673,7 @@ Quando o usuário pedir "o que posso fazer", "quais comandos existem" ou quando 
 - `/lt-funil`: criar funil low ticket.
 - `/lt-criar-produto`: criar conteúdo real do produto digital.
 - `/lt-quiz`: gerar perguntas de quiz.
-- `/lt-pagina`: gerar página ou leads low ticket conforme o command.
+- `/lt-pagina`: criar a página de vendas low ticket pela régua v16 (7 aberturas, copy completa e prompt para o Lovable).
 - `/lt-otimizar`: analisar planilha ou campanhas low ticket.
 
 ### Tráfego Pago
@@ -678,6 +683,7 @@ Quando o usuário pedir "o que posso fazer", "quais comandos existem" ou quando 
 - `/trafego-criar-campanha`: criar campanha via Marketing API.
 - `/trafego-otimizar`: diagnosticar e otimizar campanhas.
 - `/trafego-analise`: análise narrada VTSD em outputs.
+- `/trafego-dashboard`: abrir ou criar o dashboard de tráfego. O ao vivo é um artefato do Claude e não roda no Codex; aqui, siga o dashboard estático (legado) do command.
 
 ### Dados e Automações
 
@@ -718,7 +724,7 @@ Quando o usuário pedir "o que posso fazer", "quais comandos existem" ou quando 
 ### Feedback
 
 - `/feedback-pagina`: corrigir e otimizar página de vendas existente.
-- `/feedback-low-ticket`: corrigir página low ticket.
+- `/feedback-low-ticket`: corrigir página low ticket pela régua v16.
 
 ### Toolkit
 
@@ -907,6 +913,7 @@ Skills que herdam essa regra:
 - `/trafego-criar-campanha`.
 - `/trafego-otimizar`.
 - `/trafego-analise`.
+- `/trafego-dashboard`.
 
 Commands legados como `/ads-relatorio`, `/enviar-relatorio-ads` e `/lt-otimizar` podem usar variáveis próprias. Leia o command antes de assumir o padrão novo.
 

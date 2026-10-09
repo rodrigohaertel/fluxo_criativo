@@ -17,7 +17,7 @@ Esta skill **narra**, não executa edição. Quando a análise sugere ação, fa
 ## Passo 0. Contexto e conexão Meta
 
 ### 0.1 Produto ativo
-Ler `meus-produtos/.ativo` e `meus-produtos/{ativo}/perfil.md`.
+Ler `meus-produtos/.ativo` e `meus-produtos/{ativo}/resumo-produto.md` (resumo do produto; se não existir, gerar conforme "Contexto Persistente do Negócio" no CLAUDE.md).
 
 ### 0.2 Conexão Meta (gate duro)
 Ler `META_AUTH_MODO` no `.env`.
@@ -278,20 +278,24 @@ Todo sub-skill entrega obrigatoriamente:
 
 ---
 
-## Passo 6. Export HTML (opcional)
+## Passo 6. Dashboard (opcional)
 
 Após entregar a análise narrada, perguntar:
 
 ```
-Quer salvar essa análise como HTML pra revisitar depois? (s/n)
+Quer ver seus números no dashboard? (s/n)
+```
 
-⚠️ Snapshot: o HTML é uma fotografia dos dados deste momento.
+Se `s`: seguir o fluxo do `/trafego-dashboard` (`.claude/commands/trafego-dashboard.md`) a partir do Passo 1. Se o aluno já tem dashboard ao vivo, entrega o link; se não tem, cria (com o conector MCP da Meta).
+
+Quando o caminho for o legado (sem MCP), o dashboard estático é a fotografia desta análise. Avisar antes:
+
+```
+⚠️ Fotografia: o dashboard estático mostra os dados deste momento.
    Métricas mudam, e o arquivo NÃO atualiza sozinho.
 ```
 
-Se `s`: acionar `.claude/skills/trafego-analise/sub-skills/_export-html.md`.
-Salvar em `meus-produtos/{ativo}/trafego/analise/{slug-output}-{YYYY-MM-DD-HHMM}.html`.
-Devolver caminho absoluto.
+Então acionar `.claude/skills/trafego-analise/sub-skills/_export-html.md`, salvar em `meus-produtos/{ativo}/trafego/analise/{slug-output}-{YYYY-MM-DD-HHMM}.html` e devolver o caminho absoluto.
 
 ---
 

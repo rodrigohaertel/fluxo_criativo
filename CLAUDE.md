@@ -465,16 +465,25 @@ A skill **nunca prossegue** sem essa validação passar.
 
 ### Skills que herdam essa regra
 
-Todos os 4 commands `/trafego-*` invocáveis pelo usuário:
+Todos os 5 commands `/trafego-*` invocáveis pelo usuário:
 - `/trafego-insights`. Leitura de métricas (com cache local em arquivo .md).
 - `/trafego-criar-campanha`. Criação de campanha via Marketing API.
 - `/trafego-otimizar`. Diagnóstico e otimização. Inclui ações em lote por filtro.
 - `/trafego-analise`. Análise narrada VTSD em 9 outputs (exceto Modo Demo, que usa dados fictícios).
+- `/trafego-dashboard`. Dashboard ao vivo (artefato do Claude com o conector MCP da Meta) ou, sem MCP, dashboard estático (legado).
 
 **Skill interna (não invocável diretamente pelo usuário):**
 - `trafego-escalar`. Invocada automaticamente por `/trafego-otimizar` quando `sinal_para_escala.pronta: true`.
 
 Os commands legados (`/ads-relatorio`, `/enviar-relatorio-ads`, `/lt-otimizar`) usam variáveis próprias (`RELATORIO_AUTH_MODO=CLI`, `ACCESS_TOKEN`, `AD_ACCOUNT_ID`) e não dependem de `META_AUTH_MODO`. Migração desses commands é tarefa separada.
+
+### Dashboard de tráfego ao vivo
+
+O link do dashboard ao vivo de cada aluno fica salvo em `meus-produtos/dashboard-trafego.md` (nunca neste arquivo). Sempre que o aluno pedir para ver ou abrir o dashboard, o painel de anúncios ou os números da conta num painel ("abre meu dashboard", "cadê meu painel de anúncios"), em qualquer conversa:
+
+1. Ler `meus-produtos/dashboard-trafego.md`.
+2. **Se houver link:** responder "Você já tem um dashboard ativo. Ele está aqui: {link}" e lembrar que dá para clicar em "Atualizar agora". Se o aluno quiser ajustar ou criar outro, seguir o `/trafego-dashboard`.
+3. **Se não houver:** seguir o `/trafego-dashboard`, que procura um dashboard criado em outro lugar e, se não achar, cria um novo.
 
 ### Quando outras skills de tráfego forem criadas no futuro
 
@@ -546,6 +555,7 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 **Copy:**
 - `/copy-pagina`. Criar copy e/ou página HTML profissional (vendas, captura ou obrigado)
 - `/copy-anuncio`. Criar anúncios para Meta Ads (Mandala da Criatividade, 18 tipos)
+- `/copy-bullets`. Gerar 110 bullets do produto nas 11 técnicas (Halbert, Carlton, Bencivenga) e os 10 mais fortes; ficam salvos para as páginas reaproveitarem
 - `/elementos-literarios`. Aplicar 1 a 3 dos 26 elementos literários do Light Copy
 - `/criativo-estatico`. Gerar criativos estáticos para anúncios (prompt para colar em ferramenta externa OU geração automática via API)
 - `/gerar-furadeira`. Gerar a Furadeira (método do produto) no `perfil.md` aplicando uma das 6 mecânicas (Fases, Condicional, Enquadramento, Listas, Empecilhos, Dinâmica de Entrega) escolhida automaticamente conforme o nicho
@@ -557,7 +567,7 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 - `/lt-funil`. Criar produto de entrada low ticket (quiz, desafio, agente GPT)
 - `/lt-criar-produto`. Criar o conteúdo real do produto digital
 - `/lt-quiz`. Gerar perguntas do quiz
-- `/lt-pagina`. Gerar as 4 leads low ticket
+- `/lt-pagina`. Criar a página de vendas low ticket pela régua v16: promessa central, 7 aberturas com ordem de testes, copy completa e prompt para o Lovable montar a página
 - `/lt-otimizar`. Analisar planilha do Gerenciador e otimizar campanhas low ticket
 
 **Tráfego Pago (Meta Ads via API ou MCP):**
@@ -566,6 +576,7 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 - `/trafego-criar-campanha`. Subir campanha nova via Marketing API (PAUSED por padrão, preview YAML obrigatório, gate de pixel ativo). Cobre Sales e Leads
 - `/trafego-otimizar`. Diagnóstico em 2 camadas (tendência + gargalo) para 6 trilhas (perpétuo low/mid/high, lançamento low/mid/high). Quando a campanha está pronta, aciona automaticamente a escala.
 - `/trafego-analise`. Análise narrada VTSD reorganizada em 9 outputs (Diagnóstico Rápido, Performance & Funil, Criativos & Copy com Mandala 18 tipos, Geo & Demografia, Timing & Sazonalidade, Investigação Profunda, Lifecycle & Histórico, Problemas Ocultos, Orçamento & Projeção). Aluno escolhe um output por vez e recebe diagnóstico com handoff para skill executora.
+- `/trafego-dashboard`. Abrir ou criar o dashboard da conta de anúncios com dados ao vivo (artefato do Claude conectado ao MCP da Meta). Se o aluno já tem um, entrega o link. Sem MCP, monta o dashboard estático (legado)
 
 **Dados e Automações:**
 - `/ads-relatorio`. Criar rotina diária automática que busca métricas do Facebook Ads e envia relatório pelo WhatsApp via Z-API. Agente agendado na nuvem do Claude, roda todo dia às 8h sem precisar do computador ligado.
@@ -600,7 +611,7 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 
 **Feedback:**
 - `/feedback-pagina`. Corrigir e otimizar página de vendas existente
-- `/feedback-low-ticket`. Corrigir página low ticket (copy, estrutura, design + gera HTML novo)
+- `/feedback-low-ticket`. Corrigir página low ticket pela régua v16 (copy, estrutura e design; entrega a copy corrigida e um prompt novo para o Lovable)
 
 **Toolkit (projetos estruturados):**
 - `/toolkit-novo`. Iniciar um projeto de marketing estruturado (lançamento, funil completo, reestruturação)
@@ -810,11 +821,19 @@ Este projeto suporta múltiplos produtos. Cada produto tem sua própria pasta co
 **ANTES de executar qualquer comando:**
 
 1. Leia `meus-produtos/.ativo` para saber o produto ativo. Se o arquivo não existir, oriente a usar `/produto-novo` primeiro.
-2. Leia `meus-produtos/{ativo}/perfil.md`. Se não existir, oriente a usar `/produto-concepcao` primeiro.
-3. Leia `meus-produtos/{ativo}/idconsumidor.md` se existir, para entender o público.
+2. Leia `meus-produtos/{ativo}/resumo-produto.md`. **Tente ler direto, sem conferir antes se ele existe.**
+   - **Se não for encontrado** e o `perfil.md` do produto tiver o Quadro preenchido: anuncie `⏳ Preparando o resumo do seu produto (só na primeira vez).`, acione o agente `gerador-resumo-produto` (síncrono) com o slug do produto e leia o resumo que ele gravar. Se você não puder acionar outro agente (ex.: é um sub-agente sem a ferramenta de agentes), gere o resumo você mesmo seguindo o modelo da seção 3 de `.claude/skills/resumo-produto/SKILL.md` e grave no mesmo caminho.
+   - **Se nem o `perfil.md` existir** (ou estiver sem Quadro): oriente a usar `/produto-concepcao` primeiro.
+3. **O resumo é o contexto padrão de toda entrega.** Não leia `perfil.md`, `idconsumidor.md` nem `pesquisa-mercado.md` inteiros. Quando a tarefa precisar de um detalhe que o resumo não tem (os 50 Decorados, as objeções com os 7 argumentos, os baldes "Para quem é", os concorrentes da pesquisa), leia **só a seção indicada** na tabela "Onde está o detalhe completo", no fim do próprio resumo.
 
-O perfil contém: Quadro, Furadeira, Decorados, 3 Identidades, Urgências Ocultas (7 categorias com 10 itens cada), Argumentos Incontestáveis, nicho, público-alvo, preço e diferenciais.
-O arquivo de identidade do consumidor contém: perfil do comprador detalhado, paliativos, objeções de compra, frases que o público diria e tom de comunicação. (Não chamar esse artefato de "persona"; "persona" nos prompts refere-se ao papel do assistente.)
+O resumo traz: produto, tipo e preço, Quadro e Furadeira (literais), identidades do produto e do comunicador, público, as 5 objeções com o argumento mais forte de cada, Argumentos Incontestáveis, as 70 Urgências Ocultas, os Decorados principais e a síntese da pesquisa de mercado. Modelo e regras completas: `.claude/skills/resumo-produto/SKILL.md`.
+
+O resumo nunca fica desatualizado: quando o `perfil.md`, o `idconsumidor.md` ou a `pesquisa-mercado.md` são gravados, o hook `resumo-invalidar.js` apaga o resumo do produto, e ele é gerado de novo na próxima entrega. Ninguém edita o resumo à mão.
+
+**Exceção:** quem escreve, revisa ou gera a concepção (`/produto-concepcao`, `/gerar-furadeira`, `/furadeira-visual`, `/produto-zerar`, revisores, geradores e pesquisa de mercado) e os scripts do painel continuam lendo os arquivos originais.
+
+O perfil (`perfil.md`) contém: Quadro, Furadeira, Decorados, 3 Identidades, Urgências Ocultas (7 categorias com 10 itens cada), Argumentos Incontestáveis, nicho, público-alvo, preço e diferenciais.
+O arquivo de identidade do consumidor (`idconsumidor.md`) contém: perfil do comprador detalhado, paliativos, objeções de compra, frases que o público diria e tom de comunicação. (Não chamar esse artefato de "persona"; "persona" nos prompts refere-se ao papel do assistente.)
 
 ## Onde Salvar Cada Entrega
 
@@ -868,11 +887,21 @@ python3 --version 2>&1 || py -3 --version 2>&1
 
 Use o resultado em todos os comandos Python seguintes da mesma sessão. Nunca assuma `py -3` nem `python3` sem verificar primeiro.
 
+## Pastas Geradas para o Codex (.agents e .codex)
+
+As pastas `.agents/` e `.codex/` existem para o projeto funcionar também no Codex. Elas são geradas a partir de `.claude/` pelo script `scripts/exportar-para-codex.py` e nunca devem ser editadas à mão. Ao criar ou alterar uma skill, um command, um agente ou um hook em `.claude/`, rode o script antes de salvar a mudança no git:
+
+```bash
+python3 scripts/exportar-para-codex.py
+```
+
+Para só conferir se as pastas estão em dia, sem gravar nada, acrescente `--verificar` ao comando.
+
 ---
 
 ## Fluxo Padrão de Todo Comando (6 Passos)
 
-1. **Contexto**. Ler `meus-produtos/.ativo`, depois `meus-produtos/{ativo}/perfil.md` e `meus-produtos/{ativo}/idconsumidor.md`.
+1. **Contexto**. Ler `meus-produtos/.ativo`, depois `meus-produtos/{ativo}/resumo-produto.md` (se não existir, gerar; ver "Contexto Persistente do Negócio").
 2. **Entrevista**. 3 a 5 perguntas, UMA por vez.
 3. **Confirmação**. Resumir o que vai criar, pedir OK.
 4. **Geração**. Criar o entregável completo usando a metodologia VTSD.

@@ -197,7 +197,7 @@ Espelho visual em tempo real do trabalho do Claude no projeto. Cada um dos 7 age
 - `/produto-consumidor`. Obsoleto, redireciona para `/produto-concepcao`.
 
 ### Copy
-`/copy-pagina`, `/copy-anuncio`, `/copy-social`, `/copy-roteiro`, `/copy-variacao-post`, `/elementos-literarios`
+`/copy-pagina`, `/copy-anuncio`, `/copy-bullets`, `/copy-social`, `/copy-roteiro`, `/copy-variacao-post`, `/elementos-literarios`
 
 Toda copy passa obrigatoriamente pela skill `revisora` (Manual da Copy + 4 blocos de checklist) antes de ser exibida ao usuário. Auto-revisão invisível.
 
@@ -221,7 +221,7 @@ Toda copy passa obrigatoriamente pela skill `revisora` (Manual da Copy + 4 bloco
 - `/lt-funil`. Cria produto de entrada low ticket (quiz, desafio, agente GPT).
 - `/lt-criar-produto`. Cria o conteúdo real do produto digital.
 - `/lt-quiz`. Gera perguntas do quiz.
-- `/lt-pagina`. Gera as 4 leads low ticket (incluindo Estrutura E — Categoria Padrão).
+- `/lt-pagina`. Cria a página de vendas low ticket pela régua v16 do time de criativos: promessa central, 7 aberturas com tabela de prioridade de testes, copy completa e um prompt único para o Lovable montar a página.
 - `/lt-otimizar`. Analisa planilha do Gerenciador e otimiza campanhas low ticket.
 
 ### Tráfego Pago (Meta Ads via API ou MCP oficial)
@@ -230,6 +230,7 @@ Toda copy passa obrigatoriamente pela skill `revisora` (Manual da Copy + 4 bloco
 - `/trafego-criar-campanha`. Cria campanha via Marketing API. PAUSED por padrão, preview YAML obrigatório, gate de pixel ativo. Cobre objetivos OUTCOME_SALES (perpétuo) e OUTCOME_LEADS (lançamento).
 - `/trafego-otimizar`. Diagnóstico em 2 camadas (tendência cruzando 3 janelas + gargalo). Classifica em 6 trilhas (perpétuo low/mid/high, lançamento low/mid/high). Propõe ações graduais que preservam aprendizado (reduzir -20%, pausar criativo, refresh) e emite sinal de prontidão para escala. Inclui sub-skill `acoes-lote` (em massa por filtro).
 - `/trafego-analise`. Análise narrada VTSD em 9 outputs (Diagnóstico Rápido, Performance & Funil, Criativos & Copy com Mandala 18 tipos, Geo & Demografia, Timing & Sazonalidade, Investigação Profunda, Lifecycle & Histórico, Problemas Ocultos, Orçamento & Projeção, Comparativo A x B).
+- `/trafego-dashboard`. Dashboard da conta de anúncios com dados ao vivo, publicado como artefato do Claude conectado ao MCP da Meta. Se o aluno já tem um, entrega o link (salvo em `meus-produtos/dashboard-trafego.md`); se não tem, cria. Sem MCP, monta o dashboard estático (legado).
 
 Skill interna acionada automaticamente: `trafego-escalar` (5 modos de escala, 3 velocidades, freios escalonados, tetos), invocada por `/trafego-otimizar` quando `sinal_para_escala.pronta: true`.
 
@@ -245,7 +246,7 @@ Skill interna acionada automaticamente: `trafego-escalar` (5 modos de escala, 3 
 `/pagina-visual` cria a página a partir de prints de referência do aluno: cada print vira uma cópia HTML com design 100% preservado, e a montagem final concatena via `scripts/montar-pagina-copias.py`.
 
 ### Feedback e auditoria
-`/feedback-pagina`, `/feedback-low-ticket`. Ambos fazem auditoria completa contra o Manual da Copy e podem editar o HTML de saída.
+`/feedback-pagina`, `/feedback-low-ticket`. O `/feedback-pagina` audita contra o Manual da Copy e pode editar o HTML de saída. O `/feedback-low-ticket` audita pela régua v16 e entrega a copy corrigida e um prompt novo para o Lovable.
 
 ### Toolkit (projetos estruturados)
 `/toolkit-novo`, `/toolkit-planejar`, `/toolkit-executar`, `/toolkit-verificar`, `/toolkit-progresso`, `/toolkit-anotar`, `/toolkit-pausar`, `/toolkit-retomar`
@@ -336,6 +337,7 @@ Em `.claude/skills/`. Não são acionadas diretamente pelo usuário: são consul
 - `trafego-otimizar/`. Diagnóstico em 2 camadas + 6 trilhas + sub-skill acoes-lote.
 - `trafego-escalar/`. 5 modos de escala (vertical, horizontal, vertical+horizontal, consolidação CBO, Advantage).
 - `trafego-analise/`. 9 outputs narrativos VTSD.
+- `trafego-dashboard/`. Dashboard ao vivo (artefato com o MCP da Meta) e o roteiro do dashboard estático legado.
 
 **Pesquisa e dados**
 - `pesquisa-mercado/`. 9 eixos completos.

@@ -174,3 +174,10 @@ scripts/.autorun-em-curso
 # Backups do settings local (contem tokens, nunca versionar)
 *.bak-hook
 .claude/settings.local.json.bak*
+
+# Codex: .agents/ e .codex/agents/ + .codex/hooks.json são gerados por
+# scripts/exportar-para-codex.py e vão para o repositório. O resto de .codex/
+# (configuração pessoal do Codex) fica local.
+.codex/*
+!.codex/agents/
+!.codex/hooks.json
