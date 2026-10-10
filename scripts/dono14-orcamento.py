@@ -11,6 +11,7 @@ o token lido do .env, ela passa e a pendencia deixa de existir.
 Somente leitura (GET). Uso: py -3 scripts/dono14-orcamento.py
 """
 import json
+import re
 import sys
 import time
 import urllib.parse
@@ -34,6 +35,9 @@ PLANO_POR_DATA = [
     ("2026-09-26", 200.00, "A47 R$ 100 + A39 R$ 40 + A49 R$ 60 (teste do A49 de 26/09 a 02/10)"),
     ("2026-09-30", 160.00, "A39 R$ 100 + A47 R$ 60 (Rodrigo aposentou o A49 em 30/09 as 11h34, "
                            "dois dias antes do fim da janela, e remanejou a verba as 23h35)"),
+    ("2026-10-10", 280.00, "A39 R$ 100 + A47 R$ 60 + A50 R$ 60 + A51 R$ 60 (teste de 7 dias do A50 e do A51, "
+                           "de 10/10 a 16/10, decisao do Rodrigo em 09/10)"),
+    ("2026-10-17", 160.00, "A39 R$ 100 + A47 R$ 60 (A50 e A51 vencem em 16/10 as 23h59)"),
 ]
 
 # Divisao esperada POR CONJUNTO, a partir da data em que passou a valer.
@@ -48,6 +52,10 @@ COMPOSICAO_POR_DATA = [
     # ja vencidos (A43, A44 e A48); as 23h35 subiu o A47 para R$ 60 e o A39 para R$ 100.
     # O A39 virou a ancora principal, que e o que os dados de perfil pediam.
     ("2026-09-30", {"A39": 100.0, "A47": 60.0}),
+    # 09/10: o Rodrigo publicou o A50 e o A51, um anuncio por conjunto, R$ 60/dia cada,
+    # inicio 10/10 00h01 e fim 16/10 23h59. Conferido pela API no mesmo dia.
+    ("2026-10-10", {"A39": 100.0, "A47": 60.0, "A50": 60.0, "A51": 60.0}),
+    ("2026-10-17", {"A39": 100.0, "A47": 60.0}),
 ]
 
 
@@ -117,10 +125,11 @@ for s in sorted(dados, key=lambda x: x.get("name", "")):
         agendados.append((nome, orc, quando(s, "start_time")))
         continue
     total += orc
-    for _sigla in ("A39", "A40", "A47", "A48", "A49"):
-        if nome.startswith(_sigla):
-            real_por_ad[_sigla] = real_por_ad.get(_sigla, 0.0) + orc
-            break
+    # Qualquer peca "A" seguida de dois digitos. Era uma lista fixa ate o A49, e em
+    # 10/10/2026 o A50 e o A51 apareceram como "conta R$ 0" com o orcamento certo na conta.
+    _m = re.match(r"A\d{2}", nome)
+    if _m:
+        real_por_ad[_m.group(0)] = real_por_ad.get(_m.group(0), 0.0) + orc
     fim = s.get("end_time")
     if fim:
         try:

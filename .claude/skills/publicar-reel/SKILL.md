@@ -86,7 +86,7 @@ py -3 .claude/skills/publicar-reel/scripts/youtube_publicar.py R018 "2026-10-02 
 
 Rode com `run_in_background: true`. Sem `--enviar`, o script só mostra a prévia. Ao terminar, guarde `VIDEO_ID` e o link. Se a descrição tiver sido ajustada no Passo 3, edite o texto no HTML do Reel antes de rodar (o script lê do HTML).
 
-**Capa de Short (obrigatório quando o formato é `short`):** a API só preenche a miniatura horizontal. A miniatura vertical do Short só entra pelo Studio. Depois do envio, abra no Chrome `https://studio.youtube.com/video/{VIDEO_ID}/edit`, use `find` para achar o campo de arquivo da seção Miniatura, envie a capa em PNG com `file_upload`, clique em **Salvar** e confirme o aviso "Alterações salvas". **Só envie a capa depois que o YouTube terminar de processar** (API: `processingStatus = succeeded`; no Studio, a miniatura deixa de mostrar "…"). Enviada antes disso, a capa não fica gravada (R019, 02/10/2026). Para confirmar, **recarregue a página** e veja a capa na seção Miniatura; se voltar o "…" ou um quadro do vídeo, reenvie. Faça isso em uma aba separada, para não mexer na aba do Planner. Em vídeo normal (acima de 3 min) a capa da API basta.
+**Capa de Short (obrigatório quando o formato é `short`):** a API só preenche a miniatura horizontal. A miniatura vertical do Short só entra pelo Studio. Depois do envio, abra no Chrome `https://studio.youtube.com/video/{VIDEO_ID}/edit`, use `find` para achar o campo de arquivo da seção Miniatura, envie a capa em PNG com `file_upload`, clique em **Salvar** e confirme o aviso "Alterações salvas". **Só envie a capa depois que o YouTube terminar de processar** (API: `processingStatus = succeeded`; no Studio, a miniatura deixa de mostrar "…"). Enviada antes disso, a capa não fica gravada (R019, 02/10/2026). Antes de salvar, confira no screenshot que **a capa apareceu no campo Miniatura** (se ainda mostrar "…", espere e reenvie: salvar sem a prévia não grava, como no R021). Para confirmar, **recarregue a página** e veja a capa na seção Miniatura; se voltar o "…" ou um quadro do vídeo, reenvie. Faça isso em uma aba separada, para não mexer na aba do Planner. Em vídeo normal (acima de 3 min) a capa da API basta.
 
 Se o YouTube devolver o vídeo como "bloqueado/privado" por app não verificado, avise o Rodrigo. No teste do R017 isso **não** aconteceu.
 
@@ -119,6 +119,17 @@ Carregue as ferramentas do Chrome em uma chamada ToolSearch (`tabs_context_mcp, 
 Sugira: *"Depois que sair, confira a capa no grid do Instagram. Quando quiser, eu movo a pasta do {código} para Publicados/."* (Mover só com o ok dele.)
 
 ---
+
+## Quando o Business Suite abrir em inglês
+
+Aconteceu em 09/10/2026 (R021). O fluxo é o mesmo, mudam os nomes: **Create reel**, **Add Video**, **Thumbnail → Upload image**, **Next**, **Scheduling options → Schedule**, **Closed captions**, **Remixing and use of original audio → Don't allow**, botão azul **Schedule** no rodapé. Nunca clique em **Share** nem em **Share now** (publicam na hora), e o padrão da tela pode vir em "Share now".
+
+- **Relógio de 12 horas:** cada canal tem três campos (hours, minutes, meridiem). 13:30 = `01`, `30`, `PM`. Digitar "p" no campo meridiem nem sempre pega pela referência do `find`: confira com `javascript_tool` que os dois canais ficaram em **PM** e, se um ficar em AM, clique no "AM" pela coordenada e digite "p". Em AM a tela mostra o erro "Scheduled posts need to be shared between 20 minutes and 29 days".
+- Um aviso de novidade pode cobrir o menu ao abrir o Planner: feche em **Done** antes de seguir.
+
+## Se a aba do Planner travar ("Cannot access a chrome-extension:// URL of different extension")
+
+Outra extensão do Chrome abriu algo por cima da aba, e clique, screenshot e JavaScript falham (o `find` continua funcionando). Aconteceu no R020 e no R021, logo depois do upload do Rodrigo. **Não recarregue a página** se o vídeo já subiu. Espere até um minuto e tente de novo. Se não liberar, peça ao Rodrigo para fechar a janelinha de extensão aberta nessa aba ou para clicar em Next/Avançar ele mesmo: depois de uma ação dele na aba, o acesso volta.
 
 ## Se precisar refazer só um canal
 
