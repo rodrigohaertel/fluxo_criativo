@@ -5,19 +5,44 @@
   "saida": "R0XX_editado.mp4",
   "inicio": 0.7,
   "fim": 72.3,
-  "rosto": [0.53, 0.43],
+  "rosto": [
+    0.53,
+    0.43
+  ],
   "pausa_min": 1.0,
   "pausa_fica": 0.8,
   "pausas_manter": [],
   "pausas_especiais": {},
-  "trocas": [["pra", "para"]],
+  "trocas": [
+    [
+      "pra",
+      "para"
+    ]
+  ],
   "zoom": [
-    {"de": "primeiras palavras da frase de virada", "ate": "últimas palavras", "zoom": 1.15},
-    {"de": "frase da tese", "ate": "fim da tese", "zoom": 1.25, "empurra": true},
-    {"de": "me segue", "ate": "dono de restaurante", "zoom": 1.1}
+    {
+      "de": "primeiras palavras da frase de virada",
+      "ate": "últimas palavras",
+      "zoom": 1.15
+    },
+    {
+      "de": "frase da tese",
+      "ate": "fim da tese",
+      "zoom": 1.25,
+      "empurra": true
+    },
+    {
+      "de": "me segue",
+      "ate": "dono de restaurante",
+      "zoom": 1.1
+    }
   ],
   "pilula": "DONO DE RESTAURANTE",
-  "titulo": ["LINHA PRETA 1", "LINHA PRETA 2", "LINHA DA TARJA VERMELHA"],
+  "titulo": [
+    "LINHA PRETA 1",
+    "LINHA PRETA 2",
+    "LINHA DA TARJA VERMELHA"
+  ],
   "titulo_ate": 3.0,
   "titulo_fundo": "#F4C63A",
   "titulo_selo": "#0A1712",
@@ -25,10 +50,34 @@
   "titulo_tamanho": 56,
   "legenda_base_y": 1516,
   "cartoes": [
-    {"arquivo": "TELA_R0XX_1_Nome.png", "palavra": "palavra falada quando o cartão entra", "dura": 3.0, "largura": 1000}
+    {
+      "arquivo": "TELA_R0XX_1_Nome.png",
+      "palavra": "palavra falada quando o cartão entra",
+      "dura": 3.0,
+      "largura": 1000
+    }
+  ],
+  "contadores": [
+    {
+      "palavra": "palavra falada quando o número começa a subir",
+      "de": 0,
+      "ate": 38400,
+      "casas": 0,
+      "prefixo": "R$ ",
+      "sufixo": "",
+      "rotulo": "EM UM ANO",
+      "detalhe": "linha pequena que aparece quando o número para (conta ou fonte)",
+      "dura": 3.0,
+      "subida": 1.4,
+      "cor": "verde"
+    }
   ],
   "tela_dividida": true,
-  "palavras_chave": ["número central", "termo central", "me segue"],
+  "palavras_chave": [
+    "número central",
+    "termo central",
+    "me segue"
+  ],
   "cor_legenda": "verde",
   "cor": "C",
   "aprimorar_voz": 75

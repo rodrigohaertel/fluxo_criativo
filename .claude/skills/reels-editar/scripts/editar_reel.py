@@ -345,9 +345,15 @@ for c in cartoes:
     tempos.append([s0, s0 + c.get("dura", 3.0)])
 for k in range(len(tempos) - 1):
     tempos[k][1] = min(tempos[k][1], tempos[k + 1][0])
+# contadores (número que cresce): cartão animado na tela dividida, ancorado na palavra falada
+contadores = cfg.get("contadores", [])
+tempos_cont = []
+for c in contadores:
+    s0, _ = acha(c["palavra"], tempos_cont[-1][0] if tempos_cont else 0)
+    tempos_cont.append([s0, s0 + c.get("dura", 3.0)])
 DIVIDIDA = cfg.get("tela_dividida", True)
-janelas = []  # cartões colados viram uma janela só de tela dividida
-for t0, t1 in tempos:
+janelas = []  # cartões e contadores colados viram uma janela só de tela dividida
+for t0, t1 in sorted(tempos + tempos_cont):
     if janelas and t0 - janelas[-1][1] < 0.05: janelas[-1][1] = t1
     else: janelas.append([t0, t1])
 na_divisao = lambda t: DIVIDIDA and any(j0 - 0.01 <= t < j1 for j0, j1 in janelas)
@@ -463,7 +469,7 @@ if cfg.get("cor", "C") != "nenhuma":
     FILTRO_COR, info_cor = filtro_cor(quadros, rosto_caixa, acabamento=cfg.get("cor", "C") == "C",
                                       exposicao=cfg.get("cor_exposicao", not cfg.get("cenas_obs")))
     FILTRO_COR = "," + FILTRO_COR
-    print("cor:", {k: (float(v) if not isinstance(v, list) else v) for k, v in info_cor.items()})
+    print("cor:", {k: (v if v is None or isinstance(v, list) else float(v)) for k, v in info_cor.items()})
 
 # ---------- filtro ----------
 p = []
@@ -516,7 +522,8 @@ p.append(f"[2:v]format=rgba,fade=t=in:st=0:d=0.2:alpha=1,fade=t=out:st={ta - 0.3
 ult = "[vt]"
 p.append(f"{uv}[tit]overlay=0:0:eof_action=pass[vt]")
 FUNDO_DIV = cfg.get("fundo_divisao", "0x0A1712")
-if DIVIDIDA and cartoes:
+IDX_CONT = 4 + len(cartoes) + (1 + (1 if HORIZONTAL else 0) if AULA else 0)  # entradas dos contadores no ffmpeg
+if DIVIDIDA and (cartoes or contadores):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
     corte_y = int(min(max(FY * 1920 - 0.3 * 960, 0), 960))
     p.append(f"[vt]split[vfull][vdiv]")
@@ -528,6 +535,11 @@ if DIVIDIDA and cartoes:
         p.append(f"{ult}[c{k}]overlay=x={(1080 - larg) // 2}:y='300+(640-h)/2':shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
+    for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
+        p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
+        p.append(f"{ult}[n{k}]overlay=x=40:y='300+(640-h)/2':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
+        ult = f"[vn{k}]"
+        print(f"contador {k + 1}: {t0:.2f}s a {t1:.2f}s  ({c.get('rotulo', '')} até {c['ate']})")
     cond = "+".join(f"between(t,{j0:.3f},{j1:.3f})" for j0, j1 in janelas)
     p.append(f"[vfull]{ult}overlay=0:0:shortest=1:enable='{cond}'[vsplit]")
     ult = "[vsplit]"
@@ -542,6 +554,10 @@ else:
         p.append(f"{ult}[c{k}]overlay=x={(1080 - larg) // 2}:y={c.get('y', 500)}:shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
+    for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
+        p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
+        p.append(f"{ult}[n{k}]overlay=x=40:y={c.get('y', 500)}:eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
+        ult = f"[vn{k}]"
 p.append(f"{ult}subtitles=legenda.ass:fontsdir='{FONTES.as_posix().replace(':', '\\:')}'[vm]")
 p.append(f"[3:v]scale={W}:{H},setsar=1,fps={FPS},format=yuv420p,trim=end_frame=1,setpts=PTS-STARTPTS[cv]")
 p.append(f"anullsrc=r=48000:cl=mono,atrim=end={1 / FPS:.4f}[sil]")
@@ -555,7 +571,7 @@ for (a, b), o in zip(trechos, offs):
 print("zoom:", ", ".join(f"{t:.2f}={z:.2f}" for t, z in chaves))
 # plano salvo para o conferir.py escolher os quadros de conferência (tempos já no vídeo final, sem o quadro da capa)
 json.dump({"duracao": DUR + 1 / FPS, "fps": FPS, "titulo_ate": cfg.get("titulo_ate", 3.0), "zoom": chaves[:-1],
-           "cartoes": tempos, "cortes": offs[1:], "saida": cfg["saida"], "formato": "16:9" if HORIZONTAL else "9:16",
+           "cartoes": sorted(tempos + tempos_cont), "cortes": offs[1:], "saida": cfg["saida"], "formato": "16:9" if HORIZONTAL else "9:16",
            "telas": TELA_JAN, "cliques": CLIQUES},
           open(TRAB / "plano.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
@@ -605,6 +621,52 @@ def trilha_telas():
     print(f"trilha das telas: {len(marcas)} cliques, {fim:.1f}s")
     return saida
 
+# ---------- contador: número que cresce (cartão animado, 1000 × 580 com fundo transparente) ----------
+def numero_br(v, casas):
+    t = f"{v:,.{casas}f}"
+    return t.replace(",", "X").replace(".", ",").replace("X", ".")
+
+def quadros_contador(k, c):
+    """Grava um PNG por quadro: o número sobe do 'de' ao 'ate' com desaceleração, pulsa no fim e o detalhe aparece."""
+    pasta = TRAB / f"contador_{k}"; pasta.mkdir(exist_ok=True)
+    for velho in pasta.glob("*.png"): velho.unlink()
+    dura, subida = c.get("dura", 3.0), c.get("subida", 1.4)
+    de, ate, casas = c.get("de", 0), c["ate"], c.get("casas", 0)
+    pre, suf = c.get("prefixo", ""), c.get("sufixo", "")
+    cor_num = {"verde": (15, 92, 46, 255), "vermelho": (179, 38, 26, 255), "tinta": (10, 23, 18, 255)}[c.get("cor", "verde")]
+    mont = lambda nome, tam: ImageFont.truetype(str(FONTES / nome), tam)
+    f_rot, f_det = mont("Montserrat-ExtraBold.ttf", 32), mont("Montserrat-Bold.ttf", 32)
+    final = c.get("texto_final") or pre + numero_br(ate, casas) + suf  # texto_final: como o número para (ex.: R$ 4 BILHÕES)
+    tam = 180  # o número final tem que caber em 860 px; o tamanho fica fixo durante a contagem
+    while tam > 80 and ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(final, font=mont("Montserrat-Black.ttf", tam)) > 860:
+        tam -= 4
+    for q in range(int(round(dura * FPS))):
+        t = q / FPS
+        pr = min(t / subida, 1.0); e = 1 - (1 - pr) ** 3
+        v = ate if pr >= 1 else de + (ate - de) * e
+        pulso = 1.0
+        if 0 <= t - subida < 0.3: pulso = 1 + 0.06 * (1 - abs((t - subida) / 0.15 - 1))  # pulso de 0,3 s no fim
+        im = Image.new("RGBA", (1000, 580), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+        dr.rounded_rectangle([25, 22, 975, 542], radius=30, fill=(255, 255, 255, 255))
+        if c.get("rotulo"):
+            rot = c["rotulo"].upper(); esp = 4.5
+            lw = sum(dr.textlength(ch, font=f_rot) for ch in rot) + esp * (len(rot) - 1); x = 500 - lw / 2
+            for ch in rot:
+                dr.text((x, 70), ch, font=f_rot, fill=(15, 92, 46, 255)); x += dr.textlength(ch, font=f_rot) + esp
+        f_num = mont("Montserrat-Black.ttf", round(tam * pulso))
+        txt = final if pr >= 1 else pre + numero_br(v, casas) + suf
+        dr.text((500, 262), txt, font=f_num, fill=cor_num, anchor="mm")
+        largura_barra = 640 * e  # barra de progresso embaixo do número
+        dr.rounded_rectangle([180, 372, 820, 384], radius=6, fill=(228, 240, 231, 255))
+        if largura_barra > 12:
+            dr.rounded_rectangle([180, 372, 180 + largura_barra, 384], radius=6, fill=(200, 164, 77, 255))
+        if c.get("detalhe") and t > subida:
+            a = int(255 * min((t - subida) / 0.3, 1.0))
+            dr.text((500, 450), c["detalhe"], font=f_det, fill=(91, 102, 96, a), anchor="mm")
+        im.save(pasta / f"{q:04d}.png")
+    print(f"contador {k + 1}: {int(round(dura * FPS))} quadros, {final}")
+    return pasta
+
 # ---------- render ----------
 if "--render" in sys.argv:
     import time
@@ -638,6 +700,8 @@ if "--render" in sys.argv:
         cmd += ["-i", str(trilha_telas())]
         if HORIZONTAL:
             cmd += ["-loop", "1", "-t", f"{DUR + 1:.2f}", "-framerate", str(FPS), "-i", str(TRAB / "camera_mascara.png")]
+    for k, c in enumerate(contadores):
+        cmd += ["-framerate", str(FPS), "-i", str(quadros_contador(k, c) / "%04d.png")]
     cmd += ["-filter_complex_script", "filtro.txt", "-map", "[vout]", "-map", "[aout]", "-c:v", "libx264",
             "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "pcm_s24le", "montado.mkv"]
     subprocess.run(cmd, cwd=TRAB, check=True)
