@@ -346,11 +346,21 @@ for c in cartoes:
 for k in range(len(tempos) - 1):
     tempos[k][1] = min(tempos[k][1], tempos[k + 1][0])
 # contadores (número que cresce): cartão animado na tela dividida, ancorado na palavra falada
+# tipo "numero" (padrão), "troca" (preço que cai) ou "conta" (conta que monta), desenhados no animacoes.py;
+# palavra_meio, palavra_troca e palavra_resultado marcam os passos da animação; "fim" ancora o fim numa palavra.
 contadores = cfg.get("contadores", [])
 tempos_cont = []
 for c in contadores:
     s0, _ = acha(c["palavra"], tempos_cont[-1][0] if tempos_cont else 0)
-    tempos_cont.append([s0, s0 + c.get("dura", 3.0)])
+    c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado") if c.get("palavra_" + m)}
+    t1 = acha(c["fim"], s0)[1] + c.get("folga", 0.4) if c.get("fim") else s0 + c.get("dura", 3.0)
+    tempos_cont.append([s0, t1])
+# cartão que acaba a menos de 0,6 s do próximo fica até o próximo entrar (sem piscar o rosto cheio no meio)
+_seq = sorted(tempos + tempos_cont)
+for a, b in zip(_seq, _seq[1:]):
+    if b[0] - a[1] < 0.6: a[1] = b[0]
+for c, (t0, t1) in zip(contadores, tempos_cont):
+    c["dura"] = t1 - t0
 DIVIDIDA = cfg.get("tela_dividida", True)
 janelas = []  # cartões e contadores colados viram uma janela só de tela dividida
 for t0, t1 in sorted(tempos + tempos_cont):
@@ -525,9 +535,20 @@ FUNDO_DIV = cfg.get("fundo_divisao", "0x0A1712")
 IDX_CONT = 4 + len(cartoes) + (1 + (1 if HORIZONTAL else 0) if AULA else 0)  # entradas dos contadores no ffmpeg
 if DIVIDIDA and (cartoes or contadores):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
-    corte_y = int(min(max(FY * 1920 - 0.3 * 960, 0), 960))
     p.append(f"[vt]split[vfull][vdiv]")
-    p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase]")
+    DIV_ALT = int(cfg.get("div_altura", 960))
+    if DIV_ALT <= 960:
+        corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * 960, 0), 960)))
+        p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase]")
+    else:
+        # rosto muito de perto (R028): a câmera da tela dividida mostra um pedaço maior do quadro, reduzido
+        # para caber na metade de baixo, com o mesmo trecho desfocado preenchendo as laterais
+        corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.42 * DIV_ALT, 0), 1920 - DIV_ALT)))
+        larg_red = int(round(1080 * 960 / DIV_ALT / 2) * 2)
+        p.append(f"[vdiv]crop=1080:{DIV_ALT}:0:{corte_y},split[dv1][dv2]")
+        p.append(f"[dv1]scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960,boxblur=24:2,eq=brightness=-0.08[dvfundo]")
+        p.append(f"[dv2]scale={larg_red}:960[dvrosto]")
+        p.append(f"[dvfundo][dvrosto]overlay=x={(1080 - larg_red) // 2}:y=0,pad=1080:1920:0:960:color={FUNDO_DIV}[vbase]")
     ult = "[vbase]"
     for k, (c, (t0, t1)) in enumerate(zip(cartoes, tempos)):
         larg = c.get("largura", 1000)
@@ -539,7 +560,7 @@ if DIVIDIDA and (cartoes or contadores):
         p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
         p.append(f"{ult}[n{k}]overlay=x=40:y='300+(640-h)/2':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
-        print(f"contador {k + 1}: {t0:.2f}s a {t1:.2f}s  ({c.get('rotulo', '')} até {c['ate']})")
+        print(f"contador {k + 1} ({c.get('tipo', 'numero')}): {t0:.2f}s a {t1:.2f}s  ({c.get('rotulo', '')})")
     cond = "+".join(f"between(t,{j0:.3f},{j1:.3f})" for j0, j1 in janelas)
     p.append(f"[vfull]{ult}overlay=0:0:shortest=1:enable='{cond}'[vsplit]")
     ult = "[vsplit]"
@@ -630,6 +651,13 @@ def quadros_contador(k, c):
     """Grava um PNG por quadro: o número sobe do 'de' ao 'ate' com desaceleração, pulsa no fim e o detalhe aparece."""
     pasta = TRAB / f"contador_{k}"; pasta.mkdir(exist_ok=True)
     for velho in pasta.glob("*.png"): velho.unlink()
+    tipo = c.get("tipo", "numero")
+    if tipo != "numero":  # preço que cai e conta que monta
+        import animacoes
+        if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
+        else: animacoes.quadros_conta(pasta, c, c.get("_marcas", {}), FPS, FONTES, numero_br)
+        print(f"contador {k + 1} ({tipo}): {int(round(c['dura'] * FPS))} quadros")
+        return pasta
     dura, subida = c.get("dura", 3.0), c.get("subida", 1.4)
     de, ate, casas = c.get("de", 0), c["ate"], c.get("casas", 0)
     pre, suf = c.get("prefixo", ""), c.get("sufixo", "")

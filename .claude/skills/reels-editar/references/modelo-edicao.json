@@ -70,6 +70,28 @@
       "dura": 3.0,
       "subida": 1.4,
       "cor": "verde"
+    },
+    {
+      "tipo": "troca",
+      "palavra": "palavra falada quando o preço antigo entra",
+      "palavra_meio": "palavra em que a coluna nova entra, com o preço escondido",
+      "palavra_troca": "palavra em que o preço novo aparece",
+      "fim": "palavra em que o cartão sai",
+      "rotulo": "Contrafilé · o quilo",
+      "antes": {"titulo": "De sempre", "valor": "R$ 54,00"},
+      "depois": {"titulo": "Cotando com 3 ou 4", "valor": "R$ 46,00"},
+      "selo": "R$ 8,00 a menos no quilo"
+    },
+    {
+      "tipo": "conta",
+      "palavra": "palavra falada quando os termos entram",
+      "palavra_resultado": "palavra em que o resultado sobe",
+      "fim": "palavra em que o cartão sai",
+      "rotulo": "No mês",
+      "termos": ["R$ 8,00", "400 kg"],
+      "ate": 3200,
+      "prefixo": "R$ ",
+      "detalhe": "exemplo: 400 kg de contrafilé por mês"
     }
   ],
   "tela_dividida": true,
