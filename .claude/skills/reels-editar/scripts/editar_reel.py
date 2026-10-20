@@ -369,7 +369,8 @@ for t0, t1 in sorted(tempos + tempos_cont):
 na_divisao = lambda t: DIVIDIDA and any(j0 - 0.01 <= t < j1 for j0, j1 in janelas)
 
 # cores da legenda: cada vídeo tem a sua cor de destaque; palavras-chave ficam coloridas o tempo todo
-CORES = {"amarelo": "&H0000E6FF&", "verde": "&H0084DC3D&", "vermelho": "&H005A5AFF&", "laranja": "&H00248CFF&"}
+CORES = {"amarelo": "&H0000E6FF&", "verde": "&H0084DC3D&", "vermelho": "&H005A5AFF&", "laranja": "&H00248CFF&",
+         "dourado": "&H005AC1E8&", "lilas": "&H00FFA8C8&", "rosa": "&H00B67AFF&", "ciano": "&H00E6E15C&"}  # cor em BGR
 mudancas = sorted((acha(m["de"])[0], CORES[m["cor"]]) for m in cfg.get("cores_legenda", []))
 COR_VIDEO = CORES[cfg.get("cor_legenda", "amarelo")]  # uma cor de destaque por vídeo, fixa do começo ao fim
 def cor_em(t):
@@ -382,6 +383,7 @@ for frase in cfg.get("palavras_chave", []):
     s0, e0 = acha(frase)
     chave |= {id(it) for it in itens if s0 - 0.01 <= it["s"] <= e0}
 
+BORDAS_DIV = sorted({x for j in janelas for x in j} | {x for j in div_out() for x in j}) if (janelas or CENAS_DIV) else []
 ev = []
 for bi, bl in enumerate(blocos):
     prox = blocos[bi + 1][0]["s"] if bi + 1 < len(blocos) else bl[-1]["e"] + 0.4
@@ -397,10 +399,14 @@ for bi, bl in enumerate(blocos):
                 partes_l.append(r"{\c" + cor + "}" + limpa(x["t"]) + r"{\c&HFFFFFF&}")
             else:
                 partes_l.append(limpa(x["t"]))
-        if na_divisao(ini): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
-        elif na_cena_div(ini): pos = r"{\an2\pos(%d,%d)}" % (W // 2, cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130))  # tela dividida do OBS
-        else: pos = ""  # na tela dividida, a legenda fica na linha da divisão
-        ev.append(f"Dialogue: 0,{ts(ini)},{ts(fim)},Leg,,0,0,0,,{pos}" + " ".join(partes_l))
+        # a legenda troca de lugar no instante em que a tela dividida entra ou sai, mesmo no meio de um bloco
+        # (no R028 o bloco que começava antes do cartão ficava embaixo, em cima do rosto)
+        cortes_pos = [ini] + sorted(b for b in BORDAS_DIV if ini + 0.02 < b < fim - 0.02) + [fim]
+        for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
+            if na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
+            elif na_cena_div(a_pos + 0.01): pos = r"{\an2\pos(%d,%d)}" % (W // 2, cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130))  # tela dividida do OBS
+            else: pos = ""
+            ev.append(f"Dialogue: 0,{ts(a_pos)},{ts(b_pos)},Leg,,0,0,0,,{pos}" + " ".join(partes_l))
 leg_y = cfg.get("legenda_base_y", 1000 if HORIZONTAL else 1516)
 (TRAB / "legenda.ass").write_text(f"""[Script Info]
 ScriptType: v4.00+
