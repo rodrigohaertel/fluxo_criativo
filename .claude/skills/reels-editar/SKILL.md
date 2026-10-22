@@ -76,6 +76,15 @@ Ler `fala.txt`, `preparo.json`, a imagem `rosto_grade.jpg`, o roteiro (seção "
 | `telas` e `tela_html` | aula gravada só com a câmera: a lista de trocas de cena e cliques ancorados na fala e o `_TELA_R0XX_*.html` de onde saem as telas. Ver a seção abaixo. |
 | fixos | `pausa_min` 1.0, `pausa_fica` 0.8, `corte_minimo` 0.4 (só corta pausa se economizar 0,4 s), `legenda_base_y` 1516, `titulo_ate` 3.0, `cor` `C`, `aprimorar_voz` 75, `saida` `R0XX_editado.mp4`. Não mudar sem pedido do Rodrigo. |
 
+### Anúncio do Dono 14% (padrão do A52, 22/10/2026)
+
+A skill também edita os criativos de `meus-produtos/dono-14/entregas/criativos/A0XX - Nome - 9x16/`: o `preparar.py` aceita o código `A52` e o roteiro `A52 - … - roteiro.html`. Diferenças para o Reel:
+- `"capa": null`: **sem capa no primeiro quadro**; no anúncio o quadro zero é o gancho e a miniatura se escolhe na Meta.
+- O plano de motion vem da seção H do roteiro. Efeito de tela cheia (`tipo` `distancia`) fica fora da tela dividida, por cima do vídeo; os outros entram na tela dividida.
+- Prova em página real (`tipo` `destaque`): fotografar a página com o Chrome sem janela em **largura de tablet e escala 2** (`--window-size=600,4200 --force-device-scale-factor=2`), recortar no formato do cartão (largura ÷ 2,08) e marcar uma caixa por linha em `trechos`. Usar `seguir: true` com `zoom_final` 1,5: a câmera do cartão enquadra a linha inteira que está sendo marcada, legível no celular (seguir a ponta cortava as linhas).
+- Medir o rosto num quadro do meio do bruto (no A52 o primeiro quadro estava mais longe) e conferir que o título não cobre a boca.
+- Ruído de salão: a transcrição fala por fala mede o limiar do silêncio pelo ruído do lugar.
+
 ### Versão horizontal 16:9 (aula do YouTube, padrão do R026)
 
 Quando a aula foi gravada no OBS nas duas saídas (`R0XX - Bruta - Vertical.mp4` e `R0XX - Bruta - Horizontal.mp4`), editar **primeiro o vertical** até a aprovação e depois derivar o horizontal:

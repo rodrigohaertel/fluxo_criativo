@@ -163,16 +163,46 @@ def quadros_destaque(pasta, c, marcas, fps, fontes):
     f_cred = _fonte(fontes, "Montserrat-Bold.ttf", 26)
     esc0 = max(aw / img.width, ah / img.height)  # preenche a área
     cx_al, cy_al = (x0 + x1) / 2, (y0 + y1) / 2  # a aproximação mira o trecho
+    # "seguir" (A52): a câmera do cartão aproxima até o trecho ficar legível no celular e acompanha a ponta do
+    # marca-texto, linha por linha, com movimento suavizado. Sem "seguir", aproximação lenta de 16% no trecho.
+    seguir, zf = c.get("seguir", False), c.get("zoom_final", 1.16)
+    alt0 = (y1 - y0) / n_lin
+    caixas0 = c.get("trechos") or [(x0, y0 + k * alt0, x1, y0 + (k + 1) * alt0) for k in range(n_lin)]
+    larguras = [bx1 - bx0 for bx0, _, bx1, _ in caixas0]; total_l = sum(larguras)
+    def ponta(pm):  # onde está a ponta do marca-texto (x, y), varrendo em velocidade constante
+        alvo = pm * total_l
+        for (bx0, by0, bx1, by1), lw in zip(caixas0, larguras):
+            if alvo <= lw: return bx0 + alvo, (by0 + by1) / 2
+            alvo -= lw
+        bx0, by0, bx1, by1 = caixas0[-1]; return bx1, (by0 + by1) / 2
+    cx_s, cy_s = img.width / 2, img.height / 2
     for q in range(int(round(dura * fps))):
         t = q / fps
         im = Image.new("RGBA", (1000, 580), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
         _base(dr, fontes, None)
-        zoom = 1.0 + 0.16 * _ease_io(t / dura)  # aproximação lenta durante o cartão inteiro
-        esc = esc0 * zoom
-        # centro da janela: começa no centro da imagem e vai para o trecho
-        pz = _ease_io(t / dura)
-        cx = img.width / 2 + (cx_al - img.width / 2) * pz
-        cy = img.height / 2 + (cy_al - img.height / 2) * pz
+        if seguir:
+            zoom = 1.0 + (zf - 1.0) * _ease_io(min(t / (t_marca + 0.5), 1.0))
+            esc = esc0 * zoom; jw_ = aw / esc
+            # enquadra a linha inteira que está sendo marcada (seguir a ponta cortava o começo e o fim das linhas)
+            ty = (caixas0[0][1] + caixas0[-1][3]) / 2
+            if t < t_marca:
+                tx = (caixas0[0][0] + caixas0[0][2]) / 2
+            else:
+                alvo = min((t - t_marca) / c.get("varre", 1.4), 1.0) * total_l
+                k_l = 0
+                while k_l < len(larguras) - 1 and alvo > larguras[k_l]:
+                    alvo -= larguras[k_l]; k_l += 1
+                tx = (caixas0[k_l][0] + caixas0[k_l][2]) / 2
+            k_s = 1 - 0.82 ** (30 / fps)  # suavização (constante de ~0,2 s)
+            cx_s += (tx - cx_s) * k_s; cy_s += (ty - cy_s) * k_s
+            cx, cy = cx_s, cy_s
+        else:
+            zoom = 1.0 + 0.16 * _ease_io(t / dura)  # aproximação lenta durante o cartão inteiro
+            esc = esc0 * zoom
+            # centro da janela: começa no centro da imagem e vai para o trecho
+            pz = _ease_io(t / dura)
+            cx = img.width / 2 + (cx_al - img.width / 2) * pz
+            cy = img.height / 2 + (cy_al - img.height / 2) * pz
         # recorte da imagem que cabe na área, nessa escala
         jw, jh = aw / esc, ah / esc
         jx = min(max(cx - jw / 2, 0), img.width - jw); jy = min(max(cy - jh / 2, 0), img.height - jh)
@@ -182,11 +212,12 @@ def quadros_destaque(pasta, c, marcas, fps, fontes):
             pm = min((t - t_marca) / c.get("varre", 1.4), 1.0)
             cam = Image.new("RGBA", (aw, ah), (0, 0, 0, 0)); dm = ImageDraw.Draw(cam)
             alt_l = (y1 - y0) / n_lin
-            for k in range(n_lin):
-                p_l = min(max(pm * n_lin - k, 0.0), 1.0)
+            caixas = c.get("trechos") or [(x0, y0 + k * alt_l, x1, y0 + (k + 1) * alt_l) for k in range(n_lin)]
+            for k, (bx0, by0, bx1, by1) in enumerate(caixas):
+                p_l = min(max(pm * len(caixas) - k, 0.0), 1.0)
                 if p_l <= 0: continue
-                lx0, lx1 = x0, x0 + (x1 - x0) * p_l
-                ly0, ly1 = y0 + k * alt_l, y0 + (k + 1) * alt_l
+                lx0, lx1 = bx0, bx0 + (bx1 - bx0) * p_l
+                ly0, ly1 = by0, by1
                 dm.rounded_rectangle([(lx0 - jx) * esc, (ly0 - jy) * esc + 2, (lx1 - jx) * esc, (ly1 - jy) * esc - 2],
                                      radius=6, fill=AMARELO[:3] + (120,))
             rec = Image.alpha_composite(rec, cam)

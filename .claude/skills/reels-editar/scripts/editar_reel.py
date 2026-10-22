@@ -19,8 +19,9 @@ cfg.setdefault("palavras", str(TRAB / "palavras.json"))
 # bruto, capa, saída e cartões podem vir só com o nome do arquivo: valem a partir da pasta do Reel (onde fica o JSON)
 PASTA = Path(sys.argv[1]).resolve().parent
 na_pasta = lambda c: str(c if Path(c).is_absolute() else PASTA / c)
+cfg.setdefault("capa", None)
 for k in ("bruto", "capa", "saida"):
-    cfg[k] = na_pasta(cfg[k])
+    if cfg[k]: cfg[k] = na_pasta(cfg[k])
 for c in cfg.get("cartoes", []):
     c["arquivo"] = na_pasta(c["arquivo"])
 
@@ -352,18 +353,19 @@ contadores = cfg.get("contadores", [])
 tempos_cont = []
 for c in contadores:
     s0, _ = acha(c["palavra"], tempos_cont[-1][0] if tempos_cont else 0)
-    c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado", "marca", "preenche", "destaque", "desliza", "selo") if c.get("palavra_" + m)}
+    c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado", "marca", "preenche", "destaque", "desliza", "selo", "abre", "some") if c.get("palavra_" + m)}
     t1 = acha(c["fim"], s0)[1] + c.get("folga", 0.4) if c.get("fim") else s0 + c.get("dura", 3.0)
     tempos_cont.append([s0, t1])
 # cartão que acaba a menos de 0,6 s do próximo fica até o próximo entrar (sem piscar o rosto cheio no meio)
-_seq = sorted(tempos + tempos_cont)
+TELA_CHEIA = [c.get("tipo") == "distancia" for c in contadores]  # efeito de tela cheia, por cima do vídeo
+_seq = sorted(tempos + [tc for tc, cheia in zip(tempos_cont, TELA_CHEIA) if not cheia])
 for a, b in zip(_seq, _seq[1:]):
     if b[0] - a[1] < 0.6: a[1] = b[0]
 for c, (t0, t1) in zip(contadores, tempos_cont):
     c["dura"] = t1 - t0
 DIVIDIDA = cfg.get("tela_dividida", True)
 janelas = []  # cartões e contadores colados viram uma janela só de tela dividida
-for t0, t1 in sorted(tempos + tempos_cont):
+for t0, t1 in sorted(tempos + [tc for tc, cheia in zip(tempos_cont, TELA_CHEIA) if not cheia]):
     if janelas and t0 - janelas[-1][1] < 0.05: janelas[-1][1] = t1
     else: janelas.append([t0, t1])
 na_divisao = lambda t: DIVIDIDA and any(j0 - 0.01 <= t < j1 for j0, j1 in janelas)
@@ -539,9 +541,16 @@ ult = "[vt]"
 p.append(f"{uv}[tit]overlay=0:0:eof_action=pass[vt]")
 FUNDO_DIV = cfg.get("fundo_divisao", "0x0A1712")
 IDX_CONT = 4 + len(cartoes) + (1 + (1 if HORIZONTAL else 0) if AULA else 0)  # entradas dos contadores no ffmpeg
-if DIVIDIDA and (cartoes or contadores):
+VT = "[vt]"  # efeitos de tela cheia (a distância do A52) vão por cima do vídeo inteiro, antes da tela dividida
+for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
+    if TELA_CHEIA[k]:
+        p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
+        p.append(f"{VT}[n{k}]overlay=0:0:eof_action=pass:enable='between(t,{t0:.3f},{t1:.3f})'[vtc{k}]")
+        VT = f"[vtc{k}]"
+        print(f"efeito de tela cheia {k + 1} ({c.get('tipo')}): {t0:.2f}s a {t1:.2f}s")
+if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
-    p.append(f"[vt]split[vfull][vdiv]")
+    p.append(f"{VT}split[vfull][vdiv]")
     DIV_ALT = int(cfg.get("div_altura", 960))
     if DIV_ALT <= 960:
         corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * 960, 0), 960)))
@@ -563,6 +572,7 @@ if DIVIDIDA and (cartoes or contadores):
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
     for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
+        if TELA_CHEIA[k]: continue
         p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
         p.append(f"{ult}[n{k}]overlay=x=40:y='300+(640-h)/2':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
@@ -571,6 +581,7 @@ if DIVIDIDA and (cartoes or contadores):
     p.append(f"[vfull]{ult}overlay=0:0:shortest=1:enable='{cond}'[vsplit]")
     ult = "[vsplit]"
 else:
+    ult = VT
     for k, (c, (t0, t1)) in enumerate(zip(cartoes, tempos)):
         seco_antes = k > 0 and abs(tempos[k - 1][1] - t0) < 0.05
         seco_depois = k + 1 < len(tempos) and abs(tempos[k + 1][0] - t1) < 0.05
@@ -582,6 +593,7 @@ else:
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
     for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
+        if TELA_CHEIA[k]: continue
         p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
         p.append(f"{ult}[n{k}]overlay=x=40:y={c.get('y', 500)}:eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
@@ -589,7 +601,10 @@ p.append(f"{ult}subtitles=legenda.ass:fontsdir='{FONTES.as_posix().replace(':', 
 p.append(f"[3:v]scale={W}:{H},setsar=1,fps={FPS},format=yuv420p,trim=end_frame=1,setpts=PTS-STARTPTS[cv]")
 p.append(f"anullsrc=r=48000:cl=mono,atrim=end={1 / FPS:.4f}[sil]")
 p.append(f"{ua}afade=t=out:st={DUR - 0.6:.3f}:d=0.6[afim]")
-p.append(f"[cv][sil][vm][afim]concat=n=2:v=1:a=1[vout][aout]")
+if cfg.get("capa"):
+    p.append(f"[cv][sil][vm][afim]concat=n=2:v=1:a=1[vout][aout]")
+else:  # anúncio: o primeiro quadro é o gancho, não a capa (a miniatura do anúncio se escolhe na Meta)
+    p.append("[cv]nullsink"); p.append("[sil]anullsink"); p.append("[vm]null[vout]"); p.append("[afim]anull[aout]")
 (TRAB / "filtro.txt").write_text(";\n".join(p), encoding="utf-8")
 
 print(f"{len(trechos)} trechos ({len(trechos) - 1} cortes), duração {DUR + 1 / FPS:.2f}s")
@@ -661,9 +676,13 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
-        elif tipo in ("destaque", "grade", "regua"):  # efeitos de 21/10 (A52): marca-texto, grade de 100, régua
+        elif tipo in ("destaque", "grade", "regua", "distancia"):  # efeitos de 21/10 (A52)
             import animacoes2
-            getattr(animacoes2, "quadros_" + tipo)(pasta, c, c.get("_marcas", {}), FPS, FONTES, numero_br)
+            import inspect
+            fn = getattr(animacoes2, "quadros_" + tipo)
+            args = [pasta, c, c.get("_marcas", {}), FPS, FONTES]
+            if len(inspect.signature(fn).parameters) > 5: args.append(numero_br)  # só a grade e a régua usam
+            fn(*args)
         else: animacoes.quadros_conta(pasta, c, c.get("_marcas", {}), FPS, FONTES, numero_br)
         print(f"contador {k + 1} ({tipo}): {int(round(c['dura'] * FPS))} quadros")
         return pasta
@@ -730,7 +749,7 @@ if "--render" in sys.argv:
         audio_in = str(TRAB / "audio_resp.wav")
     cmd = ["ffmpeg", "-v", "error", "-y", "-i", cfg["bruto"], "-i", audio_in,
            "-loop", "1", "-t", str(ta), "-framerate", str(FPS), "-i", "titulo.png",
-           "-loop", "1", "-t", "0.1", "-framerate", str(FPS), "-i", cfg["capa"]]
+           "-loop", "1", "-t", "0.1", "-framerate", str(FPS), "-i", cfg["capa"] or "titulo.png"]
     for c in cartoes:
         cmd += ["-loop", "1", "-t", f"{DUR + 1:.2f}", "-framerate", str(FPS), "-i", c["arquivo"]]
     if AULA:

@@ -13,9 +13,9 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from ambiente import FONTES, SCRIPTS, TRABALHO, ambiente
 
 pasta = Path(sys.argv[1]).resolve()
-m = re.match(r"(R\d{3})", pasta.name)
+m = re.match(r"([RA]\d{2,3})", pasta.name)  # Reel (R028) ou anúncio do Dono 14% (A52)
 if not m:
-    raise SystemExit(f"A pasta precisa começar pelo código do Reel (ex.: R028 - Nome): {pasta.name}")
+    raise SystemExit(f"A pasta precisa começar pelo código do Reel ou do anúncio (ex.: R028 - Nome, A52 - Nome): {pasta.name}")
 codigo = m.group(1)
 
 # ---------- arquivos da pasta ----------
@@ -35,7 +35,7 @@ else:
 trab = TRABALHO / codigo
 trab.mkdir(parents=True, exist_ok=True)
 capas = sorted(pasta.glob("CAPA_*.png"))
-roteiros = sorted(pasta.glob("Reels_*.html"))
+roteiros = sorted(pasta.glob("Reels_*.html")) or sorted(pasta.glob("*roteiro*.html"))  # anúncio: "A52 - Mentoria - roteiro.html"
 cartoes = sorted(pasta.glob("TELA_*.png"))
 telas_html = sorted(pasta.glob("_TELA_*.html"))  # aula gravada só com a câmera: as telas saem daqui
 

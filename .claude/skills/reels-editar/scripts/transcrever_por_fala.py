@@ -27,7 +27,12 @@ t0 = time.time()
 wf = wave.open(audio)
 dados = np.frombuffer(wf.readframes(wf.getnframes()), np.int16).astype(np.float32) / 32768
 dur = len(dados) / 16000
-txt = subprocess.run(["ffmpeg", "-hide_banner", "-i", audio, "-af", f"silencedetect=noise=-40dB:d={SILENCIO_MIN}",
+# limiar do silêncio relativo ao ruído do lugar: 12 dB acima do fundo (em sala silenciosa fica perto de -40 dB;
+# em salão de restaurante, com ruído, -40 dB não acha pausa nenhuma, como no A52)
+q = dados[: len(dados) // 160 * 160].reshape(-1, 160)
+nivel = 20 * np.log10(np.sqrt((q ** 2).mean(1)) + 1e-9)
+LIMIAR = max(-40.0, float(np.percentile(nivel[nivel > -90], 10)) + 12) if (nivel > -90).any() else -40.0
+txt = subprocess.run(["ffmpeg", "-hide_banner", "-i", audio, "-af", f"silencedetect=noise={LIMIAR:.1f}dB:d={SILENCIO_MIN}",
                       "-f", "null", "-"], capture_output=True, text=True, errors="ignore").stderr
 ini = [float(x) for x in re.findall(r"silence_start: ([\d.]+)", txt)]
 fim = [float(x) for x in re.findall(r"silence_end: ([\d.]+)", txt)]
@@ -37,7 +42,7 @@ for a, b in zip(ini, fim + [dur]):
         falas.append((max(cur - 0.1, 0), min(a + 0.1, dur)))
     cur = b
 if dur - cur > 0.15:
-    falas.append((cur - 0.1, dur))
+    falas.append((max(cur - 0.1, 0), dur))
 
 try:
     modelo, disp = WhisperModel("large-v3-turbo", device="cuda", compute_type="int8_float32"), "placa de vídeo"
@@ -58,4 +63,4 @@ for a, b in falas:
 for w in palavras:
     w.pop("fala", None)
 json.dump(palavras, open(saida, "w", encoding="utf-8"), ensure_ascii=False, indent=0)
-print(f"{len(palavras)} palavras em {len(falas)} falas, {time.time() - t0:.1f}s ({disp})")
+print(f"limiar do silêncio {LIMIAR:.1f} dB; {len(palavras)} palavras em {len(falas)} falas, {time.time() - t0:.1f}s ({disp})")
