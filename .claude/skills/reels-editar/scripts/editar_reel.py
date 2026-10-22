@@ -352,7 +352,7 @@ contadores = cfg.get("contadores", [])
 tempos_cont = []
 for c in contadores:
     s0, _ = acha(c["palavra"], tempos_cont[-1][0] if tempos_cont else 0)
-    c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado") if c.get("palavra_" + m)}
+    c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado", "marca", "preenche", "destaque", "desliza", "selo") if c.get("palavra_" + m)}
     t1 = acha(c["fim"], s0)[1] + c.get("folga", 0.4) if c.get("fim") else s0 + c.get("dura", 3.0)
     tempos_cont.append([s0, t1])
 # cartão que acaba a menos de 0,6 s do próximo fica até o próximo entrar (sem piscar o rosto cheio no meio)
@@ -661,6 +661,9 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
+        elif tipo in ("destaque", "grade", "regua"):  # efeitos de 21/10 (A52): marca-texto, grade de 100, régua
+            import animacoes2
+            getattr(animacoes2, "quadros_" + tipo)(pasta, c, c.get("_marcas", {}), FPS, FONTES, numero_br)
         else: animacoes.quadros_conta(pasta, c, c.get("_marcas", {}), FPS, FONTES, numero_br)
         print(f"contador {k + 1} ({tipo}): {int(round(c['dura'] * FPS))} quadros")
         return pasta
