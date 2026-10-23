@@ -14,6 +14,12 @@ from ambiente import FONTES, TRABALHO, ambiente, deep_filter
 cfg = json.load(open(sys.argv[1], encoding="utf-8"))
 # arquivos intermediários: por padrão em %LOCALAPPDATA%/reels-editar/trabalho/{código}, preenchidos pelo preparar.py
 TRAB = Path(cfg.get("trabalho") or TRABALHO / cfg["codigo"]); TRAB.mkdir(parents=True, exist_ok=True)
+# modo palco: no lugar da tela dividida, fundo de marca cheio, cartão grande em cima, o rosto num círculo
+# com borda dourada embaixo e uma etiqueta com o nome do momento (A PESQUISA, O NÚMERO...)
+PALCO = cfg.get("modo_div") == "palco"
+P_CARD_Y, P_CARD_W, P_D = 360, 1040, cfg.get("palco_diametro", 420)
+P_CY = P_CARD_Y + round(P_CARD_W * 0.58) + 32 + P_D // 2  # centro do círculo
+P_LEG_Y = cfg.get("palco_legenda_y", P_CY + P_D // 2 + 110)
 cfg.setdefault("audio16k", str(TRAB / "audio16k.wav"))
 cfg.setdefault("palavras", str(TRAB / "palavras.json"))
 # bruto, capa, saída e cartões podem vir só com o nome do arquivo: valem a partir da pasta do Reel (onde fica o JSON)
@@ -326,6 +332,29 @@ for l in pretas:
 ov.alpha_composite(tarja, (round(CX - tarja.width / 2), round(y0 + alt_cartao - tarja.height / 2)))
 ov.save(TRAB / "titulo.png")
 print(f"título: y {y0} a {y0 + alt_total}")
+if PALCO:
+    import numpy as np
+    yy, xx = np.mgrid[0:H, 0:W]
+    dist = np.sqrt(((xx - W / 2) / W) ** 2 + ((yy - P_CARD_Y - 300) / H) ** 2)
+    k = np.clip(dist / 0.75, 0, 1)[..., None]
+    perto, longe = np.array(cfg.get("palco_cor_centro", (22, 62, 44))), np.array(cfg.get("palco_cor_borda", (8, 22, 16)))
+    fundo = (perto * (1 - k) + longe * k).astype(np.uint8)
+    mold = Image.fromarray(np.dstack([fundo, np.full((H, W), 255, np.uint8)]), "RGBA")
+    dm = ImageDraw.Draw(mold)
+    r = P_D // 2
+    dm.ellipse([W / 2 - r - 9, P_CY - r - 9, W / 2 + r + 9, P_CY + r + 9], fill=(200, 164, 77, 255))  # borda dourada
+    dm.ellipse([W / 2 - r, P_CY - r, W / 2 + r, P_CY + r], fill=(0, 0, 0, 0))  # o furo por onde o rosto aparece
+    mold.save(TRAB / "palco_moldura.png")
+    f_etq = inter(900, 44)
+    for i, item in enumerate(cfg.get("cartoes", []) + cfg.get("contadores", [])):
+        if not item.get("etiqueta"): continue
+        txt = item["etiqueta"].upper(); le = largura(med, txt, f_etq, 1.5)
+        et = Image.new("RGBA", (W, H), (0, 0, 0, 0)); de = ImageDraw.Draw(et)
+        ye = P_CY + r - 34
+        de.rounded_rectangle([W / 2 - le / 2 - 30, ye, W / 2 + le / 2 + 30, ye + 74], radius=14, fill=(200, 164, 77, 255))
+        escreve(de, W / 2 - le / 2, ye + 9, txt, f_etq, 1.5, TINTA)
+        et.save(TRAB / f"palco_etq_{i}.png")
+    print(f"palco: cartão em y {P_CARD_Y}, círculo de {P_D} px centrado em y {P_CY}, legenda em y {P_LEG_Y}")
 if cfg.get("tag_fixa"):  # tag que fica do fim do título até o fim do vídeo, no alto (acima dos cartões da tela dividida)
     f_fixa = inter(800, cfg.get("tag_tamanho", 27)); esp_fixa = cfg.get("tag_tamanho", 27) * 0.2
     txt_fixa = cfg["tag_fixa"].upper()
@@ -416,7 +445,8 @@ for bi, bl in enumerate(blocos):
         # (no R028 o bloco que começava antes do cartão ficava embaixo, em cima do rosto)
         cortes_pos = [ini] + sorted(b for b in BORDAS_DIV if ini + 0.02 < b < fim - 0.02) + [fim]
         for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
-            if na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
+            if na_divisao(a_pos + 0.01) and PALCO: pos = r"{\an5\pos(540,%d)}" % P_LEG_Y  # palco: abaixo da etiqueta
+            elif na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
             elif na_cena_div(a_pos + 0.01): pos = r"{\an2\pos(%d,%d)}" % (W // 2, cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130))  # tela dividida do OBS
             else: pos = ""
             ev.append(f"Dialogue: 0,{ts(a_pos)},{ts(b_pos)},Leg,,0,0,0,,{pos}" + " ".join(partes_l))
@@ -548,7 +578,8 @@ if AULA:
     p.append(f"{uv}[comp]overlay=0:0:eof_action=pass:enable='{jt}'[va]")
     uv = "[va]"
 ta = cfg.get("titulo_ate", 3.0)
-p.append(f"[2:v]format=rgba,fade=t=in:st=0:d=0.2:alpha=1,fade=t=out:st={ta - 0.3}:d=0.3:alpha=1[tit]")
+_ent = "" if cfg.get("titulo_sem_entrada") else "fade=t=in:st=0:d=0.2:alpha=1,"  # capa com o mesmo título: sem piscar no início
+p.append(f"[2:v]format=rgba,{_ent}fade=t=out:st={ta - 0.3}:d=0.3:alpha=1[tit]")
 ult = "[vt]"
 p.append(f"{uv}[tit]overlay=0:0:eof_action=pass[vt]")
 FUNDO_DIV = cfg.get("fundo_divisao", "0x0A1712")
@@ -563,10 +594,18 @@ for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
         print(f"efeito de tela cheia {k + 1} ({c.get('tipo')}): {t0:.2f}s a {t1:.2f}s")
 if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
-    VIDRO = cfg.get("fundo_divisao") == "vidro"  # metade de cima: o próprio vídeo desfocado com véu verde-escuro
+    VIDRO = cfg.get("fundo_divisao") == "vidro" and not PALCO  # metade de cima: o próprio vídeo desfocado com véu verde-escuro
     p.append(f"{VT}split=3[vfull][vdiv][vgl]" if VIDRO else f"{VT}split[vfull][vdiv]")
     DIV_ALT = int(cfg.get("div_altura", 960))
-    if DIV_ALT <= 960:
+    if PALCO:
+        lado = int(cfg.get("palco_lado", 760))
+        px0 = int(min(max(FX * 1080 - lado / 2, 0), 1080 - lado))
+        py0 = int(min(max(FY * 1920 - 0.42 * lado, 0), 1920 - lado))
+        p.append(f"[vdiv]crop={lado}:{lado}:{px0}:{py0},scale={P_D}:{P_D},"
+                 f"pad=1080:1920:{(1080 - P_D) // 2}:{P_CY - P_D // 2}:color=0x0A1712[vrost]")
+        p.append(f"movie=palco_moldura.png:loop=0,setpts=N/({FPS}*TB),format=rgba[pmold]")
+        p.append("[vrost][pmold]overlay=0:0:shortest=1[vbase0]")
+    elif DIV_ALT <= 960:
         corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * 960, 0), 960)))
         p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase0]")
     else:
@@ -588,16 +627,27 @@ if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     ult = "[vbase]"
     for k, (c, (t0, t1)) in enumerate(zip(cartoes, tempos)):
         larg = c.get("largura", 1000)
+        if PALCO: larg = P_CARD_W
         p.append(f"[{4 + k}:v]format=rgba,scale={larg}:-1[c{k}]")
-        p.append(f"{ult}[c{k}]overlay=x={(1080 - larg) // 2}:y='300+(640-h)/2':shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
+        y_c = f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2" if PALCO else "300+(640-h)/2"
+        p.append(f"{ult}[c{k}]overlay=x={(1080 - larg) // 2}:y='{y_c}':shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
     for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
         if TELA_CHEIA[k]: continue
-        p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
-        p.append(f"{ult}[n{k}]overlay=x=40:y='300+(640-h)/2':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
+        esc = f",scale={P_CARD_W}:-1" if PALCO else ""
+        p.append(f"[{IDX_CONT + k}:v]format=rgba{esc},setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
+        x_n, y_n = (f"{(1080 - P_CARD_W) // 2}", f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2") if PALCO else ("40", "300+(640-h)/2")
+        p.append(f"{ult}[n{k}]overlay=x={x_n}:y='{y_n}':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
         print(f"contador {k + 1} ({c.get('tipo', 'numero')}): {t0:.2f}s a {t1:.2f}s  ({c.get('rotulo', '')})")
+    if PALCO:
+        itens_p = list(zip(cartoes, tempos)) + list(zip(contadores, tempos_cont))
+        for i, (c, (t0, t1)) in enumerate(itens_p):
+            if not c.get("etiqueta") or (i >= len(cartoes) and TELA_CHEIA[i - len(cartoes)]): continue
+            p.append(f"movie=palco_etq_{i}.png:loop=0,setpts=N/({FPS}*TB),format=rgba[pe{i}]")
+            p.append(f"{ult}[pe{i}]overlay=0:0:shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vpe{i}]")
+            ult = f"[vpe{i}]"
     cond = "+".join(f"between(t,{j0:.3f},{j1:.3f})" for j0, j1 in janelas)
     p.append(f"[vfull]{ult}overlay=0:0:shortest=1:enable='{cond}'[vsplit]")
     ult = "[vsplit]"

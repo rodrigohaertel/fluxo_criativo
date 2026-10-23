@@ -130,7 +130,7 @@ def quadros_distancia(pasta, c, marcas, fps, fontes):
         if t >= t_some: a_ent = 1 - _ease((t - t_some) / 0.3)
         if a_ent <= 0: im.save(pasta / f"{q:04d}.png"); continue
         cam = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0)); dr = ImageDraw.Draw(cam)
-        dr.rounded_rectangle([PX0, y0, PX1, PY1], radius=34, fill=(10, 30, 23, 222))
+        dr.rounded_rectangle([PX0, y0, PX1, PY1], radius=34, fill=(10, 30, 23, 246))
         dr.rounded_rectangle([PX0, y0, PX1, PY1], radius=34, outline=(200, 164, 77, 120), width=2)
         # quanto do gráfico já foi desenhado
         p = _ease_io((t - t_abre) / max(t_some - t_abre - 0.5, 0.8)) if t > t_abre else 0.0
@@ -139,8 +139,10 @@ def quadros_distancia(pasta, c, marcas, fps, fontes):
         sobe = [(x, curva_sobe(u)) for x, u in zip(xs, us)]
         parada = [(x, curva_parada(u)) for x, u in zip(xs, us)]
         # o vão entre as linhas, em dourado translúcido
-        if p > 0.15:
-            dr.polygon(sobe + parada[::-1], fill=(200, 164, 77, int(70 * min((p - 0.15) / 0.3, 1))))
+        if p > 0.15:  # numa camada à parte, misturada por cima (desenhar direto troca o alfa e fura o painel)
+            vao = Image.new("RGBA", cam.size, (0, 0, 0, 0))
+            ImageDraw.Draw(vao).polygon(sobe + parada[::-1], fill=(200, 164, 77, int(80 * min((p - 0.15) / 0.3, 1))))
+            cam.alpha_composite(vao); dr = ImageDraw.Draw(cam)
         # eixo de base
         dr.line([(X0, YB + 18), (X1 + 10, YB + 18)], fill=(255, 255, 255, 60), width=2)
         if len(sobe) > 1:
@@ -199,7 +201,9 @@ def quadros_destaque(pasta, c, marcas, fps, fontes):
         t = q / fps
         im = Image.new("RGBA", (1000, 580), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
         _base(dr, fontes, None)
-        if seguir:
+        if c.get("parado"):
+            zoom, esc, cx, cy = 1.0, esc0, img.width / 2, img.height / 2
+        elif seguir:
             zoom = 1.0 + (zf - 1.0) * _ease_io(min(t / (t_marca + 0.5), 1.0))
             esc = esc0 * zoom; jw_ = aw / esc
             # enquadra a linha inteira que está sendo marcada (seguir a ponta cortava o começo e o fim das linhas)
@@ -281,7 +285,7 @@ def quadros_grade(pasta, c, marcas, fps, fontes, numero_br=None):
         if modo == "acende":
             n_acesas = int(min(max((t - t_pre) / c.get("passo", 0.18), 0), len(ordem)))
         pulso = 1.0
-        if t_des is not None and t > t_des:
+        if t_des is not None and t > t_des and c.get("pulsar", False):
             rt = t - t_des
             pulso = 1 + 0.10 * abs(__import__("math").sin(min(rt, 1.2) * 3.1416 * 2.5)) * (1 if rt < 1.2 else 0)
         for i in range(100):

@@ -1,6 +1,6 @@
 ---
 name: reels-editar
-description: Edita um Reel da Linha Editorial do bruto gravado até o MP4 final, no padrão aprovado pelo Rodrigo no R024 e no R027 (16 a 18/10/2026), sem CapCut. Faz áudio D (reduzir ruído + aprimorar voz 75% + volume a -14 LUFS), cor C medida no rosto, cortes só em pausa acima de 1 s, zoom suave nas frases de virada, legenda Montserrat maiúscula com uma cor por vídeo, título dos 3 primeiros segundos no padrão da capa, cartões de prova em tela dividida e capa no primeiro quadro. Use quando o usuário pedir "editar o R028", "edita o Reel", "monta o vídeo do R030", "tira o CapCut desse", "/reels-editar R028".
+description: Edita um Reel da Linha Editorial (e os anúncios em vídeo do Dono 14%, padrão do A52) do bruto gravado até o MP4 final, no padrão aprovado pelo Rodrigo no R024 e no R027 (16 a 18/10/2026), sem CapCut. Faz áudio D (reduzir ruído + aprimorar voz 75% + volume a -14 LUFS), cor C medida no rosto, cortes só em pausa acima de 1 s, zoom suave nas frases de virada, legenda Montserrat maiúscula com uma cor por vídeo, título dos 3 primeiros segundos no padrão da capa, cartões de prova em tela dividida e capa no primeiro quadro. Use quando o usuário pedir "editar o R028", "edita o Reel", "monta o vídeo do R030", "tira o CapCut desse", "/reels-editar R028".
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep
 ---
 
@@ -76,14 +76,21 @@ Ler `fala.txt`, `preparo.json`, a imagem `rosto_grade.jpg`, o roteiro (seção "
 | `telas` e `tela_html` | aula gravada só com a câmera: a lista de trocas de cena e cliques ancorados na fala e o `_TELA_R0XX_*.html` de onde saem as telas. Ver a seção abaixo. |
 | fixos | `pausa_min` 1.0, `pausa_fica` 0.8, `corte_minimo` 0.4 (só corta pausa se economizar 0,4 s), `legenda_base_y` 1516, `titulo_ate` 3.0, `cor` `C`, `aprimorar_voz` 75, `saida` `R0XX_editado.mp4`. Não mudar sem pedido do Rodrigo. |
 
-### Anúncio do Dono 14% (padrão do A52, 22/10/2026)
+### Anúncio do Dono 14% (padrão do A52, aprovado em 23/10/2026)
 
-A skill também edita os criativos de `meus-produtos/dono-14/entregas/criativos/A0XX - Nome - 9x16/`: o `preparar.py` aceita o código `A52` e o roteiro `A52 - … - roteiro.html`. Diferenças para o Reel:
-- `"capa": null`: **sem capa no primeiro quadro**; no anúncio o quadro zero é o gancho e a miniatura se escolhe na Meta.
-- O plano de motion vem da seção H do roteiro. Efeito de tela cheia (`tipo` `distancia`) fica fora da tela dividida, por cima do vídeo; os outros entram na tela dividida.
-- Prova em página real (`tipo` `destaque`): fotografar a página com o Chrome sem janela em **largura de tablet e escala 2** (`--window-size=600,4200 --force-device-scale-factor=2`), recortar no formato do cartão (largura ÷ 2,08) e marcar uma caixa por linha em `trechos`. Usar `seguir: true` com `zoom_final` 1,5: a câmera do cartão enquadra a linha inteira que está sendo marcada, legível no celular (seguir a ponta cortava as linhas).
+A skill também edita os criativos de `meus-produtos/dono-14/entregas/criativos/A0XX - Nome - 9x16/`. O `preparar.py` aceita o código `A52` e o roteiro `A52 - … - roteiro.html`. O que muda em relação ao Reel:
+- **Capa no primeiro quadro, como no Reel** (o Rodrigo pediu no A52 para o preview de quem recebe pelas redes). A capa do anúncio usa **o mesmo bloco de título do vídeo** (cartão creme com a pílula, as linhas pretas e a tarja vermelha, o `titulo.png` do trabalho) por cima da foto da capa, com **a mesma cor C do vídeo** (`filtro_cor` medido na própria foto, com o mesmo `cor_esfriar`). A capa feita só no gerador ficou "morta" ao lado do vídeo. Com a capa igual ao título, usar `titulo_sem_entrada: true` para o título não piscar na passagem da capa para o vídeo.
+- **Tag fixa** `tag_fixa: "DONO DE RESTAURANTE"` com `tag_y` 286: fica do fim do título até o fim do vídeo, no alto, logo acima dos cartões da tela dividida (que começam em y 330). O filtro visual não pode ficar só nos 3 primeiros segundos: o A32 e o A34 carregavam a tag o tempo todo.
+- O plano de motion vem da seção H do roteiro. O efeito de tela cheia (`tipo` `distancia`) fica fora da tela dividida, por cima do vídeo. Os outros entram na tela dividida com `fundo_divisao: "vidro"` (a metade de cima é o próprio vídeo desfocado, com um véu verde-escuro, no lugar do preto chapado).
+- **Número na tela é o número falado.** Se ele fala "60", a grade destaca 60 (40 no zero + 19 no vermelho + 1 sem dado vai no detalhe), nunca 59. Resultado positivo é sempre verde: no A52, os 6 que reajustaram acima da inflação são os que fizeram certo e não podem ficar em vermelho.
+- **Não repetir o mesmo gráfico duas vezes seguidas:** depois da grade de 100, o segundo dado do mesmo tipo vira rosca (`tipo` `rosca`, com a fatia de destaque saindo da rosca e o número no centro).
+- **Nada pisca nem pulsa:** a grade fica parada no destaque (`pulsar` vem desligado). Quadrados crescendo e diminuindo atrapalham a leitura.
+- **Prova em página real** (`tipo` `destaque`): fotografar a página com o Chrome sem janela em **largura de tablet e escala 2** (`--window-size=600,4200 --force-device-scale-factor=2`), recortar no formato do cartão (largura ÷ 2,08) e marcar uma caixa por linha em `trechos`. Usar **`parado: true`**: a página inteira, sem zoom e sem movimento lateral, só o marca-texto correndo. O `seguir` com zoom (1,5 e depois 1,25) cortava as pontas das linhas e impedia de ler a frase inteira. Ficou reprovado.
+- **A distância** é um painel quase opaco (alfa 246) com a linha de vendas subindo e a de lucro parada. O vão dourado é desenhado numa camada à parte e misturado por cima: desenhar direto no painel abria um furo, e a camisa aparecia através do gráfico.
+- **Cor em luz amarela de salão:** `cor_esfriar` 0,03 (meio ponto, tira vermelho e soma azul) quando a pele fica quente nos trechos de rosto.
 - Medir o rosto num quadro do meio do bruto (no A52 o primeiro quadro estava mais longe) e conferir que o título não cobre a boca.
 - Ruído de salão: a transcrição fala por fala mede o limiar do silêncio pelo ruído do lugar.
+- **Modo palco** (`modo_div: "palco"`, versão B de teste do A52, inspirado num Reel do Politi). Nos momentos de dado, a tela vira fundo de marca cheio, com o cartão grande em cima (1040 px), o rosto num círculo de borda dourada embaixo e uma etiqueta por momento (`etiqueta` em cada cartão ou contador: A PESQUISA, O NÚMERO, QUEM ACERTOU, A CONTA, A SESSÃO). A legenda fica abaixo da etiqueta. Nas falas sem dado, o rosto continua em tela cheia. O Rodrigo escolheu a versão A (tela dividida) para o A52. O palco fica disponível para teste A/B.
 
 ### Versão horizontal 16:9 (aula do YouTube, padrão do R026)
 
@@ -203,6 +210,7 @@ Fonte: R024, R025, R026 (vertical e horizontal) e R027, 16 a 18/10/2026. Detalhe
 - **Legenda:** Montserrat ExtraBold, maiúscula, palavra falada em destaque, base em y 1516; na tela dividida sobe para a linha da divisão (y 962), trocando de lugar no instante em que o cartão entra ou sai, mesmo no meio de um bloco (R028).
 - **Título:** cartão na cor da capa, selo espaçado, linhas em preto (Inter 900), última linha branca na tarja vermelha inclinada.
 - **Cartões:** tela dividida, notícia em cima (fundo `#0A1712`), vídeo embaixo.
+- **Cartões animados (A52):** o número na tela é o número falado; resultado positivo em verde; nada pisca nem pulsa; prova em página real aparece inteira, parada, só com o marca-texto; gráfico repetido vira outro desenho (grade, depois rosca).
 - **Contador (número que cresce):** cartão branco na tela dividida, rótulo verde espaçado, número em Montserrat Black subindo em 1,4 s com desaceleração, pulso de 0,3 s ao parar, barra dourada de progresso e detalhe cinza que aparece no fim. Testado no R024 em 18/10 (`_teste_contador_R024.mp4`); estreia no R028.
 - **Preço que cai e conta que monta** (`tipo` `troca` e `conta`): mesmo cartão branco, colunas DE SEMPRE e COTANDO com seta dourada, risco vermelho no preço antigo, destaque verde-claro e selo dourado com a diferença; a conta entra termo a termo e o resultado sobe. Testados no R024 em 20/10 com os números do R028; estreiam no R028.
 - **Áudio D:** DeepFilterNet + ClearerVoice 75% + ganho linear a -14 LUFS com limitador em -1,5 dB (o loudnorm levantava a respiração).
