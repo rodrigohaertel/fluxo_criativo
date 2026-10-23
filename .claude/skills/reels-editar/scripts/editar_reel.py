@@ -326,6 +326,17 @@ for l in pretas:
 ov.alpha_composite(tarja, (round(CX - tarja.width / 2), round(y0 + alt_cartao - tarja.height / 2)))
 ov.save(TRAB / "titulo.png")
 print(f"título: y {y0} a {y0 + alt_total}")
+if cfg.get("tag_fixa"):  # tag que fica do fim do título até o fim do vídeo, no alto (acima dos cartões da tela dividida)
+    f_fixa = inter(800, cfg.get("tag_tamanho", 27)); esp_fixa = cfg.get("tag_tamanho", 27) * 0.2
+    txt_fixa = cfg["tag_fixa"].upper()
+    lf = largura(med, txt_fixa, f_fixa, esp_fixa)
+    alt_f, pad_f = round(cfg.get("tag_tamanho", 27) * 1.55), 26
+    tg = Image.new("RGBA", (W, H), (0, 0, 0, 0)); dg = ImageDraw.Draw(tg)
+    yf = cfg.get("tag_y", 290)
+    dg.rounded_rectangle([W / 2 - lf / 2 - pad_f, yf, W / 2 + lf / 2 + pad_f, yf + alt_f], radius=alt_f // 2, fill=FUNDO)
+    escreve(dg, W / 2 - lf / 2, yf + (alt_f - cfg.get("tag_tamanho", 27) * 1.2) / 2, txt_fixa, f_fixa, esp_fixa, COR_SELO)
+    tg.save(TRAB / "tag_fixa.png")
+    print(f"tag fixa: y {yf} a {yf + alt_f}")
 
 # ---------- legenda ASS ----------
 def ts(t):
@@ -485,6 +496,7 @@ if cfg.get("cor", "C") != "nenhuma":
     cx, cy = FX * W, FY * H
     rosto_caixa = tuple(int(v) for v in cfg.get("rosto_caixa", (cx - 70, cy - 200, cx + 70, cy - 20)))
     FILTRO_COR, info_cor = filtro_cor(quadros, rosto_caixa, acabamento=cfg.get("cor", "C") == "C",
+                                      esfriar=cfg.get("cor_esfriar", 0.0),
                                       exposicao=cfg.get("cor_exposicao", not cfg.get("cenas_obs")))
     FILTRO_COR = "," + FILTRO_COR
     print("cor:", {k: (v if v is None or isinstance(v, list) else float(v)) for k, v in info_cor.items()})
@@ -540,6 +552,7 @@ p.append(f"[2:v]format=rgba,fade=t=in:st=0:d=0.2:alpha=1,fade=t=out:st={ta - 0.3
 ult = "[vt]"
 p.append(f"{uv}[tit]overlay=0:0:eof_action=pass[vt]")
 FUNDO_DIV = cfg.get("fundo_divisao", "0x0A1712")
+if FUNDO_DIV == "vidro": FUNDO_DIV = "0x0A1712"  # o vidro é desenhado por cima; o pad usa o verde-escuro
 IDX_CONT = 4 + len(cartoes) + (1 + (1 if HORIZONTAL else 0) if AULA else 0)  # entradas dos contadores no ffmpeg
 VT = "[vt]"  # efeitos de tela cheia (a distância do A52) vão por cima do vídeo inteiro, antes da tela dividida
 for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
@@ -550,11 +563,12 @@ for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
         print(f"efeito de tela cheia {k + 1} ({c.get('tipo')}): {t0:.2f}s a {t1:.2f}s")
 if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
-    p.append(f"{VT}split[vfull][vdiv]")
+    VIDRO = cfg.get("fundo_divisao") == "vidro"  # metade de cima: o próprio vídeo desfocado com véu verde-escuro
+    p.append(f"{VT}split=3[vfull][vdiv][vgl]" if VIDRO else f"{VT}split[vfull][vdiv]")
     DIV_ALT = int(cfg.get("div_altura", 960))
     if DIV_ALT <= 960:
         corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * 960, 0), 960)))
-        p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase]")
+        p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase0]")
     else:
         # rosto muito de perto (R028): a câmera da tela dividida mostra um pedaço maior do quadro, reduzido
         # para caber na metade de baixo, com o mesmo trecho desfocado preenchendo as laterais
@@ -563,7 +577,14 @@ if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
         p.append(f"[vdiv]crop=1080:{DIV_ALT}:0:{corte_y},split[dv1][dv2]")
         p.append(f"[dv1]scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960,boxblur=24:2,eq=brightness=-0.08[dvfundo]")
         p.append(f"[dv2]scale={larg_red}:960[dvrosto]")
-        p.append(f"[dvfundo][dvrosto]overlay=x={(1080 - larg_red) // 2}:y=0,pad=1080:1920:0:960:color={FUNDO_DIV}[vbase]")
+        p.append(f"[dvfundo][dvrosto]overlay=x={(1080 - larg_red) // 2}:y=0,pad=1080:1920:0:960:color={FUNDO_DIV}[vbase0]")
+    if VIDRO:
+        p.append("[vgl]crop=1080:960:0:0,scale=216:192,boxblur=6:2,scale=1080:960,eq=brightness=-0.10:saturation=0.75,"
+                 "drawbox=x=0:y=0:w=1080:h=960:color=0x0A1712@0.50:t=fill,"
+                 "drawbox=x=0:y=900:w=1080:h=60:color=0x0A1712@0.35:t=fill[vglass]")
+        p.append("[vbase0][vglass]overlay=0:0[vbase]")
+    else:
+        p.append("[vbase0]null[vbase]")
     ult = "[vbase]"
     for k, (c, (t0, t1)) in enumerate(zip(cartoes, tempos)):
         larg = c.get("largura", 1000)
@@ -597,6 +618,11 @@ else:
         p.append(f"[{IDX_CONT + k}:v]format=rgba,setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
         p.append(f"{ult}[n{k}]overlay=x=40:y={c.get('y', 500)}:eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
+if cfg.get("tag_fixa"):
+    _ta = cfg.get("titulo_ate", 3.0)
+    p.append(f"movie=tag_fixa.png:loop=0,setpts=N/({FPS}*TB),format=rgba,fade=t=in:st={_ta:.2f}:d=0.3:alpha=1[tagf]")
+    p.append(f"{ult}[tagf]overlay=0:0:shortest=1:enable='gte(t,{_ta:.2f})'[vtag]")
+    ult = "[vtag]"
 p.append(f"{ult}subtitles=legenda.ass:fontsdir='{FONTES.as_posix().replace(':', '\\:')}'[vm]")
 p.append(f"[3:v]scale={W}:{H},setsar=1,fps={FPS},format=yuv420p,trim=end_frame=1,setpts=PTS-STARTPTS[cv]")
 p.append(f"anullsrc=r=48000:cl=mono,atrim=end={1 / FPS:.4f}[sil]")
@@ -676,7 +702,7 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
-        elif tipo in ("destaque", "grade", "regua", "distancia"):  # efeitos de 21/10 (A52)
+        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca"):  # efeitos de 21/10 (A52)
             import animacoes2
             import inspect
             fn = getattr(animacoes2, "quadros_" + tipo)

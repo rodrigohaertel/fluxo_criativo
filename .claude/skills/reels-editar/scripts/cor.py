@@ -28,7 +28,7 @@ def medir(quadros, rosto):
     branco = brancos.mean(0) if len(brancos) > BRANCO_MIN * total else None
     return np.mean(pele, 0), np.concatenate(lum), branco
 
-def filtro_cor(quadros, rosto, acabamento=True, quente=0.0, exposicao=True):
+def filtro_cor(quadros, rosto, acabamento=True, quente=0.0, exposicao=True, esfriar=0.0):
     pele, lum, branco = medir(quadros, rosto)
     r, g, b = pele
     ganho_r = 1 + FORCA * ((PELE_RG * g / r) - 1)
@@ -38,6 +38,8 @@ def filtro_cor(quadros, rosto, acabamento=True, quente=0.0, exposicao=True):
         rb, gb, bb = branco
         ganho_r = PESO_BRANCO * (gb / rb) + (1 - PESO_BRANCO) * ganho_r
         ganho_b = PESO_BRANCO * (gb / bb) + (1 - PESO_BRANCO) * ganho_b + quente
+    # esfriar: luz amarela de salão (A52) que a pele puxou junto; tira vermelho e soma azul na mesma medida
+    ganho_r, ganho_b = ganho_r - esfriar, ganho_b + esfriar
     # exposição medida no ROSTO (o quadro inteiro engana: parede escura e camiseta preta puxam a média para baixo)
     p2, p995 = np.percentile(lum, 2), np.percentile(lum, 99.5)
     lo = max(p2 - 12, 0) / 255

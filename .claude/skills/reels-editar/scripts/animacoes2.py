@@ -103,48 +103,67 @@ def _selo(im, cx, cy, texto, f, esc):
 # 1. A distância (tela cheia 1080 × 1920)
 # ----------------------------------------------------------------------------------------------------
 def quadros_distancia(pasta, c, marcas, fps, fontes):
-    """c: dura, esquerda ("VENDER MAIS"), direita ("TER RESULTADO"), rotulo ("A DISTÂNCIA"), y (centro, padrão 1150).
-    marcas: "abre" (quando começam a se afastar), "some" (quando o conjunto sai)."""
-    dura = c["dura"]; y = c.get("y", 1150)
-    t_abre = marcas.get("abre", 0.5); t_some = marcas.get("some", dura - 0.5)
-    f_chip = _fonte(fontes, "Montserrat-Black.ttf", c.get("tamanho", 58))
-    f_rot = _fonte(fontes, "Montserrat-ExtraBold.ttf", 30)
-    med = ImageDraw.Draw(Image.new("RGBA", (1, 1)))
-    esq, dir_ = c.get("esquerda", "VENDER MAIS").upper(), c.get("direita", "TER RESULTADO").upper()
-    le, ld = med.textlength(esq, font=f_chip), med.textlength(dir_, font=f_chip)
-    PAD, ALT = c.get("pad", 36), c.get("alt", 110)
-
-    def chip(txt, lw):
-        cam = Image.new("RGBA", (int(lw + 2 * PAD), ALT), (0, 0, 0, 0)); dc = ImageDraw.Draw(cam)
-        dc.rounded_rectangle([0, 0, lw + 2 * PAD, ALT], radius=26, fill=ESMERALDA[:3] + (235,))
-        dc.text(((lw + 2 * PAD) / 2, ALT / 2 + 2), txt, font=f_chip, fill=BRANCO, anchor="mm")
-        return cam
-    ce, cd = chip(esq, le), chip(dir_, ld)
-    # posições: juntos no centro (quase encostados) e depois afastados até as bordas
-    gap0, gap1 = 18, 1080 - 60 - ce.width - cd.width  # vão inicial e final entre os chips
+    """A distância v2 (22/10, pedido do Rodrigo no A52: os chips que se afastavam não diziam nada).
+    Painel translúcido no peito com um gráfico: a linha de VENDAS sobe, a linha de LUCRO fica parada e o vão
+    entre as duas acende em dourado com o rótulo A DISTÂNCIA. c: dura, esquerda (rótulo da linha que sobe,
+    "VENDER MAIS"), direita (rótulo da linha parada, "TER RESULTADO"), rotulo ("A DISTÂNCIA"), y (topo do painel).
+    marcas: "abre" (as linhas começam a se separar), "some" (o painel sai)."""
+    dura = c["dura"]; y0 = c.get("y", 1030)
+    t_abre = marcas.get("abre", 0.3); t_some = marcas.get("some", dura - 0.35)
+    f_lin = _fonte(fontes, "Montserrat-Black.ttf", 40)
+    f_lin2 = _fonte(fontes, "Montserrat-Black.ttf", 38)
+    f_rot = _fonte(fontes, "Montserrat-ExtraBold.ttf", 32)
+    sobe_txt, parado_txt = c.get("esquerda", "VENDER MAIS").upper(), c.get("direita", "TER RESULTADO").upper()
+    PX0, PX1, PY1 = 50, 1030, y0 + 360              # painel (acaba acima da legenda, que começa em ~1450)
+    X0, X1 = 110, 600                                  # gráfico
+    YB, YT, YP = y0 + 300, y0 + 110, y0 + 265          # base, topo da linha que sobe, fim da linha parada
+    VERDE_VIVO, CINZA_LUZ = (94, 224, 154, 255), (205, 212, 208, 255)
+    n_pts = 60
+    def curva_sobe(u):  # sobe acelerando
+        return YB - (YB - YT) * (u ** 1.6)
+    def curva_parada(u):
+        return YB - (YB - YP) * u
     for q in range(int(round(dura * fps))):
         t = q / fps
-        im = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
-        ent = _ease(t / 0.35)
-        if t >= t_some: ent = 1 - _ease((t - t_some) / 0.3)
-        if ent <= 0: im.save(pasta / f"{q:04d}.png"); continue
-        p = _ease_io((t - t_abre) / max(dura - t_abre - 0.8, 0.5)) if t > t_abre else 0.0
-        gap = gap0 + (gap1 - gap0) * p
-        total = ce.width + cd.width + gap
-        xe = 540 - total / 2; xd = xe + ce.width + gap
-        a = int(255 * ent)
-        # linha dourada medindo o vão, com as pontinhas
-        if gap > 60:
-            x0, x1 = xe + ce.width + 14, xd - 14
-            dr.line([(x0, y), (x1, y)], fill=OURO[:3] + (a,), width=6)
-            for xx in (x0, x1): dr.line([(xx, y - 18), (xx, y + 18)], fill=OURO[:3] + (a,), width=6)
-            if c.get("rotulo") and p > 0.35:
-                ar = int(a * _ease((p - 0.35) / 0.3))
-                _espacado(dr, (x0 + x1) / 2, y - 64, c["rotulo"].upper(), f_rot, 4, OURO[:3] + (ar,))
-        for cam, x in ((ce, xe), (cd, xd)):
-            camA = cam.copy()
-            if a < 255: camA.putalpha(camA.getchannel("A").point(lambda v: v * a // 255))
-            im.alpha_composite(camA, (int(x), int(y - ALT / 2)))
+        im = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        a_ent = _ease(t / 0.3)
+        if t >= t_some: a_ent = 1 - _ease((t - t_some) / 0.3)
+        if a_ent <= 0: im.save(pasta / f"{q:04d}.png"); continue
+        cam = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0)); dr = ImageDraw.Draw(cam)
+        dr.rounded_rectangle([PX0, y0, PX1, PY1], radius=34, fill=(10, 30, 23, 222))
+        dr.rounded_rectangle([PX0, y0, PX1, PY1], radius=34, outline=(200, 164, 77, 120), width=2)
+        # quanto do gráfico já foi desenhado
+        p = _ease_io((t - t_abre) / max(t_some - t_abre - 0.5, 0.8)) if t > t_abre else 0.0
+        us = [i / n_pts * p for i in range(n_pts + 1)]
+        xs = [X0 + (X1 - X0) * u for u in us]
+        sobe = [(x, curva_sobe(u)) for x, u in zip(xs, us)]
+        parada = [(x, curva_parada(u)) for x, u in zip(xs, us)]
+        # o vão entre as linhas, em dourado translúcido
+        if p > 0.15:
+            dr.polygon(sobe + parada[::-1], fill=(200, 164, 77, int(70 * min((p - 0.15) / 0.3, 1))))
+        # eixo de base
+        dr.line([(X0, YB + 18), (X1 + 10, YB + 18)], fill=(255, 255, 255, 60), width=2)
+        if len(sobe) > 1:
+            dr.line(parada, fill=CINZA_LUZ, width=9, joint="curve")
+            dr.line(sobe, fill=VERDE_VIVO, width=11, joint="curve")
+            for pts, cor in ((parada, CINZA_LUZ), (sobe, VERDE_VIVO)):
+                x, y = pts[-1]; dr.ellipse([x - 12, y - 12, x + 12, y + 12], fill=cor)
+        # rótulos nas pontas, entram com o desenho
+        if p > 0.35:
+            ar = int(255 * min((p - 0.35) / 0.25, 1))
+            xs_, ys_ = sobe[-1]; xp_, yp_ = parada[-1]
+            dr.text((xs_ + 34, ys_), sobe_txt, font=f_lin, fill=VERDE_VIVO[:3] + (ar,), anchor="lm")
+            dr.text((xp_ + 34, yp_), parado_txt, font=f_lin2, fill=CINZA_LUZ[:3] + (ar,), anchor="lm")
+        # a medida do vão e o nome do conceito
+        if p > 0.7:
+            ab = int(255 * min((p - 0.7) / 0.2, 1))
+            xm = sobe[-1][0] - 4; ya, yb = sobe[-1][1] + 18, parada[-1][1] - 18
+            if yb - ya > 30:
+                dr.line([(xm, ya), (xm, yb)], fill=OURO[:3] + (ab,), width=5)
+                for yy in (ya, yb): dr.line([(xm - 14, yy), (xm + 14, yy)], fill=OURO[:3] + (ab,), width=5)
+            _espacado(dr, (PX0 + PX1) / 2, y0 + 34, c.get("rotulo", "A DISTÂNCIA").upper(), f_rot, 5, OURO[:3] + (ab,))
+        if a_ent < 1: cam.putalpha(cam.getchannel("A").point(lambda v: int(v * a_ent)))
+        im.alpha_composite(cam)
         im.save(pasta / f"{q:04d}.png")
     return pasta
 
@@ -239,13 +258,14 @@ def quadros_grade(pasta, c, marcas, fps, fontes, numero_br=None):
     marcas: "preenche" (começa a preencher), "destaque"."""
     dura = c["dura"]; modo = c.get("modo", "preenche")
     t_pre = marcas.get("preenche", 0.3); t_des = marcas.get("destaque", None)
-    cores = {"verde": VERDE, "cinza": (150, 158, 153, 255), "vermelho": VERMELHO, "ouro": OURO, "tinta": TINTA}
+    cores = {"verde": VERDE, "cinza": (150, 158, 153, 255), "vermelho": VERMELHO, "ouro": OURO, "tinta": TINTA,
+             "claro": (214, 219, 216, 255)}
     grupos = c["grupos"]
     ordem = []  # célula -> (grupo, cor)
     for gi, g in enumerate(grupos):
         ordem += [(gi, cores[g["cor"]])] * int(g["n"])
     ordem = ordem[:100]
-    CEL, GAP, GX, GY = 34, 7, 60, 112  # grade de 10 × 10 à esquerda
+    CEL, GAP, GX, GY = 31, 6, 64, 102  # grade de 10 × 10 à esquerda (termina em y 466, acima do rodapé)
     f_rot = _fonte(fontes, "Montserrat-ExtraBold.ttf", 30)
     f_leg = _fonte(fontes, "Montserrat-ExtraBold.ttf", 28)
     f_num = _fonte(fontes, "Montserrat-Black.ttf", 150)
@@ -288,7 +308,7 @@ def quadros_grade(pasta, c, marcas, fps, fontes, numero_br=None):
             inicio_g = sum(int(x["n"]) for x in grupos[:gi])
             if modo == "acende": vis = n_acesas > inicio_g
             else: vis = n_vis > inicio_g
-            if not vis: continue
+            if not vis or g.get("legenda") is False: continue
             cor = cores[g["cor"]]
             dr.rounded_rectangle([560, yl, 560 + 26, yl + 26], radius=6, fill=cor)
             dr.text((600, yl + 13), f"{g['n']}  {g['nome'].upper()}", font=f_leg, fill=TINTA, anchor="lm")
@@ -307,6 +327,90 @@ def quadros_grade(pasta, c, marcas, fps, fontes, numero_br=None):
                 dr.text((500, 512), des["detalhe"], font=f_det, fill=CINZA[:3] + (a,), anchor="mm")
         elif c.get("detalhe"):
             dr.text((500, 512), c["detalhe"], font=f_det, fill=CINZA, anchor="mm")
+        _entrada(im, t).save(pasta / f"{q:04d}.png")
+    return pasta
+
+
+# ----------------------------------------------------------------------------------------------------
+# 3b. Rosca (tela dividida): 100 dividido em fatias coloridas, uma fatia em destaque
+# ----------------------------------------------------------------------------------------------------
+def quadros_rosca(pasta, c, marcas, fps, fontes, numero_br=None):
+    """Rosca de 100 (22/10, A52): outra forma gráfica para não repetir a grade de 100.
+    c: dura, rotulo, fatias [{"n": 38, "cor": "cinza", "nome": "NÃO MEXERAM"}, ...] (desenham em ordem, no
+    sentido horário), destaque {"fatia": 3, "numero": 6, "rotulo": "EM CADA 100"} (a fatia sai do anel e o
+    número entra no centro), detalhe (rodapé).
+    marcas: "preenche" (o anel começa a se completar), "destaque"."""
+    import math
+    dura = c["dura"]
+    t_pre = marcas.get("preenche", 0.3); t_des = marcas.get("destaque", None)
+    cores = {"verde": VERDE, "cinza": (150, 158, 153, 255), "vermelho": VERMELHO, "ouro": OURO,
+             "dourado_claro": (226, 201, 132, 255), "tinta": TINTA, "claro": (214, 219, 216, 255)}
+    fatias = c["fatias"]; total = sum(f["n"] for f in fatias)
+    des = c.get("destaque") or {}
+    k_des = des.get("fatia", len(fatias) - 1)
+    f_leg = _fonte(fontes, "Montserrat-ExtraBold.ttf", 28)
+    f_num = _fonte(fontes, "Montserrat-Black.ttf", 104)
+    f_cen = _fonte(fontes, "Montserrat-ExtraBold.ttf", 17)  # cabe dentro do anel
+    f_det = _fonte(fontes, "Montserrat-Bold.ttf", 25)
+    CX, CY, R, ESP = 285, 300, 175, 62   # centro, raio externo e espessura do anel
+    SS = 2                                # desenha em dobro e reduz (bordas lisas)
+    vel = c.get("velocidade", 1.5)
+    for q in range(int(round(dura * fps))):
+        t = q / fps
+        im = Image.new("RGBA", (1000, 580), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+        _base(dr, fontes, c.get("rotulo"))
+        prog = _ease((t - t_pre) / vel) if t > t_pre else 0.0  # quanto do anel já foi desenhado
+        dest = _ease((t - t_des) / 0.35) if (t_des is not None and t > t_des) else 0.0
+        lay = Image.new("RGBA", (2 * (R + 40) * SS, 2 * (R + 40) * SS), (0, 0, 0, 0)); dl = ImageDraw.Draw(lay)
+        oc = (R + 40) * SS
+        # trilho pálido do anel inteiro
+        dl.ellipse([oc - R * SS, oc - R * SS, oc + R * SS, oc + R * SS], fill=PALIDO)
+        ang0 = -90.0; feito = prog * total
+        for k, f in enumerate(fatias):
+            n_vis = min(max(feito, 0), f["n"]); feito -= f["n"]
+            if n_vis <= 0: ang0 += 360 * f["n"] / total; continue
+            a1 = ang0 + 360 * n_vis / total
+            desloc = 16 * dest if k == k_des else 0  # a fatia em destaque sai do anel
+            meio = math.radians((ang0 + ang0 + 360 * f["n"] / total) / 2)
+            dx, dy = math.cos(meio) * desloc * SS, math.sin(meio) * desloc * SS
+            rr = (R + (6 * dest if k == k_des else 0)) * SS
+            dl.pieslice([oc - rr + dx, oc - rr + dy, oc + rr + dx, oc + rr + dy], ang0, a1, fill=cores[f["cor"]])
+            ang0 += 360 * f["n"] / total
+        ri = (R - ESP) * SS
+        dl.ellipse([oc - ri, oc - ri, oc + ri, oc + ri], fill=BRANCO)
+        # finos separadores brancos entre as fatias
+        ang = -90.0
+        for f in fatias:
+            a = math.radians(ang)
+            dl.line([(oc + math.cos(a) * ri, oc + math.sin(a) * ri), (oc + math.cos(a) * (R + 24) * SS, oc + math.sin(a) * (R + 24) * SS)],
+                    fill=BRANCO, width=4 * SS)
+            ang += 360 * f["n"] / total
+        lay = lay.resize((lay.width // SS, lay.height // SS), Image.LANCZOS)
+        im.alpha_composite(lay, (CX - (R + 40), CY - (R + 40)))
+        dr = ImageDraw.Draw(im)
+        # número no centro
+        if dest > 0:
+            cor_n = cores.get(des.get("cor", fatias[k_des]["cor"]), VERDE)
+            v = int(round(des.get("numero", fatias[k_des]["n"]) * dest))
+            _texto_escalado(im, CX, CY - 10, str(v), f_num, cor_n, 1.06 if 0.35 < t - t_des < 0.6 else 1.0)
+            if des.get("rotulo"):
+                _espacado(dr, CX, CY + 46, des["rotulo"].upper(), f_cen, 1.5, cor_n)
+        # legenda à direita: cada fatia entra quando começa a ser desenhada
+        yl = 132; acum = 0
+        for k, f in enumerate(fatias):
+            if prog * total <= acum: break
+            acum += f["n"]
+            forte = (k == k_des and dest > 0)
+            cor = cores[f["cor"]]
+            dr.rounded_rectangle([560, yl, 588, yl + 28], radius=7, fill=cor)
+            dr.text((604, yl + 14), f"{f['n']}  {f['nome'].upper()}", font=f_leg,
+                    fill=(cor if forte else TINTA), anchor="lm")
+            if forte:
+                dr.rounded_rectangle([548, yl - 12, 975 - 18, yl + 40], radius=14, outline=cor, width=3)
+            yl += 62
+        if c.get("detalhe") and prog > 0.9:
+            a = int(255 * min((prog - 0.9) / 0.1, 1.0))
+            dr.text((500, 512), c["detalhe"], font=f_det, fill=CINZA[:3] + (a,), anchor="mm")
         _entrada(im, t).save(pasta / f"{q:04d}.png")
     return pasta
 
