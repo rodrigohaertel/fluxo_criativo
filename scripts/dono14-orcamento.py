@@ -43,6 +43,9 @@ PLANO_POR_DATA = [
                            "Rodrigo: zero cadastro de 10 a 13/10, hook 40% para 35%, CPM R$ 70 para R$ 109)"),
     ("2026-10-17", 160.00, "A39 R$ 80 + A51 R$ 80 sem data de fim (A50 reprovado no perfil e vencido em 16/10; "
                            "A51 aprovado e reativado pelo Rodrigo em 17/10 via gate do chat: R$ 60 -> R$ 80, fim removido)"),
+    ("2026-10-24", 220.00, "A39 R$ 80 + A51 R$ 80 + A52 R$ 60 (teste de 7 dias do A52, 24/10 00h01 a 30/10 23h59, "
+                           "criado pelo Rodrigo em 23/10 09h30, configuracao identica a do A51)"),
+    ("2026-10-31", 160.00, "A39 R$ 80 + A51 R$ 80 (A52 vence em 30/10 23h59; veredito na leitura de 31/10)"),
 ]
 
 # Divisao esperada POR CONJUNTO, a partir da data em que passou a valer.
@@ -65,6 +68,8 @@ COMPOSICAO_POR_DATA = [
     # ate o veredito do teste A50/A51 em 17/10 (nao vai para o A51 no meio do aprendizado).
     ("2026-10-14", {"A39": 80.0, "A50": 60.0, "A51": 60.0}),
     ("2026-10-17", {"A39": 80.0, "A51": 80.0}),
+    ("2026-10-24", {"A39": 80.0, "A51": 80.0, "A52": 60.0}),
+    ("2026-10-31", {"A39": 80.0, "A51": 80.0}),
 ]
 
 

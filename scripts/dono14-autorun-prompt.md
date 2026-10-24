@@ -128,6 +128,10 @@ Em 09/10/2026 o Rodrigo publicou mudanca no **Pixel** e na **LP /sessao**. A fot
 5. **Recuo de ancora nesse periodo:** a regua de 3 dias de volume foi calibrada para a pagina antiga; com pagina nova, sinalizar mas rotular como "regua em recalibracao", sem pedir acao.
 6. **Dia zerado logo depois do deploy** pode ser pagina quebrada, nao criativo: conferir Clarity (dead/rage click na /sessao e /sessao-cadastro) e o formulario antes de concluir qualquer coisa.
 
+## A52 em teste de 24/10 a 30/10 (criado pelo Rodrigo em 23/10)
+
+Conjunto `A52 - Frio 25-55 - Feed+Reels` (120249766624140527), R$ 60/dia, inicio 24/10 00h01, fim 30/10 23h59, configuracao identica a do A51 (Brasil, 25 a 55, Advantage desligado, Feed e Reels, so celular, otimizacao Lead, 7 dias clique e 1 dia visualizacao, utm dinamica). Anuncio `A52` ativo desde 23/10 09h36. **Nao tratar como conjunto desconhecido.** Plano: R$ 220/dia de 24 a 30/10, R$ 160 a partir de 31/10. Teste de 7 dias, sem veredito antes: topo (CTR, CPC, CPV) e CPL de perfil, com base minima de 5 cadastros de perfil. **Avisar na leitura de 30/10** que vence naquela noite; **veredito na leitura de 31/10**. Comparar com o A51 na mesma regua (10 a 16/10: 50% perfil, CPL de perfil R$ 83).
+
 ## Passo 3. Clarity
 Rode `py -3 scripts/dono14-clarity.py` (Data Export API direto, token no .env; devolve sessões, scroll médio, tempo ativo e dead/rage clicks por URL do último dia). **UMA execução só: a API aceita no máximo 10 chamadas/dia.** Use o resultado para o placar de engajamento das páginas da Sessão.
 
