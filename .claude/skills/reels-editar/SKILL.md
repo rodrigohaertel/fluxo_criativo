@@ -128,6 +128,30 @@ Campos opcionais: `camera_altura` (fração da altura do bruto usada na câmera 
 
 O horizontal sai do mesmo bruto e do mesmo JSON: copiar `_edicao_R0XX.json` para `_edicao_R0XX_horizontal.json` com `formato` `16:9`, o `codigo` com `H`, a capa do YouTube, `saida` própria, `titulo_x`/`titulo_y` no lado livre e `legenda_base_y` 930. Não há deslocamento de áudio: é a mesma gravação.
 
+### Aula animada no palco (padrão do R029, aprovado em 28/10/2026)
+
+O R029 levou quatro rodadas e fixou o padrão das aulas com muito motion. Tudo abaixo foi pedido ou aprovado pelo Rodrigo.
+
+**Tela animada (motion):** o `_TELA_*.html` expõe `window.cena(p, t, T)`: desenha o clique `p` `t` segundos depois de ele entrar, com `T` = tempo do vídeo (o fundo segue vivo entre os cliques). O editor detecta `window.cena` sozinho (`telas.tem_motion`) e grava quadro a quadro pelo Chrome sem janela (`telas.gravar_motion`), segurando o último quadro de cada clique até o próximo. Sem `window.cena`, cai no PNG por clique de sempre.
+- Motor de efeitos no HTML: atributos `data-fx` (`sobe`, `fade`, `pop`, `giro`, `varre`, `esq`, `dir`, `cai`, `vira`, `slam`, `risco`, `enche`), `data-p` (clique que dispara; sem ele, o primeiro clique da vista), `data-at` e `data-dur`; `data-num` para número que conta (com `data-de`, `data-ate`, `data-casas`), `data-cor-de`/`data-cor-ate` para cor que muda e `data-sh` para o brilho que passa. Modelo pronto: `R029 - AFichaTecnicaQueMente/_TELA_R029_AFichaTecnicaQueMente.html`.
+- Visual aprovado: fundo verde-escuro da marca (`#08170F`) com grade que desliza e manchas de luz, cartões de vidro, dourado `#E2BE62`, verde claro `#5ED38C` para o número certo, vermelho `#FF6A4D` para o risco e o "× mais". O visual creme simples foi reprovado ("feijão com arroz").
+- **A animação entra na palavra** (rodada 4): todo elemento que mostra algo que ele fala leva `data-fala="trecho exato da fala"`. O editor acha o trecho na transcrição depois do início do clique e faz o elemento entrar 0,25 s antes da palavra; os filhos andam junto, e `data-fala-mais` soma segundos (o brilho depois do número). A render imprime `na fala: [trecho, segundos]` para cada um: conferir que nenhum saiu "não achei". Sem isso a informação aparecia muito antes da fala.
+- Unidade como ele fala: "300 gramas", nunca "0,3 kg"; dinheiro com 2 casas ("0,37", nunca "0,375").
+- O primeiro clique segura o primeiro quadro até a tela aparecer (na v1 a tela entrava travada em "R$ 0,00").
+- Clique ancorado na frase que pede o elemento novo, não na frase seguinte (o 3º passo entrava em "pelo peso limpo" e foi para "Divide o preço").
+
+**Palco (`modo_div` `palco`):** a cena "tela" vira tela grande em cima (1080 × 720 a partir de `palco_y`, bordas esfumadas) e o rosto num círculo com anel dourado embaixo, sobre o fundo da marca. Valores aprovados: `palco_y` 280, `palco_diametro` 540, `palco_cy` 1275.
+- **O rosto do círculo vem do bruto horizontal** (`camera_bruto`, `camera_desloc` medido pela correlação do áudio, 0,19 s no R029, `camera_rosto` em fração do horizontal, `camera_lado` 860, `camera_rosto_y` 0,5). O vertical do OBS é um recorte ampliado do rosto: no círculo cortava a testa e o queixo, e a ampliação deixava brilhos em olhos, nariz e boca. Gravação com as duas saídas: sempre usar o horizontal no círculo.
+- Zoom só nas cenas longas de rosto (abertura e CTA). Volta curta ao rosto entre duas telas fica sem zoom (reprovado na v3).
+
+**Legenda em caixa (`legenda_estilo` `caixa`):** caixa verde-escura arredondada atrás da linha, pílula na cor do vídeo atrás da palavra falada e palavras-chave na cor. No palco ela fica sempre no mesmo lugar, embaixo (`legenda_base_y` 1625), na tela e no rosto: nunca sobe para a testa.
+
+**Capa:** o cartão da capa acompanha o visual das telas (vidro escuro, verde claro, risco vermelho); ao mudar as telas, atualizar o `_CAPA_*.html` e exportar o PNG de novo (1080 × 1920 exatos).
+
+**Volume depois da render:** a render às vezes sai com pico em -1,0. Corrigir copiando o vídeo e passando só o áudio por `volume` + `alimiter` até ficar entre -14,5 e -13,5 LUFS e pico até -1,5.
+
+**Prévia para o celular:** o arquivo cheio (100 a 150 MB) não chega ao celular. Entregar uma prévia de até 30 MB (540 × 960, 1250 kbps) como `_PREVIA_R0XX_vN.mp4`; o final fica na pasta. Brilho estranho na prévia pode ser só a compressão: conferir no arquivo cheio antes de mexer.
+
 ### Erros e regravações (padrão do R026, 18/10/2026)
 
 0. **Em vídeo com regravação, transcrever também fala por fala**: `{PY} {SKILL}/scripts/transcrever_por_fala.py "{TRAB}/audio16k.wav" "{TRAB}/palavras_por_fala.json"`. A transcrição inteira **funde duas tentativas da mesma frase** (R026: "a referência que eu utilizo" dita duas vezes virou uma frase só, com o "32%" esticado por 5 s, e passou batido). A fala por fala separa as tentativas, mas erra mais palavras isoladas. Usar a fala por fala para **achar** os erros. Na legenda, usar a inteira e trocar só os trechos fundidos pela fala por fala (sem perder palavra na emenda).
@@ -191,7 +215,7 @@ Problema → corrigir o JSON e renderizar de novo antes de entregar.
 ✅ Concluído: R0XX editado ({X} s). Caminho: meus-produtos/linha-editorial/entregas/reels/R0XX - Nome/R0XX_editado.mp4.
 ```
 
-Mais o caminho absoluto em texto copiável (regra 4a do CLAUDE.md) e o vídeo com SendUserFile. **Não gerar prévia para celular** (versão leve, folha de quadros) a não ser que o Rodrigo peça. Próximo passo sugerido: `/publicar-reel R0XX`.
+Mais o caminho absoluto em texto copiável (regra 4a do CLAUDE.md) e o vídeo com SendUserFile. Vídeo até 30 MB vai direto; acima disso (aula longa), mandar a prévia leve `_PREVIA_R0XX_vN.mp4` (ver "Aula animada no palco"). Folha de quadros só se o Rodrigo pedir. Próximo passo sugerido: `/publicar-reel R0XX`.
 
 Versões anteriores do mesmo Reel, se houver re-render, vão para `_R0XX_editado_vN.mp4` antes de gravar a nova.
 
@@ -199,13 +223,14 @@ Versões anteriores do mesmo Reel, se houver re-render, vão para `_R0XX_editado
 
 ## O padrão aprovado (não mudar sem pedido)
 
-Fonte: R024, R025, R026 (vertical e horizontal) e R027, 16 a 18/10/2026. Detalhes na memória `reels-edicao-padrao`.
+Fonte: R024, R025, R026 (vertical e horizontal) e R027, 16 a 18/10/2026, e R029 (aula animada no palco), 28/10/2026. Detalhes na memória `reels-edicao-padrao`.
 
 - **Takes:** fala inteira lida pelo sentido; fica a última tentativa completa; frase errada ou que não se completa sai; corte no meio do silêncio; tabela de takes aprovada pelo Rodrigo antes da render (R026).
 - **Pausas:** só corta acima de 1,0 s, deixando 0,8 s, e só se o corte economizar 0,4 s, com dissolvência de 0,12 s. Cortar mais ficou "muito acelerado" (v1 e v2 do R027 reprovadas).
 - **Números na legenda:** separador de milhar sempre (150.000, R$ 1.500, nunca 150000); ano sem ponto (2026). Erro de transcrição que muda o sentido vai em `trocas_frase`.
 - **Aulas do OBS:** zoom só na cena de rosto, legenda acima da cabeça na tela dividida, cor sem mexer na exposição da tela; horizontal 16:9 derivado do vertical aprovado.
 - **Aulas só de câmera (desde 18/10, testado com a simulação do R026):** telas geradas do `_TELA_*.html`, trocadas na palavra da seção 1.1; vertical com tela em cima e câmera embaixo, horizontal com tela cheia e câmera no canto; as mesmas regras de zoom, legenda, cor e áudio das aulas do OBS.
+- **Aula animada (R029):** tela em motion com o visual escuro da marca, cada elemento entrando na palavra falada (`data-fala`), palco com o rosto do bruto horizontal no círculo, legenda em caixa sempre embaixo, sem zoom nas voltas curtas ao rosto. Detalhes em "Aula animada no palco".
 - **Zoom:** suave e contínuo (curva S), ancorado no rosto. Nunca punch-in seco. **Gravado caminhando ou com a câmera na mão: sem zoom** (`zoom` vazio, `zoom_base` `[1.0, 1.0]`); o movimento da gravação já basta (R028).
 - **Legenda:** Montserrat ExtraBold, maiúscula, palavra falada em destaque, base em y 1516; na tela dividida sobe para a linha da divisão (y 962), trocando de lugar no instante em que o cartão entra ou sai, mesmo no meio de um bloco (R028).
 - **Título:** cartão na cor da capa, selo espaçado, linhas em preto (Inter 900), última linha branca na tarja vermelha inclinada.
@@ -228,7 +253,7 @@ Fonte: R024, R025, R026 (vertical e horizontal) e R027, 16 a 18/10/2026. Detalhe
 | `scripts/editar_reel.py` | plano (sem `--render`) e render completo (com `--render`) |
 | `scripts/cor.py` | cor C |
 | `scripts/aprimorar_voz.py` | aprimorar voz do áudio D (roda no Python com PyTorch CUDA) |
-| `scripts/telas.py` | aula só de câmera: exporta as telas do `_TELA_*.html` (um PNG por clique) e monta a lista `telas` da seção 1.1 do roteiro |
+| `scripts/telas.py` | aula só de câmera: exporta as telas do `_TELA_*.html` (um PNG por clique), grava a tela animada quadro a quadro (`gravar_motion`, com a sincronia `data-fala`) e monta a lista `telas` da seção 1.1 do roteiro |
 | `scripts/conferir.py` | folha de conferência (com cada clique e cada volta ao rosto, na aula) e medição de volume |
 | `scripts/ambiente.py` | onde ficam as ferramentas pesadas e quais Pythons usar |
 | `fonts/` | Montserrat e Inter (licença OFL, ver `fonts/LICENCA.md`) |

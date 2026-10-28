@@ -17,8 +17,9 @@ TRAB = Path(cfg.get("trabalho") or TRABALHO / cfg["codigo"]); TRAB.mkdir(parents
 # modo palco: no lugar da tela dividida, fundo de marca cheio, cartão grande em cima, o rosto num círculo
 # com borda dourada embaixo e uma etiqueta com o nome do momento (A PESQUISA, O NÚMERO...)
 PALCO = cfg.get("modo_div") == "palco"
-P_CARD_Y, P_CARD_W, P_D = 360, 1040, cfg.get("palco_diametro", 420)
-P_CY = P_CARD_Y + round(P_CARD_W * 0.58) + 32 + P_D // 2  # centro do círculo
+P_CARD_Y, P_CARD_W, P_D = cfg.get("palco_y", 360), 1040, cfg.get("palco_diametro", 420)
+P_CY = cfg.get("palco_cy", P_CARD_Y + round(P_CARD_W * 0.58) + 32 + P_D // 2)  # centro do círculo
+P_TELA_ALT = 720  # aula no palco (R029): a tela animada entra em 1080 × 720, de y P_CARD_Y para baixo
 P_LEG_Y = cfg.get("palco_legenda_y", P_CY + P_D // 2 + 110)
 cfg.setdefault("audio16k", str(TRAB / "audio16k.wav"))
 cfg.setdefault("palavras", str(TRAB / "palavras.json"))
@@ -345,6 +346,10 @@ if PALCO:
     dm.ellipse([W / 2 - r - 9, P_CY - r - 9, W / 2 + r + 9, P_CY + r + 9], fill=(200, 164, 77, 255))  # borda dourada
     dm.ellipse([W / 2 - r, P_CY - r, W / 2 + r, P_CY + r], fill=(0, 0, 0, 0))  # o furo por onde o rosto aparece
     mold.save(TRAB / "palco_moldura.png")
+    mk = np.full((P_TELA_ALT, W), 255, np.float32)  # bordas de cima e de baixo esfumadas (90 px)
+    rampa = np.linspace(0, 255, 90, dtype=np.float32)[:, None]
+    mk[:90] = rampa; mk[-90:] = rampa[::-1]
+    Image.fromarray(mk.astype(np.uint8), "L").save(TRAB / "palco_tela_mascara.png")
     f_etq = inter(900, 44)
     for i, item in enumerate(cfg.get("cartoes", []) + cfg.get("contadores", [])):
         if not item.get("etiqueta"): continue
@@ -479,7 +484,7 @@ for bi, bl in enumerate(blocos):
         if CAIXA:  # legenda em caixa (R029): fundo verde-escuro arredondado e a palavra dita numa pílula da cor do vídeo
             for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
                 if na_divisao(a_pos + 0.01): yb = 962 + 40
-                elif na_cena_div(a_pos + 0.01): yb = cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130)
+                elif na_cena_div(a_pos + 0.01) and not PALCO: yb = cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130)  # no palco a legenda fica sempre embaixo
                 else: yb = H - (H - cfg.get("legenda_base_y", 1516))
                 ev.extend(caixa_eventos(bl, wi, chave, cor, a_pos, b_pos, yb))
             continue
@@ -572,6 +577,11 @@ if cfg.get("cor", "C") != "nenhuma":
 
 # ---------- filtro ----------
 p = []
+def sondar(arq):
+    st = json.loads(subprocess.run(["ffprobe", "-v", "error", "-select_streams", "v:0", "-show_entries", "stream=width,height",
+                                    "-of", "json", arq], capture_output=True, text=True).stdout)["streams"][0]
+    return st["width"], st["height"]
+CAM2 = na_pasta(cfg["camera_bruto"]) if PALCO and cfg.get("camera_bruto") else None
 # câmera da cena "tela" da aula: vertical, metade de baixo (1080 × 960) com o plano aberto;
 # horizontal, quadradinho no canto inferior direito, fora da zona útil da tela (x 385 a 1535)
 CANTO = cfg.get("camera_canto", [360, 296])
@@ -579,14 +589,29 @@ CANTO_XY = (W - 24 - CANTO[0], H - 24 - CANTO[1])
 if AULA:
     if HORIZONTAL:
         CAM_W, CAM_H = CANTO
-        cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 0.75), 0.42)  # canto pequeno: um pouco mais perto
+        cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 0.75), cfg.get("camera_rosto_y", 0.42))  # canto pequeno: um pouco mais perto
     else:
         CAM_W, CAM_H = 1080, 960
         cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 1.0), cfg.get("camera_rosto_y", 0.40))  # rosto alto no bruto: subir (R029, 0,6)
+        if PALCO:  # aula no palco: o rosto num círculo embaixo da tela, com folga em volta da cabeça
+            CAM_W = CAM_H = P_D
+            cx_, cy_, cw_, ch_ = regiao(1.0, cfg.get("palco_lado", 1000) / BH, cfg.get("camera_rosto_y", 0.55))
+            if CAM2:  # câmera do círculo vinda do bruto horizontal (plano aberto): o vertical do OBS é um recorte
+                # ampliado do rosto e a cabeça não cabia inteira no círculo (R029 v3)
+                c2w, c2h = sondar(CAM2)
+                lado2 = min(cfg.get("camera_lado", 700), c2h)
+                rx, ry = cfg.get("camera_rosto", [0.5, 0.45])
+                cx_ = int(min(max(rx * c2w - lado2 / 2, 0), c2w - lado2)) // 2 * 2
+                cy_ = int(min(max(ry * c2h - cfg.get("camera_rosto_y", 0.5) * lado2, 0), c2h - lado2)) // 2 * 2
+                cw_ = ch_ = int(lado2) // 2 * 2
     CAM = f"crop={cw_}:{ch_}:{cx_}:{cy_},scale={CAM_W}:{CAM_H}"
 for i, ((a, b), o) in enumerate(zip(trechos, offs)):
     corte = f"[0:v]trim={a:.3f}:{b:.3f},setpts=PTS-STARTPTS,fps={FPS}"
-    if AULA:
+    if AULA and CAM2:
+        d2 = cfg.get("camera_desloc", 0.0)
+        p.append(f"[c2_{i}]trim={a + d2:.3f}:{b + d2:.3f},setpts=PTS-STARTPTS,fps={FPS},{CAM}{FILTRO_COR},setsar=1,format=yuv420p[k{i}]")
+        corte += ","
+    elif AULA:
         p.append(f"{corte},split[r{i}][q{i}]"); corte = f"[r{i}]"
         p.append(f"[q{i}]{CAM}{FILTRO_COR},setsar=1,format=yuv420p[k{i}]")
     else:
@@ -604,15 +629,30 @@ for i in range(1, len(trechos)):
         uk = f"[xk{i}]"
 cartoes = cfg.get("cartoes", [])
 if AULA:
+    from telas import tem_motion as _tm
+    tem_motion_tela = _tm(na_pasta(cfg["tela_html"]))
     # a trilha das telas (tela_trilha.mp4, um PNG por clique com dissolvência) entra só nas janelas de tela
     it = 4 + len(cartoes)
     p.append(f"[{it}:v]setsar=1,format=yuv420p[tl]")
     if HORIZONTAL:
         p.append(f"[{it + 1}:v]format=gray,scale={CAM_W}:{CAM_H}[msk]")
         p.append(f"{uk}format=yuva420p[k_a];[k_a][msk]alphamerge[k_m]")
-        p.append(f"[tl][k_m]overlay={CANTO_XY[0]}:{CANTO_XY[1]}:eof_action=pass[comp]")
+        if tem_motion_tela:
+            p.append(f"movie=camera_anel.png:loop=0,setpts=N/({FPS}*TB),format=rgba[anel]")
+            p.append("[tl][anel]overlay=0:0:shortest=1[tla]")
+            p.append(f"[tla][k_m]overlay={CANTO_XY[0]}:{CANTO_XY[1]}:eof_action=pass[comp]")
+        else:
+            p.append(f"[tl][k_m]overlay={CANTO_XY[0]}:{CANTO_XY[1]}:eof_action=pass[comp]")
     else:
-        p.append(f"[tl]{uk}vstack[comp]")
+        if PALCO:  # fundo da marca com o furo do círculo, o rosto por trás do furo e a tela animada por cima, de bordas esfumadas
+            p.append(f"{uk}pad=1080:1920:{(1080 - P_D) // 2}:{P_CY - P_D // 2}:color=0x0A1712[pf]")
+            p.append(f"movie=palco_moldura.png:loop=0,setpts=N/({FPS}*TB),format=rgba[pmold]")
+            p.append("[pf][pmold]overlay=0:0:shortest=1[pb]")
+            p.append(f"movie=palco_tela_mascara.png:loop=0,setpts=N/({FPS}*TB),format=gray[pmk]")
+            p.append("[tl]format=yuva420p[tla];[tla][pmk]alphamerge[tlm]")
+            p.append(f"[pb][tlm]overlay=0:{P_CARD_Y}:eof_action=pass,format=yuv420p[comp]")
+        else:
+            p.append(f"[tl]{uk}vstack[comp]")
     jt = "+".join(f"between(t,{a:.3f},{b:.3f})" for a, b in TELA_JAN)
     p.append(f"{uv}[comp]overlay=0:0:eof_action=pass:enable='{jt}'[va]")
     uv = "[va]"
@@ -720,6 +760,9 @@ if cfg.get("capa"):
     p.append(f"[cv][sil][vm][afim]concat=n=2:v=1:a=1[vout][aout]")
 else:  # anúncio: o primeiro quadro é o gancho, não a capa (a miniatura do anúncio se escolhe na Meta)
     p.append("[cv]nullsink"); p.append("[sil]anullsink"); p.append("[vm]null[vout]"); p.append("[afim]anull[aout]")
+if CAM2:  # o bruto horizontal entra como a última entrada do ffmpeg (ver o render)
+    i_cam2 = 4 + len(cartoes) + 1 + len(contadores)
+    p.insert(0, f"[{i_cam2}:v]split={len(trechos)}" + "".join(f"[c2_{i}]" for i in range(len(trechos))))
 (TRAB / "filtro.txt").write_text(";\n".join(p), encoding="utf-8")
 
 print(f"{len(trechos)} trechos ({len(trechos) - 1} cortes), duração {DUR + 1 / FPS:.2f}s")
@@ -729,7 +772,7 @@ print("zoom:", ", ".join(f"{t:.2f}={z:.2f}" for t, z in chaves))
 # plano salvo para o conferir.py escolher os quadros de conferência (tempos já no vídeo final, sem o quadro da capa)
 json.dump({"duracao": DUR + 1 / FPS, "fps": FPS, "titulo_ate": cfg.get("titulo_ate", 3.0), "zoom": chaves[:-1],
            "cartoes": sorted(tempos + tempos_cont), "cortes": offs[1:], "saida": cfg["saida"], "formato": "16:9" if HORIZONTAL else "9:16",
-           "telas": TELA_JAN, "cliques": CLIQUES},
+           "telas": TELA_JAN, "cliques": CLIQUES, "falas": [[i["t"], round(i["s"], 3)] for i in itens]},
           open(TRAB / "plano.json", "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 
 # ---------- trilha das telas (aula gravada só com a câmera) ----------
@@ -738,7 +781,7 @@ def trilha_telas():
     cada clique entra na sua palavra com dissolvência de 0,3 s, como a transição da própria tela."""
     from telas import exportar, total_cliques, tem_motion
     html_tela = Path(na_pasta(cfg["tela_html"]))
-    if tem_motion(html_tela) and not HORIZONTAL:
+    if tem_motion(html_tela):
         return trilha_motion(html_tela)
     pasta = TRAB / "telas"
     total = exportar(html_tela, pasta)
@@ -795,13 +838,22 @@ def trilha_motion(html_tela):
         segs.append((n, t0, max(0.1, min(t1, visivel + 0.3) - t0), t1 - t0))
     pasta = TRAB / "motion"
     print(f"motion: gravando {sum(s[2] for s in segs):.0f} s de tela animada ({len(segs)} cliques)")
-    gravar_motion(html_tela, pasta, [s[:3] for s in segs], FPS)
+    if HORIZONTAL:  # câmera do canto num círculo com anel dourado, como o palco do vertical (R029)
+        x, y = CANTO_XY; anel = Image.new("RGBA", (W, H), (0, 0, 0, 0))
+        ImageDraw.Draw(anel).ellipse([x - 8, y - 8, x + CANTO[0] + 7, y + CANTO[1] + 7], fill=(226, 190, 98, 255))
+        anel.save(TRAB / "camera_anel.png")
+        msk = Image.new("L", tuple(CANTO), 0)
+        ImageDraw.Draw(msk).ellipse([0, 0, CANTO[0] - 1, CANTO[1] - 1], fill=255)
+        msk.save(TRAB / "camera_mascara.png")
+    gravar_motion(html_tela, pasta, [s[:3] for s in segs], FPS, vertical=not HORIZONTAL, falas=[[i["t"], i["s"]] for i in itens], cliques=CLIQUES)
     cmd, f = ["ffmpeg", "-v", "error", "-y"], []
     for k, (_, _, grav, total) in enumerate(segs):
         cmd += ["-framerate", str(FPS), "-i", str(pasta / f"seg_{k:02d}" / "q_%04d.jpg")]
         ant = f"tpad=start_mode=clone:start_duration={lead:.3f}," if k == 0 and lead > 0 else ""
         total += lead if k == 0 else 0
-        f.append(f"[{k}:v]scale=1080:960,setsar=1,format=yuv420p,{ant}tpad=stop_mode=clone:stop_duration={max(total - grav, 0) + 1:.3f},"
+        esc = (f"crop=iw:ih*{P_TELA_ALT / 960:.4f}:0:ih*{(1 - P_TELA_ALT / 960) / 2:.4f},scale=1080:{P_TELA_ALT}" if PALCO
+               else "scale=1920:1080" if HORIZONTAL else "scale=1080:960")
+        f.append(f"[{k}:v]{esc},setsar=1,format=yuv420p,{ant}tpad=stop_mode=clone:stop_duration={max(total - grav, 0) + 1:.3f},"
                  f"trim=duration={total:.3f},setpts=PTS-STARTPTS[s{k}]")
     f.append("".join(f"[s{k}]" for k in range(len(segs))) + f"concat=n={len(segs)}:v=1[out]")
     (TRAB / "filtro_telas.txt").write_text(";\n".join(f), encoding="utf-8")
@@ -906,6 +958,8 @@ if "--render" in sys.argv:
             cmd += ["-loop", "1", "-t", f"{DUR + 1:.2f}", "-framerate", str(FPS), "-i", str(TRAB / "camera_mascara.png")]
     for k, c in enumerate(contadores):
         cmd += ["-framerate", str(FPS), "-i", str(quadros_contador(k, c) / "%04d.png")]
+    if CAM2:
+        cmd += ["-i", CAM2]
     cmd += ["-filter_complex_script", "filtro.txt", "-map", "[vout]", "-map", "[aout]", "-c:v", "libx264",
             "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "pcm_s24le", "montado.mkv"]
     subprocess.run(cmd, cwd=TRAB, check=True)

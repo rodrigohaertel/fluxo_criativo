@@ -73,9 +73,39 @@ def tem_motion(html_tela):
     return "window.cena" in Path(html_tela).read_text(encoding="utf-8")
 
 
-def gravar_motion(html_tela, saida, segmentos, fps=30, vertical=True):
+# Animação na palavra (R029 v4): elemento com data-fala="trecho da fala" entra quando o trecho é falado
+# (antecipa 0,25 s), em vez de no tempo fixo data-at. Os filhos com data-at andam junto, mantendo o intervalo;
+# data-fala-mais soma segundos (ex.: o brilho que passa depois do número). Vale para o clique que dispara o
+# elemento (data-p, ou o primeiro clique da vista).
+SINCRONIA_JS = r"""([falas, cliques]) => {
+  const norm = s => s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, ' ').trim().split(' ').filter(Boolean);
+  const tok = []; falas.forEach(([w, s]) => norm(w).forEach(x => tok.push([x, s])));
+  const t0de = {}; cliques.forEach(([t, n]) => { if (!(n in t0de)) t0de[n] = t; });
+  const gatilho = el => +(el.dataset.p || ((FAIXAS[(el.closest('.vista') || {}).id] || [1])[0]));
+  const rel = [];
+  document.querySelectorAll('[data-fala]').forEach(el => {
+    const trig = gatilho(el), t0 = t0de[trig], alvo = norm(el.dataset.fala);
+    if (t0 === undefined) { rel.push(['sem clique', el.dataset.fala]); return; }
+    let ach = null;
+    for (let k = 0; k + alvo.length <= tok.length && ach === null; k++)
+      if (tok[k][1] >= t0 - 0.3 && alvo.every((a, j) => tok[k + j][0] === a)) ach = tok[k][1];
+    if (ach === null) { rel.push(['não achei', el.dataset.fala]); return; }
+    const novo = Math.max(0, ach - t0 - 0.25 + (+el.dataset.falaMais || 0)), delta = novo - (+el.dataset.at || 0);
+    el.querySelectorAll('[data-at],[data-fx],[data-num]').forEach(f => {
+      if (f.closest('[data-fala]') !== el || gatilho(f) !== trig) return;
+      f.dataset.at = Math.max(0, (+f.dataset.at || 0) + delta).toFixed(3);
+    });
+    el.dataset.at = novo.toFixed(3);
+    rel.push([el.dataset.fala, +novo.toFixed(2)]);
+  });
+  return rel;
+}"""
+
+
+def gravar_motion(html_tela, saida, segmentos, fps=30, vertical=True, falas=None, cliques=None):
     """Grava os quadros da tela animada. segmentos = [(clique, t0 no vídeo, segundos a gravar), ...].
-    Cada segmento vira saida/seg_KK/q_NNNN.jpg: 1080 × 960 no vertical (recorte da zona útil) ou 1920 × 1080."""
+    Cada segmento vira saida/seg_KK/q_NNNN.jpg: 1080 × 960 no vertical (recorte da zona útil) ou 1920 × 1080.
+    Com falas ([palavra, início] no vídeo) e cliques ([início, número]), aplica a sincronia data-fala."""
     from playwright.sync_api import sync_playwright
     saida = Path(saida); saida.mkdir(parents=True, exist_ok=True)
     w = max(ZONA[1] - ZONA[0], 1080 * VERT[0] / VERT[1])
@@ -87,6 +117,9 @@ def gravar_motion(html_tela, saida, segmentos, fps=30, vertical=True):
         pg.goto(Path(html_tela).resolve().as_uri())
         pg.evaluate("document.fonts.ready")
         pg.evaluate("window.__gravando = true")
+        if falas and cliques:
+            for item in pg.evaluate(SINCRONIA_JS, [falas, cliques]):
+                print("  na fala:", item)
         pg.wait_for_timeout(300)
         for k, (n, t0, dur) in enumerate(segmentos):
             pasta = saida / f"seg_{k:02d}"; pasta.mkdir(exist_ok=True)
