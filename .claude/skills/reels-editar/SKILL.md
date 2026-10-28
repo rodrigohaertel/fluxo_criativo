@@ -150,7 +150,17 @@ O R029 levou quatro rodadas e fixou o padrão das aulas com muito motion. Tudo a
 
 **Volume depois da render:** a render às vezes sai com pico em -1,0. Corrigir copiando o vídeo e passando só o áudio por `volume` + `alimiter` até ficar entre -14,5 e -13,5 LUFS e pico até -1,5.
 
-**Prévia para o celular:** o arquivo cheio (100 a 150 MB) não chega ao celular. Entregar uma prévia de até 30 MB (540 × 960, 1250 kbps) como `_PREVIA_R0XX_vN.mp4`; o final fica na pasta. Brilho estranho na prévia pode ser só a compressão: conferir no arquivo cheio antes de mexer.
+**Prévia para o celular:** o arquivo cheio (100 a 150 MB) não chega ao celular. Entregar uma prévia de até 30 MB (540 × 960, 1250 kbps) como `_PREVIA_R0XX_vN.mp4`; o final fica na pasta. **Nível do H.264 sempre 4.2** (render e prévia): o x264 marcava o vídeo como nível 6.2 (de 8K), e o decodificador por hardware do computador e do celular mostrava manchas marrons na camisa e brilhos no rosto, que o ffmpeg não vê (R029 e R030; o editor agora força `-profile:v high -level:v 4.2`). Prévia: `-c:v libx264 -profile:v main -level:v 4.0 -preset medium -pix_fmt yuv420p -movflags +faststart`. Para conferir um arquivo: `ffprobe` deve mostrar `level=42` (ou menos), nunca 62.
+
+### Capa, título e áudio (pedidos do R030, 28/10/2026)
+
+- **Cor da capa perto da do vídeo, sempre conferir.** A foto da capa sai do celular com outro balanço de cor que o vídeo depois da cor C (no R030, a camisa amarela ficou bem diferente). Conferir lado a lado a capa e um quadro do vídeo editado antes de entregar. Casar a cor por histograma com o quadro do vídeo foi reprovado no R030 ("ficou horrível, nada a ver com a gravação"): o ajuste tem que ser leve e feito à vista, e mostrado ao Rodrigo lado a lado antes de virar a capa.
+- **Título dos 3 s = o mesmo bloco da capa.** Quando a capa tem título próprio (selo e quadro), usar `titulo_da_capa` no JSON: `{"html": "_CAPA_R0XX_*.html", "seletores": [".tag", ".quadro"], "dy": -30}` (classes do selo e do quadro naquele HTML; `dy` sobe o bloco para não cobrir a testa) e `titulo_sem_entrada` `true`, porque a capa do primeiro quadro já mostra o mesmo título. O título desenhado pelo editor fica para capa sem bloco de título.
+- **Título do editor mais arejado:** as letras não se apertam mais e o espaço entre palavras cresceu (`ESP_PAL`); o Inter 900 tem espaço estreito e as palavras grudavam.
+- **Texto da tela = o que ele fala.** Balão, carimbo e frase de efeito usam as palavras exatas da fala ("MEU DEUS DO CÉU", não "DEUS DO CÉU").
+- **Elemento de impacto com destaque cheio:** carimbo, tarja e selo em bloco sólido (fundo vermelho, contorno e sombra pretos), nunca contorno transparente com mistura de cor, que some sobre o fundo.
+- **Respiração com microfone perto da boca** (`respiracao` `voz`): a inspiração antes da frase passa pela IA e aparece depois do ganho. O editor procura trechos sem tom de voz, fora das palavras, com pico abaixo de -28 dB, e abaixa 20 dB. Usar sempre que o microfone estiver na mão ou na lapela perto da boca; a render imprime quantos trechos abaixou.
+- **Aula de tela dividida sem palco** (R030): tela animada em cima, câmera embaixo com a cabeça inteira (`camera_rosto_y` 0,5) e legenda em caixa na linha da divisão (`legenda_div_y` 1000), acima da cabeça; no rosto cheio, embaixo (`legenda_base_y` 1540). Zoom só no rosto cheio da abertura e do CTA, e nunca nos 3 s do título.
 
 ### Erros e regravações (padrão do R026, 18/10/2026)
 
@@ -233,7 +243,7 @@ Fonte: R024, R025, R026 (vertical e horizontal) e R027, 16 a 18/10/2026, e R029 
 - **Aula animada (R029):** tela em motion com o visual escuro da marca, cada elemento entrando na palavra falada (`data-fala`), palco com o rosto do bruto horizontal no círculo, legenda em caixa sempre embaixo, sem zoom nas voltas curtas ao rosto. Detalhes em "Aula animada no palco".
 - **Zoom:** suave e contínuo (curva S), ancorado no rosto. Nunca punch-in seco. **Gravado caminhando ou com a câmera na mão: sem zoom** (`zoom` vazio, `zoom_base` `[1.0, 1.0]`); o movimento da gravação já basta (R028).
 - **Legenda:** Montserrat ExtraBold, maiúscula, palavra falada em destaque, base em y 1516; na tela dividida sobe para a linha da divisão (y 962), trocando de lugar no instante em que o cartão entra ou sai, mesmo no meio de um bloco (R028).
-- **Título:** cartão na cor da capa, selo espaçado, linhas em preto (Inter 900), última linha branca na tarja vermelha inclinada.
+- **Título:** o mesmo bloco da capa (`titulo_da_capa`) quando a capa tem título; senão, cartão na cor da capa, selo espaçado, linhas em preto (Inter 900, palavras bem separadas), última linha branca na tarja vermelha inclinada.
 - **Cartões:** tela dividida, notícia em cima (fundo `#0A1712`), vídeo embaixo.
 - **Cartões animados (A52):** o número na tela é o número falado; resultado positivo em verde; nada pisca nem pulsa; prova em página real aparece inteira, parada, só com o marca-texto; gráfico repetido vira outro desenho (grade, depois rosca).
 - **Contador (número que cresce):** cartão branco na tela dividida, rótulo verde espaçado, número em Montserrat Black subindo em 1,4 s com desaceleração, pulso de 0,3 s ao parar, barra dourada de progresso e detalhe cinza que aparece no fim. Testado no R024 em 18/10 (`_teste_contador_R024.mp4`); estreia no R028.

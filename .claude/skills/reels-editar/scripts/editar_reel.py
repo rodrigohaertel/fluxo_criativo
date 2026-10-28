@@ -281,12 +281,12 @@ def expr_zoom(desloc):
 def inter(peso, tam):
     f = ImageFont.truetype(str(FONTES / "Inter-Variable.ttf"), tam); f.set_variation_by_axes([peso, 0]); return f
 
-def largura(dr, txt, f, esp):
-    return sum(dr.textlength(c, font=f) for c in txt) + esp * (len(txt) - 1)
+def largura(dr, txt, f, esp, espaco=0):
+    return sum(dr.textlength(c, font=f) for c in txt) + esp * (len(txt) - 1) + espaco * txt.count(" ")
 
-def escreve(dr, x, y, txt, f, esp, cor):
+def escreve(dr, x, y, txt, f, esp, cor, espaco=0):
     for c in txt:
-        dr.text((x, y), c, font=f, fill=cor); x += dr.textlength(c, font=f) + esp
+        dr.text((x, y), c, font=f, fill=cor); x += dr.textlength(c, font=f) + esp + (espaco if c == " " else 0)
 
 VERDE, MENTA, TINTA = (15, 92, 46, 255), (213, 236, 221, 248), (10, 23, 18, 255)
 ALERTA, PAPEL = (179, 38, 26, 255), (255, 253, 246, 255)
@@ -295,23 +295,24 @@ FUNDO = hexa(cfg["titulo_fundo"], 248) if "titulo_fundo" in cfg else MENTA  # co
 COR_SELO = hexa(cfg["titulo_selo"]) if "titulo_selo" in cfg else VERDE
 TT = cfg.get("titulo_tamanho", 78)
 f_tag, f_tit = inter(800, round(TT * 0.40)), inter(900, TT)
-esp_tag, esp_tit = TT * 0.40 * 0.22, -TT * 0.03
+esp_tag, esp_tit = TT * 0.40 * 0.22, TT * 0.01
+ESP_PAL = TT * 0.16  # o Inter 900 tem espaço estreito: as palavras do título grudavam (R030)
 linhas = [l.upper() for l in cfg["titulo"]]
 pretas, vermelha = linhas[:-1], linhas[-1]
 med = ImageDraw.Draw(Image.new("RGBA", (10, 10)))
 larg_cartao = max([largura(med, cfg["pilula"].upper(), f_tag, esp_tag)] +
-                  [largura(med, l, f_tit, esp_tit) for l in pretas]) + 2 * round(TT * 0.6)
+                  [largura(med, l, f_tit, esp_tit, espaco=ESP_PAL) for l in pretas]) + 2 * round(TT * 0.6)
 pad, passo = round(TT * 0.36), round(TT * 1.04)
 alt_tag = round(TT * 0.40) + round(TT * 0.3)
 alt_cartao = pad + alt_tag + passo * len(pretas) + round(TT * 0.95)
 
 # tarja vermelha desenhada à parte e girada
-lv = largura(med, vermelha, f_tit, esp_tit)
+lv = largura(med, vermelha, f_tit, esp_tit, espaco=ESP_PAL)
 bx, bt, bb = round(TT * 0.38), round(TT * 0.18), round(TT * 0.22)
 tarja = Image.new("RGBA", (round(lv + 2 * bx + 20), round(TT * 1.0 + bt + bb + 20)), (0, 0, 0, 0))
 dt = ImageDraw.Draw(tarja)
 dt.rounded_rectangle([10, 10, 10 + lv + 2 * bx, 10 + TT * 1.0 + bt + bb], radius=round(TT * 0.18), fill=ALERTA)
-escreve(dt, 10 + bx, 10 + bt - round(TT * 0.06), vermelha, f_tit, esp_tit, PAPEL)
+escreve(dt, 10 + bx, 10 + bt - round(TT * 0.06), vermelha, f_tit, esp_tit, PAPEL, espaco=ESP_PAL)
 tarja = tarja.rotate(2, resample=Image.BICUBIC, expand=True)
 
 alt_total = alt_cartao + tarja.height // 2
@@ -328,10 +329,14 @@ lt = largura(dr, cfg["pilula"].upper(), f_tag, esp_tag)
 escreve(dr, CX - lt / 2, y, cfg["pilula"].upper(), f_tag, esp_tag, COR_SELO)
 y += alt_tag
 for l in pretas:
-    w = largura(dr, l, f_tit, esp_tit)
-    escreve(dr, CX - w / 2, y - round(TT * 0.1), l, f_tit, esp_tit, TINTA); y += passo
+    w = largura(dr, l, f_tit, esp_tit, espaco=ESP_PAL)
+    escreve(dr, CX - w / 2, y - round(TT * 0.1), l, f_tit, esp_tit, TINTA, espaco=ESP_PAL); y += passo
 ov.alpha_composite(tarja, (round(CX - tarja.width / 2), round(y0 + alt_cartao - tarja.height / 2)))
 ov.save(TRAB / "titulo.png")
+if cfg.get("titulo_da_capa"):  # R030: o título dos 3 s é o mesmo bloco da capa (selo e quadro), tirado do _CAPA_*.html
+    from telas import titulo_da_capa
+    tc = cfg["titulo_da_capa"]
+    titulo_da_capa(na_pasta(tc["html"]), TRAB / "titulo.png", tc.get("seletores", [".tag", ".quadro"]), tc.get("dy", 0))
 print(f"título: y {y0} a {y0 + alt_total}")
 if PALCO:
     import numpy as np
@@ -521,7 +526,31 @@ def ts_srt(t):
 # Em sala silenciosa nada cobre a respiração, e o compressor a traz para a frente (R024).
 RESP_DB = cfg.get("respiracao_db", 0)  # o áudio D (IA) já abaixa a respiração; use -12 só se ainda aparecer
 janelas_resp = []
-if RESP_DB < 0:
+if cfg.get("respiracao") == "voz":
+    # microfone perto da boca (R030): a inspiração antes da frase passa pela IA (-30 a -45 dB) e aparece depois do ganho.
+    # Respiração = trecho sem tom de voz (autocorrelação baixa), fora das palavras, com pico abaixo de -28 dB e 80 ms ou mais.
+    import wave
+    import numpy as np
+    RESP_DB = RESP_DB or -20
+    fonte = TRAB / "audio_d.wav"
+    if fonte.exists():  # o áudio já limpo pela IA (de uma render anterior) mostra só o que sobrou
+        _raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(fonte), "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
+                              capture_output=True).stdout
+    else:
+        _w = wave.open(cfg["audio16k"]); _raw = _w.readframes(_w.getnframes())
+    amostras = np.frombuffer(_raw, np.int16).astype(float) / 32768
+    dentro = lambda t: any(w["s"] + 0.03 <= t <= w["e"] - 0.03 for w in palavras)
+    trecho = []
+    for i in range(int(INICIO * 16000), min(len(amostras), int(FIM * 16000)) - 480, 160):
+        q = amostras[i:i + 480]; t = i / 16000 + 0.015
+        db = 20 * np.log10(np.sqrt((q ** 2).mean()) + 1e-9)
+        ac = np.correlate(q, q, "full")[479:]; ac = ac / (ac[0] + 1e-12)
+        if -55 < db < -10 and ac[40:320].max() < 0.5 and not dentro(t):
+            trecho.append((t, db)); continue
+        if len(trecho) >= 8 and max(d for _, d in trecho) < -28:
+            janelas_resp.append((trecho[0][0] - 0.03, trecho[-1][0] + 0.03))
+        trecho = []
+elif RESP_DB < 0:
     import wave
     import numpy as np
     wf = wave.open(cfg["audio16k"])
@@ -961,7 +990,11 @@ if "--render" in sys.argv:
     if CAM2:
         cmd += ["-i", CAM2]
     cmd += ["-filter_complex_script", "filtro.txt", "-map", "[vout]", "-map", "[aout]", "-c:v", "libx264",
-            "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-c:a", "pcm_s24le", "montado.mkv"]
+            "-preset", "medium", "-crf", "18", "-pix_fmt", "yuv420p", "-r", str(FPS),
+            # nível 4.2 fixo: sem ele o x264 marcava nível 6.2 (vídeo 8K) e o decodificador por hardware do
+            # computador mostrava manchas e brilhos que não existem no arquivo (R029 e R030)
+            "-profile:v", "high", "-level:v", "4.2", "-maxrate", "40M", "-bufsize", "60M",
+            "-c:a", "pcm_s24le", "montado.mkv"]
     subprocess.run(cmd, cwd=TRAB, check=True)
     # volume final linear: ganho fixo até -14 LUFS e limitador de pico em -1,5 dB.
     # (o loudnorm cai no modo dinâmico quando falta folga de pico e levanta pausas e respiração)

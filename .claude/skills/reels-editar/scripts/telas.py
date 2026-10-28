@@ -180,3 +180,30 @@ if __name__ == "__main__":
             print(f"{len(lista)} marcas gravadas em {arq.name}")
     else:
         raise SystemExit(__doc__ if __doc__ else "uso: telas.py exportar|roteiro ...")
+
+
+def titulo_da_capa(html_capa, saida, seletores, dy=0):
+    """Título dos 3 primeiros segundos tirado do próprio HTML da capa (R030): só os elementos dos seletores
+    (o selo e o quadro do título), em fundo transparente, 1080 × 1920, deslocados dy pixels na vertical."""
+    from playwright.sync_api import sync_playwright
+    from PIL import Image
+    with sync_playwright() as pw:
+        nav = pw.chromium.launch(channel="chrome")
+        pg = nav.new_page(viewport={"width": 1200, "height": 2000})
+        pg.goto(Path(html_capa).resolve().as_uri())
+        pg.evaluate("document.fonts.ready")
+        pg.wait_for_timeout(600)
+        pg.evaluate("""(sel) => {
+          const a = document.getElementById('art'); document.body.innerHTML = ''; document.body.style.cssText = 'margin:0;padding:0;background:transparent';
+          document.documentElement.style.background = 'transparent';
+          document.body.appendChild(a); a.style.transform = 'none'; a.style.position = 'relative'; a.style.background = 'transparent';
+          [...a.children].forEach(el => { if (!sel.some(s => el.matches(s))) el.style.display = 'none'; });
+        }""", seletores)
+        pg.wait_for_timeout(300)
+        pg.locator("#art").screenshot(path=str(saida), omit_background=True)
+        nav.close()
+    im = Image.open(saida).convert("RGBA").crop((0, 0, 1080, 1920))
+    if dy:
+        novo = Image.new("RGBA", im.size, (0, 0, 0, 0)); novo.paste(im, (0, dy), im); im = novo
+    im.save(saida)
+    return saida
