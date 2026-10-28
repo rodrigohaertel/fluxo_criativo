@@ -425,6 +425,38 @@ for frase in cfg.get("palavras_chave", []):
     s0, e0 = acha(frase)
     chave |= {id(it) for it in itens if s0 - 0.01 <= it["s"] <= e0}
 
+CAIXA = cfg.get("legenda_estilo") == "caixa"
+if CAIXA:
+    from PIL import ImageFont as _IF
+    from fontTools.ttLib import TTFont as _TT
+    _os2 = _TT(str(FONTES / "Montserrat-ExtraBold.ttf"))["OS/2"]
+    _EM = 62 * 1000 / (_os2.usWinAscent + _os2.usWinDescent)  # o libass mede o tamanho pela altura de linha do Windows
+    _F_LEG = _IF.truetype(str(FONTES / "Montserrat-ExtraBold.ttf"), round(_EM))
+    _larg = lambda s: _F_LEG.getlength(s) + len(s)  # Spacing 1 do estilo
+    def _ret(x0, y0, x1, y1, r):  # retângulo de cantos redondos em desenho ASS
+        return (f"m {x0 + r:.0f} {y0:.0f} l {x1 - r:.0f} {y0:.0f} b {x1:.0f} {y0:.0f} {x1:.0f} {y0:.0f} {x1:.0f} {y0 + r:.0f} "
+                f"l {x1:.0f} {y1 - r:.0f} b {x1:.0f} {y1:.0f} {x1:.0f} {y1:.0f} {x1 - r:.0f} {y1:.0f} l {x0 + r:.0f} {y1:.0f} "
+                f"b {x0:.0f} {y1:.0f} {x0:.0f} {y1:.0f} {x0:.0f} {y1 - r:.0f} l {x0:.0f} {y0 + r:.0f} b {x0:.0f} {y0:.0f} {x0:.0f} {y0:.0f} {x0 + r:.0f} {y0:.0f}")
+    def caixa_eventos(bl, wi, chave, cor, a, b, yb):
+        """yb = base do texto. Camada 0: caixa; 1: pílula da palavra dita; 2: texto."""
+        pal = [limpa(x["t"]) for x in bl]
+        esp = _larg(" ")
+        tw = sum(_larg(p) for p in pal) + esp * (len(pal) - 1)
+        x0 = W / 2 - tw / 2
+        topo, base = yb - 50, yb - 14  # do topo da maiúscula até a linha de base
+        out = [f"Dialogue: 0,{ts(a)},{ts(b)},Leg,,0,0,0,,{{\\an7\\pos(0,0)\\p1\\bord0\\shad0\\1c&H12170A&\\1a&H26&}}"
+               + _ret(x0 - 30, topo - 14, x0 + tw + 30, base + 14, 26) + "{\\p0}"]
+        px = x0 + sum(_larg(p) + esp for p in pal[:wi])
+        out.append(f"Dialogue: 1,{ts(a)},{ts(b)},Leg,,0,0,0,,{{\\an7\\pos(0,0)\\p1\\bord0\\shad0\\1c{cor}\\1a&H00&}}"
+                   + _ret(px - 12, topo - 4, px + _larg(pal[wi]) + 12, base + 4, 16) + "{\\p0}")
+        txt = []
+        for k, (x, p_) in enumerate(zip(bl, pal)):
+            if k == wi: txt.append(r"{\c&H12170A&}" + p_ + r"{\c&HFFFFFF&}")
+            elif id(x) in chave: txt.append(r"{\c" + cor + "}" + p_ + r"{\c&HFFFFFF&}")
+            else: txt.append(p_)
+        out.append(f"Dialogue: 2,{ts(a)},{ts(b)},Leg,,0,0,0,,{{\\an1\\pos({x0:.0f},{yb})\\bord0\\shad0}}" + " ".join(txt))
+        return out
+
 BORDAS_DIV = sorted({x for j in janelas for x in j} | {x for j in div_out() for x in j}) if (janelas or CENAS_DIV) else []
 ev = []
 for bi, bl in enumerate(blocos):
@@ -444,6 +476,13 @@ for bi, bl in enumerate(blocos):
         # a legenda troca de lugar no instante em que a tela dividida entra ou sai, mesmo no meio de um bloco
         # (no R028 o bloco que começava antes do cartão ficava embaixo, em cima do rosto)
         cortes_pos = [ini] + sorted(b for b in BORDAS_DIV if ini + 0.02 < b < fim - 0.02) + [fim]
+        if CAIXA:  # legenda em caixa (R029): fundo verde-escuro arredondado e a palavra dita numa pílula da cor do vídeo
+            for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
+                if na_divisao(a_pos + 0.01): yb = 962 + 40
+                elif na_cena_div(a_pos + 0.01): yb = cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130)
+                else: yb = H - (H - cfg.get("legenda_base_y", 1516))
+                ev.extend(caixa_eventos(bl, wi, chave, cor, a_pos, b_pos, yb))
+            continue
         for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
             if na_divisao(a_pos + 0.01) and PALCO: pos = r"{\an5\pos(540,%d)}" % P_LEG_Y  # palco: abaixo da etiqueta
             elif na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
@@ -543,7 +582,7 @@ if AULA:
         cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 0.75), 0.42)  # canto pequeno: um pouco mais perto
     else:
         CAM_W, CAM_H = 1080, 960
-        cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 1.0), 0.40)
+        cx_, cy_, cw_, ch_ = regiao(CAM_W / CAM_H, cfg.get("camera_altura", 1.0), cfg.get("camera_rosto_y", 0.40))  # rosto alto no bruto: subir (R029, 0,6)
     CAM = f"crop={cw_}:{ch_}:{cx_}:{cy_},scale={CAM_W}:{CAM_H}"
 for i, ((a, b), o) in enumerate(zip(trechos, offs)):
     corte = f"[0:v]trim={a:.3f}:{b:.3f},setpts=PTS-STARTPTS,fps={FPS}"
@@ -697,8 +736,10 @@ json.dump({"duracao": DUR + 1 / FPS, "fps": FPS, "titulo_ate": cfg.get("titulo_a
 def trilha_telas():
     """Exporta as telas do HTML (um PNG por clique) e monta tela_trilha.mp4 com a duração do vídeo final:
     cada clique entra na sua palavra com dissolvência de 0,3 s, como a transição da própria tela."""
-    from telas import exportar, total_cliques
+    from telas import exportar, total_cliques, tem_motion
     html_tela = Path(na_pasta(cfg["tela_html"]))
+    if tem_motion(html_tela) and not HORIZONTAL:
+        return trilha_motion(html_tela)
     pasta = TRAB / "telas"
     total = exportar(html_tela, pasta)
     marcas = [list(c) for c in CLIQUES] or [[0.0, 1]]
@@ -737,6 +778,37 @@ def trilha_telas():
     subprocess.run(cmd + ["-filter_complex_script", str(TRAB / "filtro_telas.txt"), "-map", "[out]", "-r", str(FPS),
                           "-c:v", "libx264", "-preset", "fast", "-crf", "14", "-pix_fmt", "yuv420p", str(saida)], check=True)
     print(f"trilha das telas: {len(marcas)} cliques, {fim:.1f}s")
+    return saida
+
+def trilha_motion(html_tela):
+    """Tela animada (cena(p, t, T) no HTML, R029): grava cada clique quadro a quadro enquanto a tela está visível
+    e segura o último quadro até o próximo clique. Sem dissolvência: as transições moram na própria tela."""
+    from telas import gravar_motion
+    marcas = [list(c) for c in CLIQUES] or [[0.0, 1]]
+    lead = marcas[0][0]  # antes do primeiro clique a tela não aparece: segura o primeiro quadro (no R029 v1 a
+    # animação do clique 1 rodava no tempo 0 e a tela entrava travada no R$ 0,00)
+    fim = DUR + 1
+    segs = []
+    for k, (t0, n) in enumerate(marcas):
+        t1 = marcas[k + 1][0] if k + 1 < len(marcas) else fim
+        visivel = max((b for a, b in TELA_JAN if a <= t0 + 0.6 and b > t0), default=t0 + 0.1)  # até onde a tela aparece
+        segs.append((n, t0, max(0.1, min(t1, visivel + 0.3) - t0), t1 - t0))
+    pasta = TRAB / "motion"
+    print(f"motion: gravando {sum(s[2] for s in segs):.0f} s de tela animada ({len(segs)} cliques)")
+    gravar_motion(html_tela, pasta, [s[:3] for s in segs], FPS)
+    cmd, f = ["ffmpeg", "-v", "error", "-y"], []
+    for k, (_, _, grav, total) in enumerate(segs):
+        cmd += ["-framerate", str(FPS), "-i", str(pasta / f"seg_{k:02d}" / "q_%04d.jpg")]
+        ant = f"tpad=start_mode=clone:start_duration={lead:.3f}," if k == 0 and lead > 0 else ""
+        total += lead if k == 0 else 0
+        f.append(f"[{k}:v]scale=1080:960,setsar=1,format=yuv420p,{ant}tpad=stop_mode=clone:stop_duration={max(total - grav, 0) + 1:.3f},"
+                 f"trim=duration={total:.3f},setpts=PTS-STARTPTS[s{k}]")
+    f.append("".join(f"[s{k}]" for k in range(len(segs))) + f"concat=n={len(segs)}:v=1[out]")
+    (TRAB / "filtro_telas.txt").write_text(";\n".join(f), encoding="utf-8")
+    saida = TRAB / "tela_trilha.mp4"
+    subprocess.run(cmd + ["-filter_complex_script", str(TRAB / "filtro_telas.txt"), "-map", "[out]", "-r", str(FPS),
+                          "-c:v", "libx264", "-preset", "fast", "-crf", "14", "-pix_fmt", "yuv420p", str(saida)], check=True)
+    print(f"trilha das telas (motion): {len(segs)} cliques, {fim:.1f}s")
     return saida
 
 # ---------- contador: número que cresce (cartão animado, 1000 × 580 com fundo transparente) ----------

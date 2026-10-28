@@ -68,6 +68,36 @@ def exportar(html_tela, saida, zona=ZONA):
     return total
 
 
+def tem_motion(html_tela):
+    """A tela animada expõe cena(p, t, T): o editor grava quadro a quadro em vez de foto por clique (R029, 27/10)."""
+    return "window.cena" in Path(html_tela).read_text(encoding="utf-8")
+
+
+def gravar_motion(html_tela, saida, segmentos, fps=30, vertical=True):
+    """Grava os quadros da tela animada. segmentos = [(clique, t0 no vídeo, segundos a gravar), ...].
+    Cada segmento vira saida/seg_KK/q_NNNN.jpg: 1080 × 960 no vertical (recorte da zona útil) ou 1920 × 1080."""
+    from playwright.sync_api import sync_playwright
+    saida = Path(saida); saida.mkdir(parents=True, exist_ok=True)
+    w = max(ZONA[1] - ZONA[0], 1080 * VERT[0] / VERT[1])
+    clip = ({"x": (ZONA[0] + ZONA[1]) / 2 - w / 2, "y": 0, "width": w, "height": 1080} if vertical
+            else {"x": 0, "y": 0, "width": 1920, "height": 1080})
+    with sync_playwright() as pw:
+        nav = pw.chromium.launch(channel="chrome")
+        pg = nav.new_page(viewport={"width": 1920, "height": 1080})
+        pg.goto(Path(html_tela).resolve().as_uri())
+        pg.evaluate("document.fonts.ready")
+        pg.evaluate("window.__gravando = true")
+        pg.wait_for_timeout(300)
+        for k, (n, t0, dur) in enumerate(segmentos):
+            pasta = saida / f"seg_{k:02d}"; pasta.mkdir(exist_ok=True)
+            for velho in pasta.glob("*.jpg"): velho.unlink()
+            for i in range(max(1, round(dur * fps))):
+                pg.evaluate(f"cena({n}, {i / fps:.4f}, {t0 + i / fps:.4f})")
+                pg.screenshot(path=str(pasta / f"q_{i:04d}.jpg"), clip=clip, type="jpeg", quality=94)
+        nav.close()
+    return saida
+
+
 def _texto(celula):
     return " ".join(html.unescape(re.sub(r"<[^>]+>", " ", celula)).split())
 
