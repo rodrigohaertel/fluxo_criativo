@@ -112,6 +112,7 @@ Medido em 16/10/2026 no R027 (bruto 4K de 63 segundos, transcrição no processa
 | Montar e publicar o dashboard com dados gravados (App) | 2 a 3 minutos | minutos |
 | Buscar os números da Meta pelo App e atualizar o dashboard | cerca de 60 segundos | segundos |
 | Ajustar o dashboard de tráfego ao vivo (editar e publicar de novo) | cerca de 90 segundos | segundos |
+| Tirar e publicar a fotografia do dashboard para o analisador | cerca de 60 segundos | segundos |
 
 ---
 
