@@ -213,7 +213,11 @@ Esperar a resposta. Ajuste pedido → mudar o JSON, rodar o plano de novo e most
 - nos cartões, notícia na metade de cima e o rosto inteiro na metade de baixo;
 - legenda dentro da faixa amarela e fora das áreas vermelhas (fora do corte 4:5);
 - zoom sem cortar a testa ou o queixo;
-- volume integrado entre -14,5 e -13,5 LUFS e pico até -1,5 dBFS.
+- volume integrado entre -14,5 e -13,5 LUFS e pico até -1,5 dBFS;
+- **respiração, em todo vídeo, um por um** (regra de 30/10/2026). Cada gravação muda o cenário: distância do microfone, sala, celular ou câmera. No R030 o microfone ficou muito perto da boca e, mesmo com `respiracao` `voz` abaixando 20 dB, a respiração ainda apareceu no vídeo publicado. Por isso:
+  1. antes da render, ouvir 3 ou 4 pausas do bruto e medir o pico de cada espaço entre palavras; se a respiração passa de -40 dB, ligar `respiracao` `voz`;
+  2. depois da render, medir de novo os espaços entre palavras no `R0XX_editado.mp4` e listar os 5 mais altos com o tempo; ouvir cada um. Respiração audível (puxada de ar, chiado da boca) → abaixar mais (redução maior ou o trecho inteiro do espaço), renderizar de novo e medir outra vez;
+  3. nunca dar o áudio como pronto só porque a render imprimiu quantos trechos abaixou: a conferência é o ouvido no vídeo final.
 
 Problema → corrigir o JSON e renderizar de novo antes de entregar.
 
