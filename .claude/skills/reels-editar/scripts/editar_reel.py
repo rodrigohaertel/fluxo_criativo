@@ -407,7 +407,7 @@ for c in contadores:
     t1 = acha(c["fim"], s0)[1] + c.get("folga", 0.4) if c.get("fim") else s0 + c.get("dura", 3.0)
     tempos_cont.append([s0, t1])
 # cartão que acaba a menos de 0,6 s do próximo fica até o próximo entrar (sem piscar o rosto cheio no meio)
-TELA_CHEIA = [c.get("tipo") == "distancia" for c in contadores]  # efeito de tela cheia, por cima do vídeo
+TELA_CHEIA = [c.get("tipo") in ("distancia", "veredito") for c in contadores]  # efeito de tela cheia, por cima do vídeo
 _seq = sorted(tempos + [tc for tc, cheia in zip(tempos_cont, TELA_CHEIA) if not cheia])
 for a, b in zip(_seq, _seq[1:]):
     if b[0] - a[1] < 0.6: a[1] = b[0]
@@ -905,7 +905,7 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
-        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca"):  # efeitos de 21/10 (A52)
+        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca", "placar", "veredito"):  # efeitos de 21/10 (A52), placar e veredito (R033)
             import animacoes2
             import inspect
             fn = getattr(animacoes2, "quadros_" + tipo)

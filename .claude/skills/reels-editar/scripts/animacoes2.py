@@ -13,6 +13,7 @@
 #                trecho entre eles que acende em dourado e selo com a diferença.
 #
 # Os tempos das marcas chegam em segundos a partir do início do cartão (como no animacoes.py).
+from pathlib import Path
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
 VERDE, VERDE_CLARO = (15, 92, 46, 255), (228, 243, 232, 255)
@@ -474,6 +475,303 @@ def quadros_regua(pasta, c, marcas, fps, fontes, numero_br=None):
             a = int(255 * min((t - t_selo - 0.3) / 0.3, 1.0))
             dr.text((500, 512), c["detalhe"], font=f_det, fill=CINZA[:3] + (a,), anchor="mm")
         _entrada(im, t).save(pasta / f"{q:04d}.png")
+    return pasta
+
+
+# ----------------------------------------------------------------------------------------------------
+# 5. Placar (tela dividida, 1000 × 640): jogo de veredito do R033 (29/10)
+# ----------------------------------------------------------------------------------------------------
+OURO_CLARO, OURO_ESCURO, VERDE_FUNDO = (250, 242, 222, 255), (112, 86, 26, 255), (234, 246, 238, 255)
+P_W, P_H = 1000, 640
+P_ARENA = (500, 100, 880, 116)            # centro x, centro y, largura, altura do cartão da decisão
+P_COL = {"dinheiro": 265, "bonito": 735}  # centro de cada coluna
+P_CAB_Y, P_CHIP_Y, P_CHIP_H, P_CHIP_GAP, P_CHIP_W = 198, 296, 60, 12, 420
+
+
+def _placar_cartao(fontes, texto, w, h, estilo):
+    """Cartão da decisão, desenhado grande; vira a ficha da coluna encolhendo."""
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    fundo, tinta, borda = {"ouro": (OURO, TINTA, OURO_ESCURO)}.get(estilo, (PALIDO, TINTA, CINZA_CLARO))
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=h // 4, fill=fundo, outline=borda, width=4)
+    f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", texto, w - 80, int(h * 0.45)))
+    dr.text((w / 2, h / 2), texto, font=f, fill=tinta, anchor="mm")
+    return im
+
+
+def _placar_ficha(fontes, texto, lado, estilo):
+    im = Image.new("RGBA", (P_CHIP_W, P_CHIP_H), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    if estilo == "ouro": fundo, tinta = OURO, TINTA
+    elif lado == "dinheiro": fundo, tinta = VERDE_FUNDO, VERDE
+    else: fundo, tinta = OURO_CLARO, OURO_ESCURO
+    dr.rounded_rectangle([0, 0, P_CHIP_W - 1, P_CHIP_H - 1], radius=16, fill=fundo)
+    f = _fonte(fontes, "Montserrat-ExtraBold.ttf", _cabe(fontes, "Montserrat-ExtraBold.ttf", texto, P_CHIP_W - 40, 28))
+    dr.text((P_CHIP_W / 2, P_CHIP_H / 2), texto, font=f, fill=tinta, anchor="mm")
+    return im
+
+
+def _colar(im, peca, cx, cy, escala=1.0, alfa=1.0):
+    if escala <= 0.01 or alfa <= 0.01: return
+    if abs(escala - 1) > 0.005:
+        peca = peca.resize((max(1, int(peca.width * escala)), max(1, int(peca.height * escala))), Image.LANCZOS)
+    if alfa < 0.999:
+        peca = peca.copy(); peca.putalpha(peca.getchannel("A").point(lambda v: int(v * alfa)))
+    im.alpha_composite(peca, (int(cx - peca.width / 2), int(cy - peca.height / 2)))
+
+
+def _placar_carimbo(fontes, texto, cor):
+    f = _fonte(fontes, "Montserrat-Black.ttf", 46)
+    lw = ImageDraw.Draw(Image.new("RGBA", (1, 1))).textlength(texto, font=f)
+    w, h = int(lw + 70), 92
+    cam = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dc = ImageDraw.Draw(cam)
+    dc.rounded_rectangle([3, 3, w - 4, h - 4], radius=16, fill=BRANCO, outline=cor, width=7)
+    dc.text((w / 2, h / 2), texto, font=f, fill=cor, anchor="mm")
+    return cam.rotate(-5, resample=Image.BICUBIC, expand=True)
+
+
+def quadros_placar(pasta, c, marcas, fps, fontes):
+    """Placar de duas colunas, DÁ DINHEIRO (verde, esquerda) e FICA BONITO (dourado, direita). Um contador por
+    decisão; o placar inteiro é redesenhado em cada um a partir das decisões anteriores.
+    c: dura, item (texto do cartão), lado ("dinheiro", "bonito" ou "meio"), estilo ("ouro" para o cartão da
+    promessa), anteriores [{"item": ..., "lado": ..., "estilo": ...}], carimbo ("NENHUM DOS DOIS"),
+    carimbo_troca ("DEPENDE DA CONTA"), entrada (o placar inteiro entra com fade; padrão: só sem anteriores).
+    marcas: "desliza" (o cartão vai para a coluna), "selo" (carimbo), "troca" (o carimbo muda),
+    "destaque" (desempate: a coluna que ganhou acende, a outra apaga e o placar aparece grande no meio)."""
+    dura = c["dura"]; lado = c.get("lado", "meio"); estilo = c.get("estilo")
+    t_des = marcas.get("desliza"); t_selo = marcas.get("selo"); t_troca = marcas.get("troca")
+    t_dest = marcas.get("destaque")
+    ant = c.get("anteriores", [])
+    entrada = c.get("entrada", not ant)
+    ROT = {"dinheiro": c.get("rotulo_esquerda", "DÁ DINHEIRO"), "bonito": c.get("rotulo_direita", "FICA BONITO")}
+    pontos = {k: sum(1 for a in ant if a["lado"] == k) for k in ("dinheiro", "bonito")}
+    f_cab = _fonte(fontes, "Montserrat-Black.ttf", 34)
+    f_pts = _fonte(fontes, "Montserrat-Black.ttf", 52)
+    f_placar = _fonte(fontes, "Montserrat-Black.ttf", 110)
+    fichas = [(_placar_ficha(fontes, a["item"].upper(), a["lado"], a.get("estilo")), a["lado"]) for a in ant if a["lado"] in P_COL]
+    cartao = _placar_cartao(fontes, c["item"].upper(), P_ARENA[2], P_ARENA[3], estilo)
+    ficha_nova = _placar_ficha(fontes, c["item"].upper(), lado, estilo) if lado in P_COL else None
+    slot_y = lambda n: P_CHIP_Y + n * (P_CHIP_H + P_CHIP_GAP) + P_CHIP_H / 2
+    VOO = 0.45
+    car = {}
+    if t_selo is not None and c.get("carimbo"): car["selo"] = _placar_carimbo(fontes, c["carimbo"].upper(), CINZA)
+    if t_troca is not None and c.get("carimbo_troca"): car["troca"] = _placar_carimbo(fontes, c["carimbo_troca"].upper(), VERDE)
+    for q in range(int(round(dura * fps))):
+        t = q / fps
+        im = Image.new("RGBA", (P_W, P_H), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+        dr.rounded_rectangle([25, 22, P_W - 25, P_H - 22], radius=30, fill=BRANCO)
+        chegou = t_des is not None and ficha_nova is not None and t >= t_des + VOO
+        pts = dict(pontos)
+        if chegou: pts[lado] += 1
+        # as duas colunas: cabeçalho com o número e as fichas já decididas
+        pisca = t_selo is not None and 0 <= t - t_selo < 0.6 and int((t - t_selo) / 0.15) % 2 == 0
+        for k, cx in P_COL.items():
+            cor_f, cor_t = (VERDE, BRANCO) if k == "dinheiro" else (OURO, TINTA)
+            esc = 1.0
+            if chegou and k == lado: esc = max(_pop(t - t_des - VOO, 0.3, 0.08), 0.9)
+            w, h = 440 * esc, 82 * esc
+            fundo = cor_f if not pisca else (cor_f[0], cor_f[1], cor_f[2], 120)
+            dr.rounded_rectangle([cx - w / 2, P_CAB_Y - h / 2 + 22, cx + w / 2, P_CAB_Y + h / 2 + 22], radius=20, fill=fundo)
+            dr.text((cx - w / 2 + 26, P_CAB_Y + 22), ROT[k], font=f_cab, fill=cor_t, anchor="lm")
+            ep = _pop(t - t_des - VOO, 0.35, 0.3) if chegou and k == lado else 1.0
+            _texto_escalado(im, cx + w / 2 - 44, P_CAB_Y + 22, str(pts[k]), f_pts, cor_t, max(ep, 0.6))
+        n_col = {"dinheiro": 0, "bonito": 0}
+        for ficha, ld in fichas:
+            _colar(im, ficha, P_COL[ld], slot_y(n_col[ld])); n_col[ld] += 1
+        # o cartão da decisão: entra no meio, voa para a coluna no veredito
+        if ficha_nova is not None and t_des is not None and t >= t_des:
+            p = _ease_io((t - t_des) / VOO)
+            x0, y0, w0 = P_ARENA[0], P_ARENA[1], P_ARENA[2]
+            x1, y1, w1 = P_COL[lado], slot_y(n_col[lado]), P_CHIP_W
+            if p < 1:
+                _colar(im, cartao, x0 + (x1 - x0) * p, y0 + (y1 - y0) * p, (w0 + (w1 - w0) * p) / w0)
+            else:
+                _colar(im, ficha_nova, x1, y1, 1.0)
+        else:
+            _colar(im, cartao, P_ARENA[0], P_ARENA[1], max(_pop(t, 0.35, 0.1), 0.01))
+        # carimbo por cima do cartão que fica no meio
+        if "selo" in car and t >= t_selo:
+            atual = car["troca"] if "troca" in car and t >= t_troca else car["selo"]
+            t_ref = t_troca if "troca" in car and t >= t_troca else t_selo
+            _colar(im, atual, 500, 562, max(_pop(t - t_ref, 0.25, 0.25), 0.01))  # no espaço livre embaixo das colunas
+        # desempate: a coluna que ganhou acende, a outra apaga, o placar aparece grande no meio
+        if t_dest is not None and t >= t_dest:
+            p = _ease((t - t_dest) / 0.4)
+            perde = "bonito" if pts["dinheiro"] >= pts["bonito"] else "dinheiro"
+            cx = P_COL[perde]
+            veu = Image.new("RGBA", (460, 440), (255, 255, 255, int(170 * p)))
+            im.alpha_composite(veu, (int(cx - 230), P_CAB_Y - 30))
+            if t >= t_des + VOO if t_des is not None else True:
+                cobre = Image.new("RGBA", (P_ARENA[2] + 20, P_ARENA[3] + 20), (255, 255, 255, int(255 * p)))
+                im.alpha_composite(cobre, (P_ARENA[0] - P_ARENA[2] // 2 - 10, P_ARENA[1] - P_ARENA[3] // 2 - 10))
+                _texto_escalado(im, P_ARENA[0], P_ARENA[1], f"{pts['dinheiro']} x {pts['bonito']}", f_placar, VERDE,
+                                max(_pop(t - t_dest, 0.35, 0.15), 0.01))
+        (_entrada(im, t, (P_W, P_H)) if entrada else im).save(pasta / f"{q:04d}.png")
+    return pasta
+
+
+# ----------------------------------------------------------------------------------------------------
+# 6. Veredito (tela cheia 1080 × 1920, por cima do vídeo): versão do R033 aprovada pelo Rodrigo em 29/10,
+#    no lugar do placar em tela dividida. Ele grava de longe; as laterais guardam a contagem e o meio de baixo
+#    mostra a decisão (ícone + título), que voa para o lado do veredito.
+# ----------------------------------------------------------------------------------------------------
+EMOJI = Path(r"C:\Windows\Fonts\seguiemj.ttf")
+V_LADO = {"dinheiro": 180, "bonito": 900}       # centro de cada lateral
+V_ETQ_Y, V_NUM_Y, V_MINI_Y = 636, 760, 865      # etiqueta, número, primeira linha de mini ícones
+V_MINI, V_MINI_GAP = 84, 12
+V_CARD = (540, 1445, 560, 340)                  # centro x, centro y, largura, altura do cartão do meio
+V_COR = {"dinheiro": (VERDE, BRANCO), "bonito": (OURO, TINTA)}
+
+
+def _icone(txt, tam):
+    """Emoji colorido do Windows; sem a fonte, devolve None e o cartão fica só com o título."""
+    if not EMOJI.exists(): return None
+    txt = txt.replace("️", "")  # o seletor de variação desenha alguns ícones tortos ou miúdos
+    f = ImageFont.truetype(str(EMOJI), 109)  # tamanho nativo do bitmap da fonte; depois redimensiona
+    im = Image.new("RGBA", (150, 150), (0, 0, 0, 0))
+    ImageDraw.Draw(im).text((75, 75), txt, font=f, embedded_color=True, anchor="mm")
+    caixa = im.getbbox()
+    if not caixa: return None
+    im = im.crop(caixa)
+    esc = tam / max(im.size)
+    return im.resize((max(1, int(im.width * esc)), max(1, int(im.height * esc))), Image.LANCZOS)
+
+
+def _foto(caminho, w, h, raio):
+    """Foto (real ou gerada) recortada para preencher w × h, com cantos redondos."""
+    im = Image.open(caminho).convert("RGBA")
+    esc = max(w / im.width, h / im.height)
+    im = im.resize((max(w, int(im.width * esc)), max(h, int(im.height * esc))), Image.LANCZOS)
+    x, y = (im.width - w) // 2, (im.height - h) // 2
+    im = im.crop((x, y, x + w, y + h))
+    m = Image.new("L", (w, h), 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, w - 1, h - 1], radius=raio, fill=255)
+    im.putalpha(m)
+    return im
+
+
+def _v_cartao(fontes, c):
+    w, h = V_CARD[2], V_CARD[3]
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    ouro = c.get("estilo") == "ouro"
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=36, fill=OURO if ouro else BRANCO,
+                         outline=OURO_ESCURO if ouro else CINZA_CLARO, width=5)
+    titulo = c["item"].upper()
+    if c.get("grande"):  # cartão sem ícone: o número em destaque ("14%") e o título embaixo
+        f = _fonte(fontes, "Montserrat-Black.ttf", 150)
+        dr.text((w / 2, (h - 60) / 2), c["grande"], font=f, fill=TINTA, anchor="mm")
+    elif c.get("imagem"):  # foto no lugar do ícone (foto real ou gerada), ocupando a parte de cima do cartão
+        im.alpha_composite(_foto(c["imagem"], w - 24, h - 88, 26), (12, 12))
+    else:
+        ic = _icone(c.get("icone", ""), 150) if c.get("icone") else None
+        if ic: im.alpha_composite(ic, (int(w / 2 - ic.width / 2), int((h - 60) / 2 - ic.height / 2)))
+    f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", titulo, w - 60, 44))
+    dr.text((w / 2, h - 40), titulo, font=f, fill=TINTA, anchor="mm")
+    return im
+
+
+def _v_mini(fontes, c, lado):
+    s = V_MINI
+    im = Image.new("RGBA", (s, s), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    ouro = c.get("estilo") == "ouro"
+    dr.rounded_rectangle([0, 0, s - 1, s - 1], radius=20, fill=OURO if ouro else BRANCO,
+                         outline=V_COR[lado][0], width=4)
+    if c.get("grande"):
+        f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", c["grande"], s - 14, 36))
+        dr.text((s / 2, s / 2), c["grande"], font=f, fill=TINTA, anchor="mm")
+    elif c.get("imagem"):
+        im.alpha_composite(_foto(c["imagem"], s - 10, s - 10, 16), (5, 5))
+    else:
+        ic = _icone(c.get("icone", ""), s - 26) if c.get("icone") else None
+        if ic: im.alpha_composite(ic, (int(s / 2 - ic.width / 2), int(s / 2 - ic.height / 2)))
+    return im
+
+
+def _v_slot(lado, n):
+    col, lin = n % 2, n // 2
+    return V_LADO[lado] + (col - 0.5) * (V_MINI + V_MINI_GAP), V_MINI_Y + lin * (V_MINI + V_MINI_GAP) + V_MINI / 2
+
+
+def quadros_veredito(pasta, c, marcas, fps, fontes):
+    """Tela cheia por cima do vídeo. Laterais fixas: DÁ DINHEIRO (verde, esquerda) e FICA BONITO (dourado, direita),
+    cada uma com a etiqueta, o número e os mini ícones das decisões já julgadas. No meio de baixo, o cartão da
+    decisão (ícone + título) entra com salto e voa para a lateral do veredito.
+    c: dura, item (título; sem item = só apresenta as laterais), icone (emoji), imagem (caminho de uma foto) ou
+    grande ("14%"), lado
+    ("dinheiro", "bonito" ou "meio"), estilo ("ouro"), anteriores [{"item", "icone"/"grande", "lado", "estilo"}],
+    carimbo / carimbo_troca (cartão que fica no meio), entrada (as laterais entram com animação).
+    marcas: "desliza" (voa para a lateral), "abre" (sem item: a lateral direita aparece), "selo", "troca",
+    "destaque" (desempate: o lado que perdeu apaga e o placar aparece grande no lugar do cartão)."""
+    dura = c["dura"]; lado = c.get("lado", "meio"); ant = c.get("anteriores", [])
+    t_des = marcas.get("desliza"); t_abre = marcas.get("abre"); t_selo = marcas.get("selo")
+    t_troca = marcas.get("troca"); t_dest = marcas.get("destaque")
+    entrada = c.get("entrada", False)
+    ROT = {"dinheiro": c.get("rotulo_esquerda", "DÁ DINHEIRO"), "bonito": c.get("rotulo_direita", "FICA BONITO")}
+    f_etq = _fonte(fontes, "Montserrat-Black.ttf", 34)
+    f_num = _fonte(fontes, "Montserrat-Black.ttf", 112)
+    f_placar = _fonte(fontes, "Montserrat-Black.ttf", 150)
+    minis = [(_v_mini(fontes, a, a["lado"]), a["lado"]) for a in ant if a["lado"] in V_LADO]
+    pontos = {k: sum(1 for a in ant if a["lado"] == k) for k in V_LADO}
+    tem_item = bool(c.get("item"))
+    cartao = _v_cartao(fontes, c) if tem_item else None
+    mini_nova = _v_mini(fontes, c, lado) if tem_item and lado in V_LADO else None
+    car = {}
+    if t_selo is not None and c.get("carimbo"): car["selo"] = _placar_carimbo(fontes, c["carimbo"].upper(), CINZA)
+    if t_troca is not None and c.get("carimbo_troca"): car["troca"] = _placar_carimbo(fontes, c["carimbo_troca"].upper(), VERDE)
+    VOO = 0.5
+    for q in range(int(round(dura * fps))):
+        t = q / fps
+        im = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+        chegou = t_des is not None and mini_nova is not None and t >= t_des + VOO
+        pts = dict(pontos)
+        if chegou: pts[lado] += 1
+        pisca = t_selo is not None and 0 <= t - t_selo < 0.6 and int((t - t_selo) / 0.15) % 2 == 0
+        perde = None
+        if t_dest is not None and t >= t_dest:
+            perde = "bonito" if pts["dinheiro"] >= pts["bonito"] else "dinheiro"
+        for k, cx in V_LADO.items():
+            # aparecimento das laterais: entrada = as duas sobem juntas; sem item, a direita espera a marca "abre"
+            inicio = 0.0 if (k == "dinheiro" or t_abre is None) else t_abre
+            ap = _pop(t - inicio, 0.35, 0.12) if (entrada or not tem_item) else 1.0
+            if ap <= 0.01: continue
+            camada = Image.new("RGBA", (300, 560), (0, 0, 0, 0)); dc = ImageDraw.Draw(camada)
+            cor_f, cor_t = V_COR[k]
+            fundo = cor_f if not pisca else cor_f[:3] + (110,)
+            dc.rounded_rectangle([0, 0, 299, 74], radius=24, fill=fundo)
+            dc.text((150, 38), ROT[k], font=f_etq, fill=cor_t, anchor="mm")
+            ep = 1.0
+            if chegou and k == lado: ep = max(_pop(t - t_des - VOO, 0.35, 0.3), 0.6)
+            num = Image.new("RGBA", (300, 150), (0, 0, 0, 0))
+            ImageDraw.Draw(num).text((150, 75), str(pts[k]), font=f_num, fill=BRANCO, anchor="mm",
+                                     stroke_width=7, stroke_fill=TINTA)
+            _colar(camada, num, 150, 124 + 74 / 2 - 37 + 50, ep)
+            n = 0
+            for mi, ld in minis:
+                if ld != k: continue
+                x, y = _v_slot(k, n); n += 1
+                _colar(camada, mi, x - cx + 150, y - V_ETQ_Y + 37 + 0)
+            if chegou and k == lado:
+                x, y = _v_slot(k, n)
+                _colar(camada, mini_nova, x - cx + 150, y - V_ETQ_Y + 37, max(_pop(t - t_des - VOO, 0.25, 0.2), 0.5))
+            alfa = 1.0
+            if perde == k: alfa = 1 - 0.65 * _ease((t - t_dest) / 0.4)
+            _colar(im, camada, cx, V_ETQ_Y - 37 + 280, ap, alfa)
+        if tem_item:
+            if mini_nova is not None and t_des is not None and t >= t_des:
+                p = _ease_io((t - t_des) / VOO)
+                if p < 1:
+                    x1, y1 = _v_slot(lado, pontos[lado])
+                    esc = 1 + (V_MINI / V_CARD[2] - 1) * p
+                    _colar(im, cartao, V_CARD[0] + (x1 - V_CARD[0]) * p, V_CARD[1] + (y1 - V_CARD[1]) * p, esc)
+            else:
+                _colar(im, cartao, V_CARD[0], V_CARD[1], max(_pop(t, 0.35, 0.12), 0.01))
+            if "selo" in car and t >= t_selo:
+                atual = car["troca"] if "troca" in car and t >= t_troca else car["selo"]
+                t_ref = t_troca if "troca" in car and t >= t_troca else t_selo
+                _colar(im, atual, V_CARD[0], V_CARD[1] - 30, max(_pop(t - t_ref, 0.25, 0.25), 0.01))
+        if perde is not None:
+            caixa = Image.new("RGBA", (620, 220), (0, 0, 0, 0)); dk = ImageDraw.Draw(caixa)
+            dk.rounded_rectangle([0, 0, 619, 219], radius=40, fill=BRANCO)
+            dk.text((310, 112), f"{pts['dinheiro']} x {pts['bonito']}", font=f_placar, fill=VERDE, anchor="mm")
+            _colar(im, caixa, V_CARD[0], V_CARD[1], max(_pop(t - t_dest, 0.35, 0.15), 0.01))
+        im.save(pasta / f"{q:04d}.png", compress_level=1)
     return pasta
 
 
