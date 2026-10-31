@@ -164,11 +164,18 @@ def acha(frase, depois=0.0):
     raise SystemExit(f"Frase não encontrada na fala: {frase}")
 
 # frases corrigidas pelo sentido: [como saiu na fala, como deve ficar na legenda], palavra por palavra
+# (troca o trecho inteiro: com menos palavras, as que sobram saem e a última estica até o fim do trecho;
+# com mais, as que passam juntam na última; R031: "6 por 1" virava "6x1 por 1")
 for errado, certo in cfg.get("trocas_frase", []):
-    s0, _ = acha(errado)
+    s0, e0 = acha(errado)
     k0 = next(k for k, it in enumerate(itens) if abs(it["s"] - s0) < 1e-6)
-    for k, palavra in enumerate(certo.split()):
+    n, cw = len(errado.split()), certo.split()
+    if len(cw) > n:
+        cw = cw[:n - 1] + [" ".join(cw[n - 1:])]
+    for k, palavra in enumerate(cw):
         itens[k0 + k]["t"] = palavra
+    itens[k0 + len(cw) - 1]["e"] = e0
+    del itens[k0 + len(cw):k0 + n]
 
 def acha_aprox(frase, depois=0.0):
     """Como acha(), mas aceita fala que fugiu um pouco do roteiro: primeiro trecho parecido (80%) depois de 'depois'."""
@@ -528,10 +535,10 @@ RESP_DB = cfg.get("respiracao_db", 0)  # o áudio D (IA) já abaixa a respiraç�
 janelas_resp = []
 if cfg.get("respiracao") == "voz":
     # microfone perto da boca (R030): a inspiração antes da frase passa pela IA (-30 a -45 dB) e aparece depois do ganho.
-    # Respiração = trecho sem tom de voz (autocorrelação baixa), fora das palavras, com pico abaixo de -28 dB e 80 ms ou mais.
+    # Respiração = qualquer som fora da voz (autocorrelação baixa) que não seja consoante; abaixa 30 dB.
     import wave
     import numpy as np
-    RESP_DB = RESP_DB or -20
+    RESP_DB = RESP_DB or -30
     fonte = TRAB / "audio_d.wav"
     if fonte.exists():  # o áudio já limpo pela IA (de uma render anterior) mostra só o que sobrou
         _raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(fonte), "-ac", "1", "-ar", "16000", "-f", "s16le", "-"],
@@ -539,17 +546,37 @@ if cfg.get("respiracao") == "voz":
     else:
         _w = wave.open(cfg["audio16k"]); _raw = _w.readframes(_w.getnframes())
     amostras = np.frombuffer(_raw, np.int16).astype(float) / 32768
-    dentro = lambda t: any(w["s"] + 0.03 <= t <= w["e"] - 0.03 for w in palavras)
-    trecho = []
+    # R031: guiar pelas palavras do Whisper deixava passar a maior parte, porque ele estica a palavra por cima
+    # da inspiração. Agora a guia é a própria voz: tudo fora da voz abaixa, menos o "s", "ch" e "f" (chiado agudo)
+    # colado numa palavra e o começo e o fim de cada palavra.
+    hz = np.fft.rfftfreq(480, 1 / 16000); jan = np.hanning(480)
+    tt, nivel_db, vozeado, agudo = [], [], [], []
     for i in range(int(INICIO * 16000), min(len(amostras), int(FIM * 16000)) - 480, 160):
-        q = amostras[i:i + 480]; t = i / 16000 + 0.015
+        q = amostras[i:i + 480]
         db = 20 * np.log10(np.sqrt((q ** 2).mean()) + 1e-9)
         ac = np.correlate(q, q, "full")[479:]; ac = ac / (ac[0] + 1e-12)
-        if -55 < db < -10 and ac[40:320].max() < 0.5 and not dentro(t):
-            trecho.append((t, db)); continue
-        if len(trecho) >= 8 and max(d for _, d in trecho) < -28:
-            janelas_resp.append((trecho[0][0] - 0.03, trecho[-1][0] + 0.03))
-        trecho = []
+        esp = np.abs(np.fft.rfft(q * jan))
+        tt.append(i / 16000 + 0.015); nivel_db.append(db)
+        # acima de -28 dB é fala mesmo sem tom regular (vogal arrastada no fim da frase, R031); respiração fica abaixo
+        vozeado.append(db > -28 or (db > -40 and ac[40:320].max() > 0.55))
+        agudo.append((esp * hz).sum() / (esp.sum() + 1e-12) > 3800)
+    n = len(tt); protegido = list(vozeado)
+    for k in range(n):
+        if vozeado[k]:
+            for m in range(max(0, k - 4), min(n, k + 11)):  # 40 ms antes da voz (consoante) e 100 ms depois (cauda)
+                protegido[m] = True
+    for k in range(n):  # chiado agudo encostado numa palavra (até 350 ms) é consoante, não respiração
+        if agudo[k] and nivel_db[k] > -45 and any(vozeado[max(0, k - 35):k + 36]):
+            protegido[k] = True
+    k = 0
+    while k < n:
+        if protegido[k] or nivel_db[k] < -62:
+            k += 1; continue
+        m = k
+        while m < n and not protegido[m] and nivel_db[m] >= -62: m += 1
+        if tt[m - 1] - tt[k] >= 0.05:
+            janelas_resp.append((tt[k] - 0.02, tt[m - 1] + 0.02))
+        k = m
 elif RESP_DB < 0:
     import wave
     import numpy as np
@@ -635,10 +662,12 @@ if AULA:
                 cw_ = ch_ = int(lado2) // 2 * 2
     CAM = f"crop={cw_}:{ch_}:{cx_}:{cy_},scale={CAM_W}:{CAM_H}"
 for i, ((a, b), o) in enumerate(zip(trechos, offs)):
-    corte = f"[0:v]trim={a:.3f}:{b:.3f},setpts=PTS-STARTPTS,fps={FPS}"
+    # o quadro guarda a distância dele ao ponto de corte (PTS - a, e não PTS - STARTPTS): no bruto de 29,94 quadros
+    # o primeiro quadro depois do corte cai até 33 ms adiante, e colá-lo no zero adiantava a imagem em relação ao som (R031)
+    corte = f"[0:v]trim={a:.3f}:{b:.3f},setpts=PTS-{a:.3f}/TB,fps={FPS}:start_time=0"
     if AULA and CAM2:
         d2 = cfg.get("camera_desloc", 0.0)
-        p.append(f"[c2_{i}]trim={a + d2:.3f}:{b + d2:.3f},setpts=PTS-STARTPTS,fps={FPS},{CAM}{FILTRO_COR},setsar=1,format=yuv420p[k{i}]")
+        p.append(f"[c2_{i}]trim={a + d2:.3f}:{b + d2:.3f},setpts=PTS-{a + d2:.3f}/TB,fps={FPS}:start_time=0,{CAM}{FILTRO_COR},setsar=1,format=yuv420p[k{i}]")
         corte += ","
     elif AULA:
         p.append(f"{corte},split[r{i}][q{i}]"); corte = f"[r{i}]"
