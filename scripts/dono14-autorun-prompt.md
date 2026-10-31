@@ -240,3 +240,5 @@ Nunca use `git reset`, `git checkout --`, `git clean`, rebase ou push forçado, 
 - Português brasileiro com acentuação correta. Proibido travessão.
 - Nunca exibir tokens.
 - Se um passo falhar, siga para o próximo e registre a falha no marcador; o objetivo é o Rodrigo acordar com o máximo de leitura possível e a lista clara do que ficou pendente.
+
+  - **ATUALIZAÇÃO 30/10/2026 (decisão do Rodrigo):** A51 baixou de R$ 80 para R$ 40/dia por desgaste (de 23 a 29/10, R$ 567 e 1 cadastro de perfil, contra 5 perfis por R$ 482 de 13 a 19/10) e o A39 subiu de R$ 80 para R$ 96/dia (+20%). Conta em R$ 136/dia a partir de 31/10. Não sugerir voltar o A51 a R$ 80 nem novo aumento do A39 antes de 7 dias (06/11). Na leitura, separar 'perfil contactável' (faturamento confirmado na conversa e WhatsApp que recebe) do perfil pela faixa do formulário.
