@@ -163,19 +163,29 @@ if ads:
 
 # --- VSL + funil: eventos do pixel ---
 vsl_ini = ontem - timedelta(days=4)
-stats = get(
-    f"{PIXEL}/stats",
-    # end = inicio de hoje, ou seja, fecha no fim do dia de ontem.
-    {"aggregation": "event", "start": ts(vsl_ini), "end": ts(ontem + timedelta(days=1))},
-).get("data", [])
-
+# CORRIGIDO EM 03/11/2026. A versao anterior mandava "start"/"end" em epoch, que o
+# endpoint /stats do pixel ignora (os parametros validos sao start_time/end_time), e a
+# Meta devolvia um agregado curto: o Lead saiu em 6 para uma janela que tinha 37, o que
+# gerou alarme falso de "pixel abaixo do banco" em 02 e 03/11. Agora e uma chamada por
+# dia, no fuso de Sao Paulo, somada aqui. Atencao: o /stats conta navegador e CAPI sem
+# deduplicar, entao o Lead fica perto do dobro do cadastro do banco; serve de termometro
+# de "o evento esta disparando", nunca de contagem.
 agg = {}
-for bucket in stats:
-    for e in bucket.get("data", []):
-        agg[e.get("value")] = agg.get(e.get("value"), 0) + int(e.get("count", 0))
+_dia = vsl_ini
+while _dia <= ontem:
+    _stats = get(
+        f"{PIXEL}/stats",
+        {"aggregation": "event",
+         "start_time": f"{_dia.isoformat()}T00:00:00-0300",
+         "end_time": f"{_dia.isoformat()}T23:59:59-0300"},
+    ).get("data", [])
+    for bucket in _stats:
+        for e in bucket.get("data", []):
+            agg[e.get("value")] = agg.get(e.get("value"), 0) + int(e.get("count", 0))
+    _dia += timedelta(days=1)
 
 print(f"\n[VSL E FUNIL - eventos do pixel, {vsl_ini.isoformat()} a {ontem.isoformat()}]")
-for k in ["PageView", "ViewContent", "VSL_Play", "VSL_Unmute", "VSL_25", "VSL_50", "VSL_75", "VSL_100", "Lead"]:
+for k in ["PageView", "ViewContent", "FormStart", "Lead", "CadastroPainel", "VSL_Play", "VSL_Unmute", "VSL_25", "VSL_50", "VSL_75", "VSL_100"]:
     if k in agg:
         print(f"  {k:<14} {agg[k]}")
 plays = agg.get("VSL_Play", 0)
