@@ -1,0 +1,50 @@
+{
+  "codigo": "R0XX",
+  "trilha": "R",
+  "nome": "NomeEmCamelCase",
+  "pasta": "meus-produtos/linha-editorial/entregas/reels/R0XX - NomeEmCamelCase",
+  "fase": "brief",
+  "historico": [
+    {"fase": "brief", "em": "2026-11-05T10:12:00"}
+  ],
+  "brief": {
+    "dia": "qua 11/11",
+    "hora": "13h30",
+    "data": "2026-11-11",
+    "formato": "Aula 16:9",
+    "titulo": "Quanto vale o cliente que volta",
+    "gancho": "frase do brief",
+    "detalhe": "resto da linha das Diretrizes",
+    "fonte": "Perguntas da Sessão, base de conhecimento",
+    "capa": "rosto"
+  },
+  "angulo": {
+    "escolhido": "resumo em uma frase",
+    "primeira_frase": "a abertura falada, com o filtro",
+    "fonte_base": "S57",
+    "decisoes": ["o que o Rodrigo pediu no debate"]
+  },
+  "roteiro": {
+    "arquivo": "Reels_0XX_NomeEmCamelCase.html",
+    "nota": 9.4,
+    "palavras": 143,
+    "duracao_estimada_s": 62,
+    "cor_legenda": "laranja",
+    "capa_tipo": "rosto",
+    "capa_fundo": "creme",
+    "telas": false,
+    "falta": ["bruto", "foto da capa"]
+  },
+  "edicao": {
+    "arquivo_final": "R0XX_editado.mp4",
+    "duracao_real_s": 0,
+    "versao": 1
+  },
+  "publicacao": {
+    "data": "2026-11-11",
+    "hora": "13:30",
+    "youtube": "",
+    "canais": ["youtube", "instagram", "facebook"]
+  },
+  "pendencias": []
+}

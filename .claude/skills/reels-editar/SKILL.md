@@ -40,7 +40,7 @@ Rodar `{PY} {SKILL}/scripts/instalar.py --verificar`.
 
 ## Passo 1. Achar a pasta e preparar (`⏳ Passo 1/6: transcrever a fala e medir o enquadramento.`)
 
-1. Código do Reel: vem da mensagem (ex.: R028). Se faltar, listar as pastas `R### - Nome` que têm vídeo bruto e ainda não têm `R0XX_editado.mp4`, e perguntar qual (opções numeradas).
+1. Código do Reel ou do anúncio: vem da mensagem (ex.: R028, A58). Se faltar, listar as pastas `R### - Nome` (Linha Editorial) e `A## - Mentoria - 9x16` (Dono 14%) que têm vídeo bruto e ainda não têm `{código}_editado.mp4`, e perguntar qual (opções numeradas). Chamada pela `/peca`, o código já vem.
 2. Rodar `{PY} {SKILL}/scripts/preparar.py "{caminho da pasta}"`. Ele:
    - acha o **bruto** (maior `.mp4`/`.mov` sem `_` no começo e sem `editado` no nome; se a pasta tiver `… - Vertical.mp4` e `… - Horizontal.mp4`, pega o vertical, ou o horizontal com `--horizontal`, e o trabalho vai para `R0XXV` ou `R0XXH`), a **capa** `CAPA_*.png`, o **roteiro** `Reels_*.html` e os **cartões** `TELA_*.png`;
    - transcreve duas vezes com o Whisper na placa de vídeo: a fala inteira (`palavras.json`, base da legenda) e **fala por fala** (`palavras_por_fala.json`, que separa duas tentativas da mesma frase);

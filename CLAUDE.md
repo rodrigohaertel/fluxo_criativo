@@ -683,6 +683,11 @@ Em seguida, liste os comandos disponíveis organizados por categoria:
 - `/trafego-testes`. Montar testes A/B disciplinados, duplicar variando uma coisa só, campanha de remarketing e leitura do resultado no 7º dia
 - `/trafego-dashboard`. Abrir, criar ou atualizar o dashboard da conta de anúncios (artefato do Claude conectado ao MCP da Meta): visão geral com comparação, funil, ritmo do dia, campanhas com anúncios e dia a dia. Com credenciais da Hotmart ou da Kiwify no `.env`, mostra as vendas reais com bump, upsell e origem. Se o aluno já tem um, entrega o link. Conta ainda não liberada no conector: painel com dados gravados pelo App (atualiza quando o aluno pede ou no horário marcado). Sem artefato, monta o dashboard estático (legado)
 
+**Peça (uma conversa por criativo):**
+- `/peca`. Conduzir um criativo do brief à publicação em uma conversa só. Reel da Linha Editorial (R###): brief lido nas Diretrizes do mês, debate do ângulo, roteiro em HTML com nota pela régua de 7 critérios, capa e telas em HTML, pausa para a gravação, edição pela `/reels-editar` e publicação pela `/publicar-reel`, com o estado salvo em `_peca_R0XX.json` na pasta da peça para retomar de onde parou, mesmo em outra sessão. Carrossel (C###) e anúncio (A##) em construção
+- `/reels-editar`. Editar um Reel (ou anúncio em vídeo) do bruto gravado ao MP4 final, no padrão aprovado, sem CapCut
+- `/publicar-reel`. Programar um Reel no YouTube (API), no Instagram e no Facebook (Planner), com ficha de confirmação única
+
 **Dados e Automações:**
 - `/ads-relatorio`. Criar rotina diária automática que busca métricas do Facebook Ads e envia relatório pelo WhatsApp via Z-API. Agente agendado na nuvem do Claude, roda todo dia às 8h sem precisar do computador ligado.
 - `instagram-dashboard`. Dashboard HTML de métricas do Instagram (seguidores, engajamento, posts recentes) via Apify. O aluno roda o script manualmente para atualizar.

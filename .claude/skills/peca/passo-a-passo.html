@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>/peca · Uma conversa por criativo</title>
+<style>
+  :root{--esm:#0B3B2E;--ouro:#C8A44D;--creme:#F7F2E8;--terra:#C0532E;--tinta:#1E2A24;--cinza:#6B736E;--linha:#E3DDD0;--azul:#2B5C8A;--roxo:#6B4E9B;}
+  *{box-sizing:border-box}
+  body{margin:0;background:#EFEAE0;color:var(--tinta);font-family:Calibri,"Segoe UI",Inter,Arial,sans-serif;font-size:17px;line-height:1.5}
+  .page{max-width:920px;margin:32px auto;background:#fff;padding:48px 56px 64px;box-shadow:0 10px 40px rgba(0,0,0,.08);border-radius:14px}
+  h1{font-size:40px;line-height:1.1;margin:0 0 6px;color:var(--esm);letter-spacing:-.5px}
+  h1 small{display:block;font-size:18px;color:var(--cinza);font-weight:400;letter-spacing:0;margin-top:8px}
+  h1::after{content:"";display:block;width:90px;height:4px;background:var(--ouro);margin-top:16px;border-radius:2px}
+  h2{font-size:26px;color:var(--esm);margin:44px 0 10px;padding-bottom:6px;border-bottom:1px solid var(--linha)}
+  h3{font-size:19px;margin:22px 0 6px;color:var(--esm)}
+  p{margin:8px 0}
+  .lead{font-size:19px;color:#3B463F}
+  .cmd{display:inline-block;font-family:Consolas,"Courier New",monospace;background:var(--creme);border:1px solid var(--linha);padding:3px 10px;border-radius:7px;font-size:16px;color:var(--esm)}
+  .tags{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 0}
+  .tag{font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:5px 11px;border-radius:100px;background:var(--creme);color:var(--esm);border:1px solid var(--linha)}
+  .tag.ok{background:#E6F3EA;color:#1F6B3B;border-color:#CDE6D4}
+  .tag.pend{background:#FBF1DC;color:#8A5A0A;border-color:#F1DFB4}
+  /* linha do tempo */
+  .tl{list-style:none;margin:18px 0 0;padding:0;position:relative}
+  .tl::before{content:"";position:absolute;left:21px;top:8px;bottom:8px;width:3px;background:var(--linha);border-radius:2px}
+  .tl li{position:relative;padding:0 0 22px 64px}
+  .num{position:absolute;left:4px;top:2px;width:38px;height:38px;border-radius:50%;background:var(--esm);color:#fff;font-weight:700;display:flex;align-items:center;justify-content:center;font-size:17px;box-shadow:0 0 0 5px #fff}
+  .num.rod{background:var(--ouro);color:var(--esm)}
+  .num.sub{background:var(--roxo)}
+  .fase{font-size:19px;font-weight:700;color:var(--esm);margin:0 0 4px}
+  .fase .t{font-weight:400;color:var(--cinza);font-size:15px;margin-left:8px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px 18px;margin-top:8px}
+  .box{background:var(--creme);border-radius:10px;padding:10px 14px;font-size:15.5px}
+  .box b{display:block;color:var(--esm);font-size:13px;letter-spacing:.06em;text-transform:uppercase;margin-bottom:4px}
+  .box.rod{background:#FBF4E3}
+  .box.rod b{color:#8A5A0A}
+  .box.sai{background:#EEF3F8}
+  .box.sai b{color:var(--azul)}
+  .aprov{display:inline-block;margin-top:8px;font-size:14px;font-weight:700;color:#8A5A0A;background:#FBF1DC;border-radius:7px;padding:3px 9px}
+  .aprov.gate{color:#8A1F14;background:#FBE4E0}
+  .nota{border-left:4px solid var(--ouro);background:#FDFAF2;padding:10px 16px;border-radius:0 10px 10px 0;margin:14px 0}
+  table{width:100%;border-collapse:collapse;margin:10px 0 4px;font-size:15.5px}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--linha);vertical-align:top}
+  th{background:var(--creme);color:var(--esm);font-size:13px;letter-spacing:.06em;text-transform:uppercase}
+  code{font-family:Consolas,"Courier New",monospace;font-size:14.5px;background:#F3F0E8;padding:1px 6px;border-radius:5px}
+  ul.lista{margin:6px 0 0;padding-left:22px}
+  ul.lista li{margin:4px 0}
+  .faq dt{font-weight:700;color:var(--esm);margin-top:14px}
+  .faq dd{margin:4px 0 0}
+  .rodape{margin-top:48px;padding-top:14px;border-top:1px solid var(--linha);color:var(--cinza);font-size:14px}
+  @media print{body{background:#fff}.page{box-shadow:none;margin:0;padding:24px}}
+  @media (max-width:700px){.page{padding:28px 20px}.grid2{grid-template-columns:1fr}h1{font-size:32px}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<h1>/peca <small>Uma conversa por criativo, do brief à publicação. Como a skill funciona, passo a passo.</small></h1>
+
+<p class="lead">Antes, cada criativo passava por três conversas: uma que pensava, outra que editava, outra que publicava. Agora cada peça tem a própria conversa. Ela abre pelo código, sabe em que ponto a peça está e segue até a publicação, mesmo que a gravação aconteça dias depois.</p>
+
+<div class="tags">
+  <span class="tag ok">Reel · trilha completa</span>
+  <span class="tag ok">Carrossel · trilha completa</span>
+  <span class="tag ok">Anúncio · trilha completa</span>
+</div>
+
+<h2>Como começar</h2>
+<p>Abra uma conversa nova e digite o comando com o código da peça. A letra decide a trilha.</p>
+<p><span class="cmd">/peca R035</span> &nbsp; Reel da Linha Editorial &nbsp;·&nbsp; <span class="cmd">/peca C012</span> &nbsp; carrossel &nbsp;·&nbsp; <span class="cmd">/peca A58</span> &nbsp; anúncio do Dono 14% &nbsp;·&nbsp; <span class="cmd">/peca</span> &nbsp; sem código, a skill mostra os próximos códigos livres e pergunta qual abrir.</p>
+<div class="nota">A entrada tem que ser pelo comando com barra. Mensagem solta ("oi, vamos fazer o próximo Reel") dispara a abertura padrão do projeto, que é o cadastro de produto.</div>
+<p><b>O nome da conversa</b> vira <span class="cmd">R035 - 11/11</span>: o código e a data em que a peça precisa ser publicada (no anúncio, o primeiro dia do teste). Se a skill não souber a data, ela pergunta antes de nomear.</p>
+
+<h3>O que acontece nos primeiros segundos</h3>
+<ul class="lista">
+  <li>A skill confere o produto ativo (Linha Editorial para R e C) e troca se precisar.</li>
+  <li>Lê a pasta da peça e o arquivo de estado (<code>_peca_R035.json</code>), e descobre em que fase a peça está: nova, com roteiro, gravada, editada, programada ou publicada.</li>
+  <li>Se a conversa for uma retomada, abre com três linhas: o que a peça é, onde parou e o que vem agora. Sem repetir pergunta já respondida.</li>
+  <li>Os arquivos mandam sobre o estado: se o estado diz "roteiro" e já existe um vídeo gravado na pasta, ela entra direto na edição.</li>
+</ul>
+
+<h2>Trilha R. Reel</h2>
+<p>Sete fases. As cores dos círculos dizem quem está na frente: <b style="color:var(--esm)">verde</b> é a skill trabalhando, <b style="color:#8A5A0A">dourado</b> é o momento seu (gravar, aprovar, escolher arquivo), <b style="color:var(--roxo)">roxo</b> é uma skill que já existia, chamada por dentro.</p>
+
+<ol class="tl">
+  <li><div class="num">1</div>
+    <p class="fase">Brief <span class="t">cerca de 20 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Lê a linha da peça nas Diretrizes do mês (dia, hora, papel do dia, gancho, fonte, tipo de capa), as peças vizinhas no calendário para a regra da grade, e os Reels publicados nos últimos dois meses com a cor da legenda de cada um. Lê só o trecho da base de conhecimento que o brief aponta.</div>
+      <div class="box sai"><b>O que sai</b>A pasta <code>R035 - Nome/</code> nasce, com o estado dentro. O brief aparece no chat em até oito linhas. Nada para aprovar: o calendário já foi aprovado na sessão de planejamento.</div>
+    </div>
+  </li>
+  <li><div class="num">2</div>
+    <p class="fase">Debate do ângulo <span class="t">cerca de 60 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Propõe três ângulos, cada um com a primeira frase falada (o filtro dentro dela), a virada, o que vale salvar e o que você precisa ter (foto, objeto, número). Cada ângulo nasce de uma fala real da base, com o código da fonte. Confere forma de filtro, tema e capa contra os últimos publicados e recomenda um.</div>
+      <div class="box rod"><b>Você</b>Escolhe um, mistura ou pede outro caminho. Uma pergunta por vez, opções numeradas.</div>
+    </div>
+  </li>
+  <li><div class="num">3</div>
+    <p class="fase">Roteiro, nota, capa e telas <span class="t">3 a 5 minutos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Escreve o roteiro em HTML no gabarito do R019: cabeçalho, nota pelos sete critérios, tabela Tempo / Fala / Câmera / Texto na tela, bloco de gravação, plano de edição nos campos que a edição usa, teleprompter, legenda, capa e textos do YouTube. Passa pelo Manual da Copy e pela revisora. Desenha a capa em HTML (rosto ou número, pela grade) e as telas da aula quando houver conta.</div>
+      <div class="box sai"><b>O que sai</b><code>Reels_035_Nome.html</code>, <code>_CAPA_R035_Nome.html</code> e, na aula, a capa do YouTube e as telas. No chat: a nota com os três pontos mais fracos e o teleprompter inteiro.</div>
+    </div>
+    <span class="aprov">Aprovação 1 · "Aprovar o roteiro" ou "Quero ajustar algo"</span>
+  </li>
+  <li><div class="num rod">4</div>
+    <p class="fase">Pausa para a gravação <span class="t">o tempo que você precisar</span></p>
+    <div class="grid2">
+      <div class="box rod"><b>Você</b>Grava (vertical; a aula também na horizontal), com espaço acima da cabeça para o título dos 3 segundos. Errou, respira e repete a frase inteira. Salva o vídeo na pasta da peça, manda a foto da capa de rosto quando for o caso, e avisa "gravei".</div>
+      <div class="box"><b>A skill</b>Espera. O estado fica como "roteiro aprovado, aguardando bruto". Pode ser amanhã, pode ser em outra sessão: <span class="cmd">/peca R035</span> retoma na edição.</div>
+    </div>
+  </li>
+  <li><div class="num sub">5</div>
+    <p class="fase">Edição <span class="t">4 a 6 minutos · pela /reels-editar</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Fecha a capa primeiro (a foto real entra, a cor é conferida ao lado de um quadro do vídeo) e exporta o PNG. Depois chama a edição por dentro: transcrição, tabela de takes, resumo da edição, render, conferência de quadros, zonas seguras, volume e respiração. No fim, grava no HTML a duração real e a fala como foi gravada.</div>
+      <div class="box rod"><b>Você</b>Aprova a capa, a tabela de takes e o resumo da edição. Recebe o vídeo final (ou a prévia leve, quando for longo).</div>
+    </div>
+    <span class="aprov">Aprovações da edição · capa, takes e resumo</span>
+  </li>
+  <li><div class="num sub">6</div>
+    <p class="fase">Publicação <span class="t">6 a 10 minutos · pela /publicar-reel</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Confere a regra da grade com as peças vizinhas. Mostra a ficha única de confirmação e, com o seu "sim", programa o YouTube pela API e conduz o Planner no Chrome, no horário do brief (13h30).</div>
+      <div class="box rod"><b>Você</b>Lê a ficha e responde "sim". No Planner, escolhe o arquivo do vídeo e a capa quando a skill pedir (a Meta não grava capa enviada pelo Chrome).</div>
+    </div>
+    <span class="aprov gate">Ficha 🛡️ · uma só para os três canais</span>
+  </li>
+  <li><div class="num">7</div>
+    <p class="fase">Fechamento <span class="t">cerca de 30 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Pede para mover a pasta para <code>Publicados/</code>, registra o tema no catálogo da linha e o estado como "publicada". Encerra com o que saiu, o que medir e a próxima peça do calendário.</div>
+      <div class="box rod"><b>Você</b>Confirma a mudança para Publicados. Julga o turbinado no terceiro dia, no app.</div>
+    </div>
+  </li>
+</ol>
+
+<h2>Trilha C. Carrossel</h2>
+<p>Seis fases. O carrossel não tem gravação: o que o Reel resolve na pausa e na edição, o carrossel resolve na produção das lâminas, sem depender de você. Terça, quinta, sábado e domingo às 16h. Nunca é turbinado; o alcance vem do Story do dia.</p>
+
+<ol class="tl">
+  <li><div class="num">1</div>
+    <p class="fase">Brief <span class="t">cerca de 20 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Lê a linha do carrossel nas Diretrizes e os carrosséis recentes com o layout de cada um (etiqueta de cozinha, placar de duas colunas...), para a rotação não repetir. Quando o carrossel nasce de uma aula de quarta, lê a conta no roteiro daquela aula.</div>
+      <div class="box sai"><b>O que sai</b>A pasta <code>Carrossel_012_Nome/</code> com o estado dentro. Brief em até oito linhas.</div>
+    </div>
+  </li>
+  <li><div class="num">2</div>
+    <p class="fase">Caminhos <span class="t">cerca de 60 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Propõe três caminhos: o texto da capa, a ideia que as oito lâminas desdobram, o que vale salvar, o layout (diferente dos três últimos) e o fundo (só tipografia e cor, ou fotos geradas).</div>
+      <div class="box rod"><b>Você</b>Escolhe um, mistura ou pede outro.</div>
+    </div>
+  </li>
+  <li><div class="num">3</div>
+    <p class="fase">Lâminas, legenda e nota <span class="t">3 a 5 minutos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Escreve o HTML com as oito lâminas (capa com "DONO DE RESTAURANTE", uma ideia por lâmina, lâmina 8 com "salva" e a pergunta de uma palavra), a legenda e a nota pela régua dos carrosséis. Revisora e travas da linha em cada lâmina.</div>
+      <div class="box sai"><b>O que sai</b><code>Carrossel_012_Nome.html</code> (abre no navegador com as oito lâminas empilhadas) e <code>legenda.txt</code>. No chat, a nota e a legenda.</div>
+    </div>
+    <span class="aprov">Aprovação 1 · "Aprovar as lâminas" ou "Quero ajustar algo"</span>
+  </li>
+  <li><div class="num">4</div>
+    <p class="fase">Produção <span class="t">30 segundos sem foto · 5 a 8 minutos com fotos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Se o layout usa foto, gera os fundos no Gemini pelo Chrome (sem texto, sem gente, luz de dia, uma conversa só) e renomeia na pasta. Depois exporta cada lâmina em PNG 1080 x 1350 pelo Chrome sem janela e monta a prévia com as oito.</div>
+      <div class="box rod"><b>Você</b>Olha a prévia e aprova. Só entra em ação se a capa pedir uma foto sua que ainda não existe.</div>
+    </div>
+    <span class="aprov">Aprovação 2 · "Aprovar e programar" ou "Quero ajustar algo"</span>
+  </li>
+  <li><div class="num">5</div>
+    <p class="fase">Publicação <span class="t">3 a 5 minutos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Mostra a ficha única e, com o "sim", programa no Planner pelo Chrome: sobe as oito lâminas em ordem (sem abrir a janela de arquivos do Windows), digita a legenda, marca data e hora nos dois canais e clica em Programar.</div>
+      <div class="box rod"><b>Você</b>Lê a ficha e responde "sim". Nada mais.</div>
+    </div>
+    <span class="aprov gate">Ficha 🛡️ · Instagram e Facebook de uma vez</span>
+  </li>
+  <li><div class="num">6</div>
+    <p class="fase">Fechamento <span class="t">cerca de 30 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Pede para mover a pasta para <code>Publicados/</code>, registra o layout e o tema para a rotação, fecha o estado e aponta a próxima peça.</div>
+      <div class="box rod"><b>Você</b>Confirma. Mede o carrossel por salvamento e compartilhamento, não por seguidor.</div>
+    </div>
+  </li>
+</ol>
+
+<h2>Trilha A. Anúncio em vídeo do Dono 14%</h2>
+<p>Sete fases, a espinha do Reel. O anúncio vende a Sessão Estratégica de 30 minutos para dono de restaurante de R$ 100 mil a R$ 300 mil, em teste de 7 dias a R$ 60 por dia. Três diferenças: o brief vem da leva (não do calendário), a edição carrega os efeitos de motion e a tag fixa, e a publicação é uma escrita na conta Meta, com a confirmação 🛡️ antes.</p>
+
+<ol class="tl">
+  <li><div class="num">1</div>
+    <p class="fase">Brief <span class="t">cerca de 20 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Lê a peça no briefing da leva (ângulo pela Mandala, gancho e prova, fonte, teste e capa) e as peças recentes da conta (título, nota, Mandala, conceito), para não repetir DNA de peça aposentada. Sem briefing, pergunta a você o ângulo e a prova.</div>
+      <div class="box sai"><b>O que sai</b>A pasta <code>A58 - Mentoria - 9x16/</code> com o estado dentro.</div>
+    </div>
+  </li>
+  <li><div class="num">2</div>
+    <p class="fase">Ângulo <span class="t">cerca de 60 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Propõe três ângulos: tipo da Mandala, primeira frase com os dois filtros (dono de restaurante, faixa de faturamento), mecanismo de prova no corpo, conceito e inimigo, redação nova do convite, textura de gravação.</div>
+      <div class="box rod"><b>Você</b>Escolhe um, mistura ou pede outro. Leva com vários ganchos sobre um corpo é uma das opções.</div>
+    </div>
+  </li>
+  <li><div class="num">3</div>
+    <p class="fase">Roteiro, nota, capa e plano de edição <span class="t">3 a 5 minutos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Escreve o roteiro no padrão do A52: nota, a prova número por número, legenda da Meta, headline e descrição, roteiro em beats com a coluna da tela, capa com os valores em pixel, direção, locução, plano de edição com motion, checagem de copy e teto de promessa, como será julgado. Efeito de tela inédito é provado em vídeo de teste antes da gravação.</div>
+      <div class="box sai"><b>O que sai</b><code>A58 - Mentoria - roteiro.html</code> e <code>_CAPA_A58_Nome.html</code>. No chat: a nota, o que o revisor marcou e a locução com os dois tempos.</div>
+    </div>
+    <span class="aprov">Aprovação 1 · "Aprovar o roteiro" ou "Quero ajustar algo"</span>
+  </li>
+  <li><div class="num rod">4</div>
+    <p class="fase">Pausa para a gravação <span class="t">o tempo que você precisar</span></p>
+    <div class="grid2">
+      <div class="box rod"><b>Você</b>Grava em lugar real: o gancho andando, câmera acompanhando; o corpo sentado, olho no olho. Seis a oito fotos para a capa no mesmo lugar. Salva na pasta e avisa "gravei".</div>
+      <div class="box"><b>A skill</b>Espera. Retoma na edição quando o bruto estiver na pasta.</div>
+    </div>
+  </li>
+  <li><div class="num sub">5</div>
+    <p class="fase">Edição <span class="t">4 a 6 minutos · pela /reels-editar</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Monta a capa com a foto escolhida, chama a edição por dentro (tag fixa, capa no primeiro quadro, cartões animados com o número falado, até cinco), confere na transcrição em que segundo o filtro de faturamento é dito (acima de 15 segundos, avisa), atualiza o roteiro com as notas da gravação e limpa a pasta depois da sua aprovação.</div>
+      <div class="box rod"><b>Você</b>Escolhe a foto da capa, aprova os takes e o resumo da edição, recebe o vídeo final e aprova a limpeza.</div>
+    </div>
+    <span class="aprov">Aprovações da edição · capa, takes, resumo e limpeza</span>
+  </li>
+  <li><div class="num">6</div>
+    <p class="fase">Publicação na conta <span class="t">3 a 5 minutos, mais o envio do vídeo</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Lê o último conjunto aprovado na conta e monta o plano do teste: conjunto próprio, R$ 60 por dia, 7 dias com data de fim, criativo com o vídeo e a capa, legenda, headline, botão Saiba mais, vários anunciantes desligado. Mostra o bloco de confirmação e, com o "sim", cria tudo em rascunho e confere pela API.</div>
+      <div class="box rod"><b>Você</b>Sobe o vídeo e a capa na Biblioteca de mídia do Gerenciador, lê o bloco e responde "sim". Publica o rascunho no Gerenciador (ou pede que a skill publique, com um segundo "sim").</div>
+    </div>
+    <span class="aprov gate">Bloco 🛡️ · conjunto, criativo e anúncio em um lote só</span>
+  </li>
+  <li><div class="num">7</div>
+    <p class="fase">Fechamento <span class="t">cerca de 30 segundos</span></p>
+    <div class="grid2">
+      <div class="box"><b>A skill</b>Registra a peça no cockpit e no plano de orçamento da rotina das 02h, pede para mover a pasta para Publicados quando o anúncio estiver no ar e aponta o que se lê no dia 3 (hook, CTR) e no dia 8 (CPL de perfil, metade no perfil, uma Sessão).</div>
+      <div class="box rod"><b>Você</b>Confirma. O veredito é no dia 8, nunca pela estreia.</div>
+    </div>
+  </li>
+</ol>
+
+<h2>O que fica salvo em cada peça</h2>
+<table>
+  <tr><th>Arquivo</th><th>O que é</th></tr>
+  <tr><td><code>_peca_R035.json</code></td><td>O estado: fase atual, histórico com data, brief, ângulo escolhido, nota, cor da legenda, pendências. É o que permite retomar a conversa em outro dia ou em outra sessão.</td></tr>
+  <tr><td><code>Reels_035_Nome.html</code></td><td>Fonte única do Reel: roteiro, nota, plano de edição, legenda, textos do YouTube e, depois da edição, a fala como foi gravada.</td></tr>
+  <tr><td><code>_CAPA_R035_Nome.html</code> e <code>CAPA_R035_Nome.png</code></td><td>A capa desenhada e a capa exportada (vai para o primeiro quadro do vídeo e para o Planner).</td></tr>
+  <tr><td><code>R035_editado.mp4</code></td><td>O vídeo final da edição. Versões anteriores ficam com <code>_</code> na frente.</td></tr>
+  <tr><td><code>Carrossel_012_Nome.html</code>, <code>_01.png</code> a <code>_08.png</code>, <code>legenda.txt</code>, <code>_previa_012.jpg</code></td><td>No carrossel: as lâminas desenhadas, as lâminas exportadas que sobem ao Planner, a legenda e a prévia de aprovação.</td></tr>
+  <tr><td><code>A58 - Mentoria - roteiro.html</code>, <code>CAPA_A58_Nome.png</code>, <code>A58_editado.mp4</code></td><td>No anúncio: o roteiro com nota, prova, legenda da Meta e plano de edição; a capa que vira miniatura do vídeo; o vídeo final que sobe para a biblioteca da conta.</td></tr>
+</table>
+<p><b>Depois da aprovação do vídeo, a pasta é limpa.</b> Ficam o original gravado, a versão final e o que a peça precisa para ser republicada ou reeditada (roteiro, capa, telas, legenda, o arquivo de edição e o estado). Saem as versões anteriores, as prévias, os testes e a pasta de trabalho da edição no computador. A skill mostra a lista e só apaga com o seu ok.</p>
+<p>As fases do estado, nesta ordem: brief, ângulo, roteiro aprovado, editada, programada, publicada.</p>
+
+<h2>O que a skill carrega sempre</h2>
+<p>Três referências entram em toda conversa, e por isso a peça não depende mais de memória:</p>
+<ul class="lista">
+  <li><b>Regras da linha.</b> Quem fala e para quem, voz de dono e não de consultor, filtro de copy na primeira frase, o que cada dia compra, linguagem ("para", "em um", nada de "te paga", "sobra" só no negativo, margem só com custo variável, 13 nunca solto), fontes e verdade (nada inventado), estrutura e duração, tela e legenda, capa e grade, publicação.</li>
+  <li><b>Anatomia do roteiro</b> (Reel), <b>do carrossel</b> e <b>do anúncio</b>: como cada HTML é montado e o que a edição e a publicação esperam encontrar na pasta. O anúncio tem ainda as <b>regras próprias</b> (oferta e teto de promessa, público e filtro, estrutura, duração, produção, tela, capa, teste e veredito).</li>
+  <li><b>As réguas:</b> nota dos Reels, texto na tela, capas e grade, a nova régua de nota dos carrosséis (proposta, aguardando a sua aprovação) e a régua de nota dos anúncios.</li>
+  <li><b>As bases do método Venda Todo Santo Dia</b>, como referência na hora de escrever: a Mandala dos 18 tipos, a estrutura do anúncio em vídeo, os formatos de Reels e carrosséis, os elementos literários (1 a 3 por peça), o checklist Light Copy e a revisora. A skill não roda a entrevista do <span class="cmd">/copy-anuncio</span>, porque o brief já responde o que ele perguntaria.</li>
+</ul>
+<div class="nota">Toda vez que você reprovar algo ou pedir um padrão novo, a regra entra no arquivo de regras da linha na mesma sessão. A próxima peça já nasce certa.</div>
+
+<h2>Perguntas rápidas</h2>
+<dl class="faq">
+  <dt>E se eu não gostar do roteiro?</dt>
+  <dd>Responda "Quero ajustar algo" e diga o que. O ajuste é cirúrgico: muda só aquele trecho, a nota é refeita e você vê o que mudou.</dd>
+  <dt>E se eu gravar só na semana que vem?</dt>
+  <dd>Normal. O estado fica em "aguardando bruto". Quando salvar o vídeo na pasta, abra <span class="cmd">/peca R035</span> e a skill entra direto na edição.</dd>
+  <dt>E se eu quiser mudar o dia ou o tema que está nas Diretrizes?</dt>
+  <dd>A peça não rediscute o calendário: anota como pendência e segue com o que você decidir agora. O calendário é assunto da sessão de planejamento.</dd>
+  <dt>A conversa vai ficar longa. Isso quebra algo?</dt>
+  <dd>Não. O estado e os arquivos estão na pasta. Se a conversa for resumida pelo sistema ou se você abrir outra, a skill lê a pasta e continua do ponto certo.</dd>
+  <dt>O que eu faço com as minhas mãos?</dt>
+  <dd>No Reel: escolher o ângulo, aprovar o roteiro, gravar, aprovar a capa e a edição, dizer "sim" na ficha e escolher o vídeo e a capa no Planner. No carrossel: escolher o caminho, aprovar as lâminas e a prévia, dizer "sim" na ficha. No anúncio: escolher o ângulo, aprovar o roteiro, gravar, aprovar a capa e a edição, subir o vídeo e a capa na biblioteca da conta, dizer "sim" no bloco e publicar o rascunho.</dd>
+  <dt>E os arquivos que sobram da edição?</dt>
+  <dd>Depois que você aprova o vídeo, a skill lista o que vai sair (versões antigas, prévias, testes, pasta de trabalho) e o que fica (original, final, roteiro, capa, telas, legenda, arquivo de edição, estado, fotos). Só apaga com o seu ok.</dd>
+</dl>
+
+<p class="rodape">Skill <code>.claude/skills/peca/</code> · comando <code>/peca</code> · montada em 05/11/2026 · as três trilhas completas (Reel, carrossel e anúncio).</p>
+</div>
+</body>
+</html>

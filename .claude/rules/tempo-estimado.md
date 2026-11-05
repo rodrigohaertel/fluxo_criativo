@@ -90,6 +90,32 @@ Medido em 16/10/2026 no R027 (bruto 4K de 63 segundos, transcrição no processa
 
 ---
 
+## Peça, uma conversa por criativo (/peca)
+
+Estimativas iniciais de 05/11/2026, derivadas das operações parecidas desta tabela. Calibrar nas primeiras peças (R035 em diante).
+
+| Operação | Tempo estimado | Unidade |
+|----------|----------------|---------|
+| Ler o brief da peça nas Diretrizes e os últimos Reels publicados | cerca de 20 segundos | segundos |
+| Propor os três ângulos da peça | cerca de 60 segundos | segundos |
+| Escrever o roteiro em HTML com nota, legenda, capa e textos do YouTube | 3 a 5 minutos | minutos |
+| Montar a capa em HTML e exportar o PNG (vertical, ou vertical e YouTube) | cerca de 60 segundos | segundos |
+| Montar as telas em HTML de uma aula | 2 a 3 minutos | minutos |
+| Programar o Reel no YouTube, no Instagram e no Facebook (/publicar-reel) | 6 a 10 minutos | minutos |
+| Fechar a peça (versão publicada no HTML, estado e catálogo) | cerca de 30 segundos | segundos |
+| Propor os três caminhos de um carrossel | cerca de 60 segundos | segundos |
+| Escrever o carrossel em HTML (8 lâminas, legenda e nota) | 3 a 5 minutos | minutos |
+| Gerar os fundos do carrossel no Gemini pelo Chrome (6 a 8 fotos) | 5 a 8 minutos | minutos |
+| Exportar as lâminas em PNG e montar a prévia (laminas.py) | cerca de 30 segundos | segundos |
+| Programar o carrossel no Planner pelo Chrome (lâminas, legenda, data) | 3 a 5 minutos | minutos |
+| Ler o brief do anúncio na leva e as peças recentes da conta | cerca de 20 segundos | segundos |
+| Propor os três ângulos de um anúncio | cerca de 60 segundos | segundos |
+| Escrever o roteiro do anúncio (nota, prova, legenda da Meta, capa, plano de edição) | 3 a 5 minutos | minutos |
+| Provar um efeito de motion inédito em vídeo de teste (antes da gravação) | 3 a 5 minutos | minutos |
+| Criar o conjunto de teste, o criativo e o anúncio na conta (depois do sim) | 3 a 5 minutos | minutos |
+
+---
+
 ## Painel e Scripts
 
 | Operação | Tempo estimado | Unidade |
