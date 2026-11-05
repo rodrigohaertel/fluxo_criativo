@@ -388,12 +388,20 @@ if cfg.get("tag_fixa"):  # tag que fica do fim do título até o fim do vídeo, 
 def ts(t):
     t = max(t, 0); return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
 blocos, atual = [], []
+# quebra_antes: frases que começam legenda nova mesmo sem maiúscula na transcrição (ex.: "se é lá que")
+INICIO_FRASE = set()
+for fr in cfg.get("quebra_antes", []):
+    s0q, _ = acha(fr)
+    INICIO_FRASE.add(next(k for k, it in enumerate(itens) if abs(it["s"] - s0q) < 1e-6))
 UNIDADES = {"kg", "quilo", "quilos", "g", "gramas", "litro", "litros", "l", "%"}
 for k, it in enumerate(itens):
     atual.append(it)
     prox = itens[k + 1]["t"].lower().strip(".,?!") if k + 1 < len(itens) else ""
     cola = it["t"] == "R$" or (re.fullmatch(r"[\d.,]+", it["t"]) and prox in UNIDADES)  # R$ e unidade não ficam sem o número
-    if not cola and (re.search(r"[.,?!]$", it["t"]) or len(atual) >= 3 or sum(len(x["t"]) for x in atual) >= 15):
+    # R033 (05/11): frase nova começa legenda nova. A transcrição nem sempre põe o ponto, mas abre a frase com
+    # maiúscula ("... há meses Casa cheia no sábado"), então a palavra seguinte em maiúscula também quebra o bloco
+    nova_frase = cfg.get("quebra_frase", True) and k + 1 < len(itens) and         (re.match(r"[A-ZÁÉÍÓÚÂÊÔÃÕÇ]([a-záéíóúâêôãõç]|$)", itens[k + 1]["t"]) or k + 1 in INICIO_FRASE)
+    if not cola and (re.search(r"[.,:?!]$", it["t"]) or nova_frase or len(atual) >= 3 or sum(len(x["t"]) for x in atual) >= 15):
         blocos.append(atual); atual = []
 if atual: blocos.append(atual)
 limpa = lambda t: re.sub(r"(?<!\d)[.,]|[.,](?!\d)|[!?]", "", t).upper()  # tira pontuação, mas mantém 1.500 e 2,5

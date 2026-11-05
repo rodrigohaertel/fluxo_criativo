@@ -615,9 +615,10 @@ def quadros_placar(pasta, c, marcas, fps, fontes):
 # ----------------------------------------------------------------------------------------------------
 EMOJI = Path(r"C:\Windows\Fonts\seguiemj.ttf")
 V_LADO = {"dinheiro": 180, "bonito": 900}       # centro de cada lateral
-V_ETQ_Y, V_NUM_Y, V_MINI_Y = 636, 760, 865      # etiqueta, número, primeira linha de mini ícones
-V_MINI, V_MINI_GAP = 84, 12
-V_CARD = (540, 1445, 560, 340)                  # centro x, centro y, largura, altura do cartão do meio
+# R033 (05/11): o cartão sobe para a parede acima da cabeça, a legenda desce e os mini ícones crescem (84 -> 120)
+V_ETQ_Y, V_NUM_Y, V_MINI_Y = 680, 817, 880      # etiqueta, número, primeira linha de mini ícones
+V_MINI, V_MINI_GAP = 120, 14
+V_CARD = (540, 440, 600, 400)                   # centro x, centro y, largura, altura do cartão do meio
 V_COR = {"dinheiro": (VERDE, BRANCO), "bonito": (OURO, TINTA)}
 
 
@@ -654,7 +655,26 @@ def _v_cartao(fontes, c):
     dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=36, fill=OURO if ouro else BRANCO,
                          outline=OURO_ESCURO if ouro else CINZA_CLARO, width=5)
     titulo = c["item"].upper()
-    if c.get("grande"):  # cartão sem ícone: o número em destaque ("14%") e o título embaixo
+    if c.get("grande") and c.get("imagem"):  # R033: foto de fundo (Gemini), escurecida embaixo, troféu e número por cima
+        im.alpha_composite(_foto(c["imagem"], w - 24, h - 88, 26), (12, 12))
+        veu = Image.new("RGBA", (w - 24, h - 88), (0, 0, 0, 0)); dv = ImageDraw.Draw(veu)
+        for y in range(h - 88):
+            dv.line([(0, y), (w - 25, y)], fill=(10, 23, 18, int(40 + 120 * y / (h - 88))))
+        m = Image.new("L", veu.size, 0); ImageDraw.Draw(m).rounded_rectangle([0, 0, w - 25, h - 89], radius=26, fill=255)
+        veu.putalpha(Image.composite(veu.getchannel("A"), Image.new("L", veu.size, 0), m))
+        im.alpha_composite(veu, (12, 12))
+        meio = (h - 60) / 2
+        ic = _icone(c["icone"], 170) if c.get("icone") else None
+        if ic: im.alpha_composite(ic, (int(w * 0.27 - ic.width / 2), int(meio - ic.height / 2)))
+        f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", c["grande"], int(w * 0.5), 130))
+        dr.text((w * 0.66 if ic else w / 2, meio), c["grande"], font=f, fill=BRANCO, anchor="mm", stroke_width=8, stroke_fill=TINTA)
+    elif c.get("grande") and c.get("icone"):  # R033: troféu à esquerda e o número ("14%") à direita
+        ic = _icone(c["icone"], 170)
+        meio = (h - 60) / 2
+        if ic: im.alpha_composite(ic, (int(w * 0.27 - ic.width / 2), int(meio - ic.height / 2)))
+        f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", c["grande"], int(w * 0.5), 130))
+        dr.text((w * 0.66, meio), c["grande"], font=f, fill=TINTA, anchor="mm")
+    elif c.get("grande"):  # cartão sem ícone: o número em destaque ("14%") e o título embaixo
         f = _fonte(fontes, "Montserrat-Black.ttf", 150)
         dr.text((w / 2, (h - 60) / 2), c["grande"], font=f, fill=TINTA, anchor="mm")
     elif c.get("imagem"):  # foto no lugar do ícone (foto real ou gerada), ocupando a parte de cima do cartão
@@ -673,7 +693,11 @@ def _v_mini(fontes, c, lado):
     ouro = c.get("estilo") == "ouro"
     dr.rounded_rectangle([0, 0, s - 1, s - 1], radius=20, fill=OURO if ouro else BRANCO,
                          outline=V_COR[lado][0], width=4)
-    if c.get("grande"):
+    if c.get("grande") and c.get("imagem"):  # R033: a miniatura do 14% leva a mesma foto do cartão, com o número por cima
+        im.alpha_composite(_foto(c["imagem"], s - 10, s - 10, 16), (5, 5))
+        f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", c["grande"], s - 20, 40))
+        dr.text((s / 2, s / 2), c["grande"], font=f, fill=BRANCO, anchor="mm", stroke_width=4, stroke_fill=TINTA)
+    elif c.get("grande"):
         f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", c["grande"], s - 14, 36))
         dr.text((s / 2, s / 2), c["grande"], font=f, fill=TINTA, anchor="mm")
     elif c.get("imagem"):
