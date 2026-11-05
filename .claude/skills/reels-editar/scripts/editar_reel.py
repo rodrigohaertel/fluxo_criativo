@@ -388,9 +388,12 @@ if cfg.get("tag_fixa"):  # tag que fica do fim do título até o fim do vídeo, 
 def ts(t):
     t = max(t, 0); return f"{int(t // 3600)}:{int(t % 3600 // 60):02d}:{t % 60:05.2f}"
 blocos, atual = [], []
-for it in itens:
+UNIDADES = {"kg", "quilo", "quilos", "g", "gramas", "litro", "litros", "l", "%"}
+for k, it in enumerate(itens):
     atual.append(it)
-    if re.search(r"[.,?!]$", it["t"]) or len(atual) >= 3 or sum(len(x["t"]) for x in atual) >= 15:
+    prox = itens[k + 1]["t"].lower().strip(".,?!") if k + 1 < len(itens) else ""
+    cola = it["t"] == "R$" or (re.fullmatch(r"[\d.,]+", it["t"]) and prox in UNIDADES)  # R$ e unidade não ficam sem o número
+    if not cola and (re.search(r"[.,?!]$", it["t"]) or len(atual) >= 3 or sum(len(x["t"]) for x in atual) >= 15):
         blocos.append(atual); atual = []
 if atual: blocos.append(atual)
 limpa = lambda t: re.sub(r"(?<!\d)[.,]|[.,](?!\d)|[!?]", "", t).upper()  # tira pontuação, mas mantém 1.500 e 2,5
@@ -601,7 +604,10 @@ print(f"respiração: {len(janelas_resp)} intervalos abaixados em {RESP_DB} dB")
 
 # ---------- cor (padrão C: balanço de branco e exposição pelo rosto + acabamento Instagram) ----------
 FILTRO_COR = ""
-if cfg.get("cor", "C") != "nenhuma":
+if cfg.get("cor") == "original":  # R032: a cor do bruto mantida, só com acabamento leve (a cor C deixou o vídeo amarelo)
+    FILTRO_COR = ",curves=all='0/0 0.25/0.24 0.5/0.5 0.75/0.76 1/1',eq=saturation=1.03,unsharp=5:5:0.35:5:5:0"
+    print("cor: original com acabamento leve")
+elif cfg.get("cor", "C") != "nenhuma":
     sys.path.insert(0, str(FERR))
     from cor import filtro_cor
     quadros = []

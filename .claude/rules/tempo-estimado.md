@@ -16,6 +16,7 @@
 |----------|----------------|---------|
 | Pesquisa de mercado completa (9 passos) | 8 a 12 minutos | minutos |
 | Pesquisa de mercado Instagram (Apify) | 3 a 5 minutos | minutos |
+| Atualizar a base de conhecimento da Linha Editorial (3 semanas de sessões, mentoria e WhatsApp, medido em 04/11/2026) | 15 a 20 minutos | minutos |
 
 ---
 
