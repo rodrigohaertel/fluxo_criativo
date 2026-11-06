@@ -422,10 +422,11 @@ tempos_cont = []
 for c in contadores:
     s0, _ = acha(c["palavra"], tempos_cont[-1][0] if tempos_cont else 0)
     c["_marcas"] = {m: acha(c["palavra_" + m], s0)[0] - s0 for m in ("meio", "troca", "resultado", "marca", "preenche", "destaque", "desliza", "selo", "abre", "some") if c.get("palavra_" + m)}
+    c["_itens_t"] = [acha(fr, s0)[0] - s0 for fr in c.get("palavras_itens", [])]  # R034: itens da lista na palavra
     t1 = acha(c["fim"], s0)[1] + c.get("folga", 0.4) if c.get("fim") else s0 + c.get("dura", 3.0)
     tempos_cont.append([s0, t1])
 # cartão que acaba a menos de 0,6 s do próximo fica até o próximo entrar (sem piscar o rosto cheio no meio)
-TELA_CHEIA = [c.get("tipo") in ("distancia", "veredito") for c in contadores]  # efeito de tela cheia, por cima do vídeo
+TELA_CHEIA = [c.get("tipo") in ("distancia", "veredito", "lado") for c in contadores]  # efeito de tela cheia, por cima do vídeo
 _seq = sorted(tempos + [tc for tc, cheia in zip(tempos_cont, TELA_CHEIA) if not cheia])
 for a, b in zip(_seq, _seq[1:]):
     if b[0] - a[1] < 0.6: a[1] = b[0]
@@ -440,7 +441,7 @@ na_divisao = lambda t: DIVIDIDA and any(j0 - 0.01 <= t < j1 for j0, j1 in janela
 
 # cores da legenda: cada vídeo tem a sua cor de destaque; palavras-chave ficam coloridas o tempo todo
 CORES = {"amarelo": "&H0000E6FF&", "verde": "&H0084DC3D&", "vermelho": "&H005A5AFF&", "laranja": "&H00248CFF&",
-         "dourado": "&H005AC1E8&", "lilas": "&H00FFA8C8&", "rosa": "&H00B67AFF&", "ciano": "&H00E6E15C&"}  # cor em BGR
+         "dourado": "&H005AC1E8&", "branco": "&H00FFFFFF&", "lilas": "&H00FFA8C8&", "rosa": "&H00B67AFF&", "ciano": "&H00E6E15C&"}  # cor em BGR
 mudancas = sorted((acha(m["de"])[0], CORES[m["cor"]]) for m in cfg.get("cores_legenda", []))
 COR_VIDEO = CORES[cfg.get("cor_legenda", "amarelo")]  # uma cor de destaque por vídeo, fixa do começo ao fim
 def cor_em(t):
@@ -485,6 +486,32 @@ if CAIXA:
         out.append(f"Dialogue: 2,{ts(a)},{ts(b)},Leg,,0,0,0,,{{\\an1\\pos({x0:.0f},{yb})\\bord0\\shad0}}" + " ".join(txt))
         return out
 
+# estilos da legenda (05/11, R034: o Rodrigo pediu mais variedade de tipo e cor). "caixa" usa caixa_eventos;
+# os outros mudam a linha de estilo do ASS e o jeito da palavra dita e das palavras-chave.
+EST = cfg.get("legenda_estilo", "contorno")
+_bgr = lambda c: c.replace("&H00", "").rstrip("&")
+ESTILOS = {  # fonte, tamanho, texto, contorno, fundo, BorderStyle, contorno (px), sombra, maiúscula
+    "contorno": ("Montserrat ExtraBold", 62, "&H00FFFFFF", "&H00000000", "&H80000000", 1, 4, 3, True),
+    "caixa":    ("Montserrat ExtraBold", 62, "&H00FFFFFF", "&H00000000", "&H80000000", 1, 4, 3, True),
+    "pop":      ("Montserrat Black", 74, "&H00FFFFFF", "&H00000000", "&H00000000", 1, 7, 0, True),
+    "faixa":    ("Montserrat Black", 58, "&H0012170A", "&H00" + _bgr(COR_VIDEO), "&H00000000", 3, 12, 0, True),
+    "suave":    ("Montserrat Bold", 62, "&H00FFFFFF", "&H00000000", "&H96000000", 1, 0, 4, False),
+    "neon":     ("Montserrat Black", 66, "&H00FFFFFF", "&H00" + _bgr(COR_VIDEO), "&H00000000", 1, 5, 0, True),
+}
+_E = ESTILOS.get(EST, ESTILOS["contorno"])
+LIMPA_EST = limpa if _E[8] else (lambda t: re.sub(r"(?<!\d)[.,]|[.,](?!\d)|[!?]", "", t))
+ABRE_EST = r"{\blur6}" if EST == "neon" else ""
+def estilo_tags(cor):
+    """(tag da palavra dita, tag da palavra-chave, tag que volta ao texto normal)"""
+    if EST == "pop":
+        return r"{\c" + cor + r"\fscx122\fscy122}", r"{\c" + cor + "}", r"{\c&HFFFFFF&\fscx100\fscy100}"
+    if EST == "faixa":
+        return r"{\c&HFFFFFF&\fscx108\fscy108}", r"{\c&HFFFFFF&}", r"{\c&H12170A&\fscx100\fscy100}"
+    if EST == "neon":
+        return (r"{\c" + cor + r"\3c&HFFFFFF&\bord3\blur0\fscx110\fscy110}", r"{\c" + cor + "}",
+                r"{\c&HFFFFFF&\3c" + cor + r"\bord5\blur6\fscx100\fscy100}")
+    return r"{\c" + cor + r"\fscx108\fscy108}", r"{\c" + cor + "}", r"{\c&HFFFFFF&\fscx100\fscy100}"
+
 BORDAS_DIV = sorted({x for j in janelas for x in j} | {x for j in div_out() for x in j}) if (janelas or CENAS_DIV) else []
 ev = []
 for bi, bl in enumerate(blocos):
@@ -494,13 +521,14 @@ for bi, bl in enumerate(blocos):
         ini = w["s"] if wi else bl[0]["s"]
         fim = bl[wi + 1]["s"] if wi + 1 < len(bl) else (prox if prox - bl[-1]["e"] < 0.35 else bl[-1]["e"] + 0.15)
         partes_l = []
+        dita, chv, volta = estilo_tags(cor)
         for k, x in enumerate(bl):
             if k == wi:
-                partes_l.append(r"{\c" + cor + r"\fscx108\fscy108}" + limpa(x["t"]) + r"{\c&HFFFFFF&\fscx100\fscy100}")
+                partes_l.append(dita + LIMPA_EST(x["t"]) + volta)
             elif id(x) in chave:
-                partes_l.append(r"{\c" + cor + "}" + limpa(x["t"]) + r"{\c&HFFFFFF&}")
+                partes_l.append(chv + LIMPA_EST(x["t"]) + volta)
             else:
-                partes_l.append(limpa(x["t"]))
+                partes_l.append(LIMPA_EST(x["t"]))
         # a legenda troca de lugar no instante em que a tela dividida entra ou sai, mesmo no meio de um bloco
         # (no R028 o bloco que começava antes do cartão ficava embaixo, em cima do rosto)
         cortes_pos = [ini] + sorted(b for b in BORDAS_DIV if ini + 0.02 < b < fim - 0.02) + [fim]
@@ -516,7 +544,7 @@ for bi, bl in enumerate(blocos):
             elif na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
             elif na_cena_div(a_pos + 0.01): pos = r"{\an2\pos(%d,%d)}" % (W // 2, cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130))  # tela dividida do OBS
             else: pos = ""
-            ev.append(f"Dialogue: 0,{ts(a_pos)},{ts(b_pos)},Leg,,0,0,0,,{pos}" + " ".join(partes_l))
+            ev.append(f"Dialogue: 0,{ts(a_pos)},{ts(b_pos)},Leg,,0,0,0,,{pos}{ABRE_EST}" + " ".join(partes_l))
 leg_y = cfg.get("legenda_base_y", 1000 if HORIZONTAL else 1516)
 (TRAB / "legenda.ass").write_text(f"""[Script Info]
 ScriptType: v4.00+
@@ -527,7 +555,7 @@ ScaledBorderAndShadow: yes
 
 [V4+ Styles]
 Format: Name, Fontname, Fontsize, PrimaryColour, SecondaryColour, OutlineColour, BackColour, Bold, Italic, Underline, StrikeOut, ScaleX, ScaleY, Spacing, Angle, BorderStyle, Outline, Shadow, Alignment, MarginL, MarginR, MarginV, Encoding
-Style: Leg,Montserrat ExtraBold,62,&H00FFFFFF,&H00FFFFFF,&H00000000,&H80000000,0,0,0,0,100,100,1,0,1,4,3,2,60,60,{H - leg_y},1
+Style: Leg,{_E[0]},{_E[1]},{_E[2]},&H00FFFFFF,{_E[3]},{_E[4]},0,0,0,0,100,100,1,0,{_E[5]},{_E[6]},{_E[7]},2,60,60,{H - leg_y},1
 
 [Events]
 Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
@@ -948,7 +976,7 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
-        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca", "placar", "veredito"):  # efeitos de 21/10 (A52), placar e veredito (R033)
+        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca", "placar", "veredito", "lado"):  # efeitos de 21/10 (A52), placar e veredito (R033)
             import animacoes2
             import inspect
             fn = getattr(animacoes2, "quadros_" + tipo)

@@ -109,3 +109,11 @@
 - Instagram e Facebook pelo Planner, com legendas ocultas desligadas, remix "não permitir", proteção de conteúdo ligada, Story do Facebook ligado. O Rodrigo escolhe o vídeo e a capa; a capa anexada pelo Chrome não grava.
 - Legenda até 2.200 caracteres; o texto que vai ao ar é o da seção 3 do HTML, sem reescrita na hora de publicar.
 - Turbinado é do Rodrigo, no app; julgado no terceiro dia (acima de R$ 1,30 por seguidor, pausa). Carrossel não é turbinado.
+
+## 11. Lições do C010 (05/11/2026)
+
+- **Números do tamanho do cliente real.** Conta ilustrativa de lucro fica perto do que o Rodrigo vê nas Sessões: planilha mostrando por volta de R$ 12.000 de lucro e extrato com R$ 2.000, não R$ 28.000 contra R$ 14.000. Número alto demais afasta o dono de 100 a 300 mil, que não se reconhece nele.
+- **"Papel contra caixa" tem mais portas do que a cozinha.** Além de porção a mais, desperdício, ficha não seguida e furto, o dinheiro some por despesa pessoal paga pelo caixa do restaurante (escola, mercado, carro), parcela de empréstimo e pagamento que ninguém esperava (conserto, equipamento). Nome do conceito usado: **lucro de papel**.
+- **Simples para qualquer pessoa entender.** Uma porta por lâmina, um valor por porta, a soma fechando na lâmina da conta.
+- **Carrossel com foto por padrão.** Só tipografia e cor foi reprovado ("fraco, parecido demais com o anterior, sinto falta de imagens"). Fotos do Gemini na mesma conversa; lâmina sem foto só como respiro.
+- **Etapas fixas da copy:** `copy-social` para gerar e `anthropic-skills:revisor-copy` para revisar, antes de mostrar.

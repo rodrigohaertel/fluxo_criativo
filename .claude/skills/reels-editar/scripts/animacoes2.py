@@ -812,3 +812,104 @@ def cartao_estatico(caminho, linhas, fontes, rotulo=None, destaque_ultima=True):
         dr.text((500, y), l.upper(), font=f, fill=VERDE if ult else TINTA, anchor="mm"); y += 120
     im.save(caminho)
     return caminho
+
+
+# ----------------------------------------------------------------------------------------------------
+# 7. Elementos na parede (R034, 05/11): peças em tela cheia, ao lado da cabeça, sem dividir a tela.
+#    c["forma"]: "calendario" (escala 365x365), "lista" (bilhete do teste do papel) ou "selo" (14%).
+#    c["lado"]: "esquerda" ou "direita"; c["y"]: centro vertical (padrão 640).
+#    lista: c["itens"] (textos) entram nos tempos c["_itens_t"]; marca "some" risca todos os itens.
+# ----------------------------------------------------------------------------------------------------
+PAPEL, LINHA_PAPEL = (255, 248, 225, 255), (214, 200, 160, 255)
+
+
+def _peca_calendario(fontes, t, c):
+    w, h = 300, 400
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=26, fill=BRANCO, outline=CINZA_CLARO, width=4)
+    dr.rounded_rectangle([0, 0, w - 1, 70], radius=26, fill=VERMELHO)
+    dr.rectangle([0, 40, w - 1, 70], fill=VERMELHO)
+    dr.text((w / 2, 37), c.get("rotulo", "ESCALA"), font=_fonte(fontes, "Montserrat-Black.ttf", 34), fill=BRANCO, anchor="mm")
+    cols, lins, x0, y0, passo = 7, 5, 26, 88, 36
+    total = cols * lins
+    marcados = int(min(t / c.get("preenche", 1.6), 1.0) * total)  # os dias vão sendo marcados, um a um
+    for k in range(total):
+        x, y = x0 + (k % cols) * passo, y0 + (k // cols) * passo
+        dr.rounded_rectangle([x, y, x + passo - 8, y + passo - 8], radius=6, fill=PALIDO)
+        if k < marcados:
+            dr.line([x + 5, y + 5, x + passo - 13, y + passo - 13], fill=VERMELHO, width=5)
+            dr.line([x + passo - 13, y + 5, x + 5, y + passo - 13], fill=VERMELHO, width=5)
+    txt = c.get("grande", "365x365")
+    f = _fonte(fontes, "Montserrat-Black.ttf", _cabe(fontes, "Montserrat-Black.ttf", txt, w - 30, 64))
+    dr.text((w / 2, 320), txt, font=f, fill=TINTA, anchor="mm")
+    dr.text((w / 2, 366), c.get("detalhe", "SEM FOLGA"), font=_fonte(fontes, "Montserrat-ExtraBold.ttf", 26), fill=VERMELHO, anchor="mm")
+    return im
+
+
+def _peca_lista(fontes, t, c):
+    """Bilhete pautado: cada linha de texto senta na sua linha da pauta (pedido do Rodrigo em 05/11)."""
+    w, h, P, topo = 310, 470, 50, 70  # passo da pauta e altura da primeira linha
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=14, fill=PAPEL, outline=LINHA_PAPEL, width=3)
+    dr.text((24, 32), c.get("rotulo", "SÓ EU SEI FAZER:"), font=_fonte(fontes, "Montserrat-Black.ttf", 27), fill=VERMELHO, anchor="lm")
+    dr.line([20, 60, w - 20, 60], fill=VERMELHO, width=3)
+    for k in range(1, (h - topo - 20) // P + 1):
+        dr.line([20, topo + k * P, w - 20, topo + k * P], fill=LINHA_PAPEL, width=2)
+    f = _fonte(fontes, "Montserrat-ExtraBold.ttf", 28)
+    risca = c.get("_marcas", {}).get("some")
+    slot = 1
+    for k, item in enumerate(c.get("itens", [])):
+        t_k = c.get("_itens_t", [0] * 9)[k]
+        linhas = item.upper().split("|")
+        if t >= t_k:
+            a = _ease((t - t_k) / 0.3)
+            camada = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dc = ImageDraw.Draw(camada)
+            for j, l in enumerate(linhas):
+                base = topo + (slot + j) * P - 9  # a letra senta logo acima da linha da pauta
+                txt = ("• " if j == 0 else "   ") + l
+                dc.text((24, base), txt, font=f, fill=TINTA, anchor="ls")
+                if risca is not None and t >= risca + 0.25 * k:  # "vai parar": cada item é riscado, um depois do outro
+                    p = _ease((t - risca - 0.25 * k) / 0.3)
+                    dc.line([22, base - 10, 22 + (dc.textlength(txt, font=f) + 4) * p, base - 10], fill=VERMELHO, width=6)
+            camada.putalpha(camada.getchannel("A").point(lambda v: int(v * a)))
+            im.alpha_composite(camada, (int(-20 * (1 - a)), 0))
+        slot += len(linhas)
+    return im
+
+
+def _peca_selo(fontes, t, c):
+    s = 320
+    im = Image.new("RGBA", (s, s), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    dr.ellipse([0, 0, s - 1, s - 1], fill=OURO_ESCURO)
+    dr.ellipse([10, 10, s - 11, s - 11], fill=OURO)
+    dr.ellipse([26, 26, s - 27, s - 27], outline=OURO_CLARO, width=4)
+    dr.text((s / 2, s / 2 - 22), c.get("grande", "14%"), font=_fonte(fontes, "Montserrat-Black.ttf", 104), fill=TINTA, anchor="mm")
+    f = _fonte(fontes, "Montserrat-ExtraBold.ttf", 23)
+    for j, l in enumerate(c.get("detalhe", "DE LUCRO|OPERACIONAL").split("|")):
+        dr.text((s / 2, s / 2 + 52 + 28 * j), l, font=f, fill=TINTA, anchor="mm")
+    return im
+
+
+def quadros_lado(pasta, c, marcas, fps, fontes):
+    c = dict(c); c["_marcas"] = marcas
+    forma = c.get("forma", "selo")
+    desenha = {"calendario": _peca_calendario, "lista": _peca_lista, "selo": _peca_selo}[forma]
+    cx = 185 if c.get("lado", "esquerda") == "esquerda" else 895
+    cy = c.get("y", 640)
+    inclina = c.get("inclina", -3 if c.get("lado", "esquerda") == "esquerda" else 3)
+    dura = c["dura"]
+    for q in range(int(round(dura * fps))):
+        t = q / fps
+        peca = desenha(fontes, t, c)
+        sombra = Image.new("RGBA", (peca.width + 60, peca.height + 60), (0, 0, 0, 0))
+        msk = peca.getchannel("A").point(lambda v: int(v * 0.45))
+        sombra.paste((0, 0, 0, 255), (30, 42), msk)
+        sombra = sombra.filter(ImageFilter.GaussianBlur(14))
+        sombra.alpha_composite(peca, (30, 30))
+        if inclina: sombra = sombra.rotate(inclina, resample=Image.BICUBIC, expand=True)
+        esc = _pop(t, 0.35, 0.12)
+        alfa = 1.0 if t < dura - 0.3 else max((dura - t) / 0.3, 0.0)  # sai em 0,3 s
+        im = Image.new("RGBA", (1080, 1920), (0, 0, 0, 0))
+        _colar(im, sombra, cx, cy, max(esc, 0.01), alfa)
+        im.save(pasta / f"{q:04d}.png", compress_level=1)
+    return pasta
