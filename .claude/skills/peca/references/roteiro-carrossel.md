@@ -85,3 +85,17 @@ Validado em 30/10/2026 com o Carrossel_005.
 10. Confirmar os dois cards no calendário. Não clicar em espaço vazio do calendário (abre post novo).
 
 Depois do horário, conferir pela API do Instagram (`/{ig_user}/media?limit=1`) que o carrossel saiu; o card do Planner continua "programado" quando o post trava.
+
+### 7.1 Trocar uma lâmina de um carrossel já programado (validado em 06/11/2026, C010)
+
+O Planner cria **dois posts** (Facebook e Instagram): a troca é feita nos dois, um de cada vez. Para cada um:
+
+1. No calendário, abrir o card do dia, clicar em **Ações** (os três pontos do "Detalhes do post") e escolher **Editar post** **pela referência do `find`**, nunca pela coordenada: o item de baixo do menu é "Duplicar post", e um clique fora de lugar abre um rascunho novo com botão "Publicar" (se acontecer, Cancelar e "Descartar alterações", que só joga fora o rascunho).
+2. Instalar o truque do campo de arquivo (seção 7, passo 3) **antes** de clicar em "Adicionar foto/vídeo"; ele vale só até a próxima navegação.
+3. Na lista de mídia: **Remover foto** da lâmina a trocar (a última, para a ordem não mudar) e **Adicionar foto/vídeo**; achar o input `upload-lamina` mais recente com `find` e enviar o PNG com `file_upload`. Conferir 8 linhas e a miniatura da última.
+4. No post do Facebook, a edição **desliga "Compartilhar no story do Facebook"**: religar clicando no interruptor por JavaScript (o clique da extensão não pega), escolher **"Compartilhar este story"** (nunca "Sempre compartilhar", que muda a configuração dos próximos posts) e Confirm. Conferir `aria-checked` igual a `true`.
+5. Clicar em **Programar**. Aparece "Programando seu post" e, logo depois, o diálogo **"Sair da página?"**. Clicar em **"Continuar editando"**: o salvamento termina no servidor mesmo com a tela presa em "Programando seu post". **Nunca "Descartar alterações"** nesse momento: no C010 isso cancelou a troca no Instagram e foi preciso refazer.
+6. Conferir **em outra aba**: calendário, card, Ações, Editar post (pelo `find`), **Editar fotos** da última lâmina, selecionar a oitava na faixa de baixo e ampliar o texto. Sair com Cancelar (sem mudanças, não há o que descartar).
+7. A aba que ficou em "Programando seu post" pode ser fechada; o Chrome pode pedir confirmação para sair, e aí o Rodrigo fecha à mão.
+
+Lâmina só trocada no HTML e no PNG não muda nada no Planner: o post programado guarda a cópia enviada.

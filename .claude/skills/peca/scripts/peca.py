@@ -478,8 +478,43 @@ def carrosseis_recentes(quantos=6):
                 item["cor_capa"] = cor_capa.group(1)
             item["laminas"] = len(re.findall(r'<div class="s[\s"]', doc))
             item["com_foto"] = bool(re.search(r"_fundo_0|_foto_capa", doc))
+        # o estado da peça (quando ela passou pela /peca) traz linha, tom, layout e fundo escolhidos
+        for est in d.glob("_peca_*.json"):
+            try:
+                cfg = json.loads(ler(est))
+            except ValueError:
+                continue
+            for k in ("linha", "tom", "fundo"):
+                if cfg.get(k):
+                    item[k] = cfg[k]
+            if cfg.get("layout") and not item.get("layout"):
+                item["layout"] = cfg["layout"]
+            pub = cfg.get("publicacao") or {}
+            if pub.get("data"):
+                item["data_publicacao"] = pub["data"]
         saida.append(item)
     return saida
+
+
+def dica_formato(recentes):
+    """Lê a sequência recente (do mais novo ao mais antigo) e diz o que o próximo formato precisa quebrar."""
+    if not recentes:
+        return None
+    seq = [bool(c.get("com_foto")) for c in recentes[:3]]
+    layouts = [c.get("layout") for c in recentes[:3] if c.get("layout")]
+    linhas = [c.get("linha") for c in recentes[:3] if c.get("linha")]
+    dica = []
+    if len(seq) >= 2 and all(seq[:3]):
+        dica.append("os últimos carrosséis têm foto: propor pelo menos um caminho só em tipografia e cor")
+    elif len(seq) >= 2 and not any(seq[:3]):
+        dica.append("os últimos carrosséis são sem foto: propor pelo menos um caminho com fotos do Gemini")
+    else:
+        dica.append("a sequência recente alterna foto e tipografia: manter a alternância")
+    if layouts:
+        dica.append("layouts a não repetir: " + "; ".join(l.split(":")[0] for l in layouts))
+    if linhas:
+        dica.append("linhas recentes: " + ", ".join(linhas))
+    return dica
 
 
 # ---------------------------------------------------------------- comandos
@@ -500,7 +535,11 @@ def cmd_brief(args):
         resultado["cores_legenda_a_evitar"] = cores[:2]
     elif codigo[0] == "C":
         resultado["carrosseis_recentes"] = carrosseis_recentes()
+        resultado["sequencia_recente"] = [
+            {k: c.get(k) for k in ("codigo", "layout", "com_foto", "linha", "tom", "publicado", "data_publicacao")}
+            for c in resultado["carrosseis_recentes"]]
         resultado["layouts_a_evitar"] = [c["layout"] for c in resultado["carrosseis_recentes"] if c.get("layout")][:3]
+        resultado["dica_formato"] = dica_formato(resultado["carrosseis_recentes"])
     elif codigo[0] == "A":
         resultado["anuncios_recentes"] = anuncios_recentes()
     print(json.dumps(resultado, ensure_ascii=False, indent=2))
