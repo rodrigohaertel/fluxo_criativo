@@ -101,12 +101,20 @@ def pasta_bate(nome: str, codigo: str) -> bool:
 
 
 def achar_pasta(codigo: str):
+    # A pasta própria do código vence a pasta de leva ("A54 a A57"): uma peça
+    # nova pode reaproveitar um código que estava reservado numa leva suspensa.
+    faixa = None
     for base in bases(codigo[0]):
         if not base.exists():
             continue
         for d in sorted(base.iterdir()):
             if d.is_dir() and d.name != "Publicados" and pasta_bate(d.name, codigo):
+                if re.match(r"A\d+\s+a\s+A\d+\b", d.name):
+                    faixa = faixa or d
+                    continue
                 return d
+    if faixa:
+        return faixa
     return None
 
 

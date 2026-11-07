@@ -800,6 +800,83 @@ def quadros_veredito(pasta, c, marcas, fps, fontes):
 
 
 # ----------------------------------------------------------------------------------------------------
+# 6b. Três cartões que viram (tela dividida, construído em 06/11/2026 para o A53)
+#     c["itens"]: [{"rotulo": "PREÇO DE CUSTO|DOS 10 MAIS VENDIDOS", "valor": "R$ ?,??"}, ...] (até 3)
+#     c["palavras_itens"]: a palavra falada em que cada cartão vira (o editor grava os tempos em _itens_t).
+#     Antes de virar, o cartão mostra o verso verde-escuro com o número; ao virar (giro no eixo horizontal,
+#     0,5 s), mostra o rótulo e o valor escondido em vermelho. Nada pisca depois de virado.
+# ----------------------------------------------------------------------------------------------------
+def _tres_verso(fontes, w, h, n):
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=22, fill=ESMERALDA)
+    dr.rounded_rectangle([6, 6, w - 7, h - 7], radius=18, outline=OURO, width=3)
+    dr.text((w / 2, h / 2), str(n), font=_fonte(fontes, "Montserrat-Black.ttf", 76), fill=OURO, anchor="mm")
+    return im
+
+
+def _tres_frente(fontes, w, h, n, item):
+    im = Image.new("RGBA", (w, h), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+    dr.rounded_rectangle([0, 0, w - 1, h - 1], radius=22, fill=PALIDO, outline=CINZA_CLARO, width=3)
+    r = 38
+    dr.ellipse([30, h / 2 - r, 30 + 2 * r, h / 2 + r], fill=VERDE)
+    dr.text((30 + r, h / 2), str(n), font=_fonte(fontes, "Montserrat-Black.ttf", 44), fill=BRANCO, anchor="mm")
+    # valor escondido à direita (uma ou duas linhas), em vermelho
+    val = item.get("valor", "R$ ?").split("|")
+    tam_v = 58 if len(val) == 1 else 36
+    larg_v = 300
+    tam_v = min(_cabe(fontes, "Montserrat-Black.ttf", v, larg_v, tam_v) for v in val)
+    fv = _fonte(fontes, "Montserrat-Black.ttf", tam_v)
+    passo_v = tam_v * 1.1
+    y = h / 2 - passo_v * (len(val) - 1) / 2
+    for v in val:
+        dr.text((w - 34, y), v, font=fv, fill=VERMELHO, anchor="rm"); y += passo_v
+    # rótulo à esquerda (até duas linhas)
+    rot = item.get("rotulo", "").upper().split("|")
+    larg_r = w - 34 - larg_v - 30 - (30 + 2 * r + 24)
+    tam_r = min(_cabe(fontes, "Montserrat-ExtraBold.ttf", l, larg_r, 32) for l in rot)
+    fr = _fonte(fontes, "Montserrat-ExtraBold.ttf", tam_r)
+    passo_r = tam_r * 1.2
+    y = h / 2 - passo_r * (len(rot) - 1) / 2
+    for l in rot:
+        dr.text((30 + 2 * r + 24, y), l, font=fr, fill=TINTA, anchor="lm"); y += passo_r
+    return im
+
+
+def quadros_tres(pasta, c, marcas, fps, fontes):
+    itens = c.get("itens", [])[:3]
+    tempos = list(c.get("_itens_t", [])) + [0.3 * (k + 1) for k in range(len(itens))]
+    tempos = [max(tempos[k], 0.3) for k in range(len(itens))]  # o primeiro só vira depois da entrada do cartão
+    W, H, X0, Y0, GAP = 890, 128, 55, 104, 14
+    versos = [_tres_verso(fontes, W, H, k + 1) for k in range(len(itens))]
+    frentes = [_tres_frente(fontes, W, H, k + 1, it) for k, it in enumerate(itens)]
+    GIRO = 0.5
+    import math
+    for q in range(int(round(c["dura"] * fps))):
+        t = q / fps
+        im = Image.new("RGBA", (1000, 580), (0, 0, 0, 0)); dr = ImageDraw.Draw(im)
+        _base(dr, fontes, c.get("rotulo"))
+        for k in range(len(itens)):
+            p = min(max((t - tempos[k]) / GIRO, 0.0), 1.0)
+            p = _ease_io(p)
+            lado = versos[k] if p < 0.5 else frentes[k]
+            esc = abs(math.cos(math.pi * p))
+            hh = max(1, int(H * esc))
+            peca = lado.resize((W, hh), Image.LANCZOS) if hh != H else lado
+            if 0 < p < 1:  # sombra leve no meio do giro, para dar volume
+                sombra = int(70 * (1 - esc))
+                peca = peca.copy()
+                escuro = Image.new("RGBA", peca.size, (0, 0, 0, sombra))
+                escuro.putalpha(Image.eval(peca.getchannel("A"), lambda v: v * sombra // 255))
+                peca.alpha_composite(escuro)
+            y = Y0 + k * (H + GAP) + (H - hh) / 2
+            im.alpha_composite(peca, (X0, int(y)))
+        if c.get("detalhe"):
+            dr.text((500, 556), c["detalhe"], font=_fonte(fontes, "Montserrat-Bold.ttf", 22), fill=CINZA, anchor="mm")
+        _entrada(im, t).save(pasta / f"{q:04d}.png")
+    return pasta
+
+
+# ----------------------------------------------------------------------------------------------------
 # cartão estático simples (CTA), um PNG só
 # ----------------------------------------------------------------------------------------------------
 def cartao_estatico(caminho, linhas, fontes, rotulo=None, destaque_ultima=True):

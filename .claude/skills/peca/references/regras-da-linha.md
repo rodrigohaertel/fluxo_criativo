@@ -117,3 +117,10 @@
 - **Simples para qualquer pessoa entender.** Uma porta por lâmina, um valor por porta, a soma fechando na lâmina da conta.
 - **Repertório de formatos, não um padrão.** O C010 v1 foi reprovado ("fraco, parecido demais com o anterior, sinto falta de imagens") porque era o quarto carrossel seguido só em tipografia e cor, depois do 007, 008 e 009, e não porque foto seja obrigatória. Antes de propor uma peça, olhar o que está postado e programado (layout, com ou sem foto, linha, tom) e sugerir formatos que quebrem a sequência. Correção do Rodrigo em 06/11/2026.
 - **Etapas fixas da copy:** `copy-social` para gerar e `anthropic-skills:revisor-copy` para revisar, antes de mostrar.
+
+## 12. Lições do R035 (06/11/2026)
+
+- **"Risco real" fortalece a frase de virada.** "O perigo é" virou na gravação "o risco real de agora é": nomeia o risco certo depois de desmontar o falso (o imposto que não sobe agora).
+- **O fecho pode perder a frase do território.** "Notícia que mexe no seu custo, eu leio pela sua margem" saiu na gravação: depois do "me segue", uma frase a mais confunde o leigo. O CTA fecha em "porque aqui é para dono de restaurante".
+- **Abertura em movimento.** Quando ele abre fora de câmera (pegando a cerveja na geladeira), o título dos 3 segundos vai para a parede e os quadros de 0 a 3 s são conferidos antes de posicionar o título: a `rosto_grade` não mostra esse começo.
+- **Tela dividida dentro da área útil da Meta** (14% em cima, 35% embaixo, 6% nas laterais): divisão 45/55, sem zoom nos cartões, legenda no preto abaixo do cartão, print de notícia recortado no parágrafo marcado. Prévia com as linhas da área útil antes da render.

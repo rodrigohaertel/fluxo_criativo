@@ -48,6 +48,9 @@ PLANO_POR_DATA = [
     ("2026-10-30", 196.00, "A39 R$ 96 + A51 R$ 40 + A52 R$ 60 (30/10: Rodrigo aprovou baixar o A51 de R$ 80 para R$ 40 "
                            "por desgaste, 1 perfil em R$ 567 de 23 a 29/10, e subir o A39 de R$ 80 para R$ 96, +20%)"),
     ("2026-10-31", 136.00, "A39 R$ 96 + A51 R$ 40 (A52 venceu em 30/10 23h59; veredito na leitura de 31/10)"),
+    ("2026-11-07", 256.00, "A39 R$ 96 + A51 R$ 40 + A53 R$ 60 + A54 R$ 60 (teste de 7 dias do A53 e do A54, "
+                           "07/11 00h01 a 13/11 23h59, ligados pelo Rodrigo em 06/11 21h35; veredito em 14/11)"),
+    ("2026-11-14", 136.00, "A39 R$ 96 + A51 R$ 40 (A53 e A54 vencem em 13/11 23h59; veredito na leitura de 14/11)"),
 ]
 
 # Divisao esperada POR CONJUNTO, a partir da data em que passou a valer.
@@ -74,6 +77,9 @@ COMPOSICAO_POR_DATA = [
     # 30/10: orçamentos trocados pela API com aprovação do Rodrigo no chat.
     ("2026-10-30", {"A39": 96.0, "A51": 40.0, "A52": 60.0}),
     ("2026-10-31", {"A39": 96.0, "A51": 40.0}),
+    # 06/11 21h35: o Rodrigo conferiu e ligou os conjuntos do A53 e do A54 (R$ 60/dia cada, 07 a 13/11).
+    ("2026-11-07", {"A39": 96.0, "A51": 40.0, "A53": 60.0, "A54": 60.0}),
+    ("2026-11-14", {"A39": 96.0, "A51": 40.0}),
 ]
 
 

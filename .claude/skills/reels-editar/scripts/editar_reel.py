@@ -277,8 +277,9 @@ def expr_zoom(desloc):
         c = f"clip(({t}-{t0:.3f})/{t1 - t0:.3f},0,1)"
         partes.append(f"{z1 - z0:+.3f}*{c}*{c}*(3-2*{c})")
     z = "".join(partes)
-    if div_out():  # na tela dividida o zoom fica em 1
-        fora = "+".join(f"between({t},{a:.3f},{b:.3f})" for a, b in div_out())
+    _sem = list(div_out()) + (list(janelas) if cfg.get("div_sem_zoom") and DIVIDIDA else [])
+    if _sem:  # na tela dividida o zoom fica em 1 (div_sem_zoom: também nas janelas de cartão, R035)
+        fora = "+".join(f"between({t},{a:.3f},{b:.3f})" for a, b in _sem)
         z = f"1+(({z})-1)*(1-min(1,{fora}))"
     return z
 
@@ -541,7 +542,7 @@ for bi, bl in enumerate(blocos):
             continue
         for a_pos, b_pos in zip(cortes_pos, cortes_pos[1:]):
             if na_divisao(a_pos + 0.01) and PALCO: pos = r"{\an5\pos(540,%d)}" % P_LEG_Y  # palco: abaixo da etiqueta
-            elif na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,962)}"  # tela dividida com cartão: legenda na linha da divisão
+            elif na_divisao(a_pos + 0.01): pos = r"{\an5\pos(540,%d)}" % cfg.get("legenda_div_cartao_y", 962)  # tela dividida com cartão: legenda na linha da divisão
             elif na_cena_div(a_pos + 0.01): pos = r"{\an2\pos(%d,%d)}" % (W // 2, cfg.get("legenda_div_y", 1000 if HORIZONTAL else 1130))  # tela dividida do OBS
             else: pos = ""
             ev.append(f"Dialogue: 0,{ts(a_pos)},{ts(b_pos)},Leg,,0,0,0,,{pos}{ABRE_EST}" + " ".join(partes_l))
@@ -775,7 +776,9 @@ if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     # tela dividida: notícia na metade de cima, vídeo deslocado para baixo com o rosto inteiro
     VIDRO = cfg.get("fundo_divisao") == "vidro" and not PALCO  # metade de cima: o próprio vídeo desfocado com véu verde-escuro
     p.append(f"{VT}split=3[vfull][vdiv][vgl]" if VIDRO else f"{VT}split[vfull][vdiv]")
-    DIV_ALT = int(cfg.get("div_altura", 960))
+    # div_y (R035): linha da divisão; a câmera ocupa de div_y até o fim e o cartão cabe em div_cartao [topo, fundo]
+    DIV_Y = int(cfg.get("div_y", 960)); CAM_H = 1920 - DIV_Y
+    DIV_ALT = int(cfg.get("div_altura", CAM_H))
     if PALCO:
         lado = int(cfg.get("palco_lado", 760))
         px0 = int(min(max(FX * 1080 - lado / 2, 0), 1080 - lado))
@@ -784,18 +787,18 @@ if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
                  f"pad=1080:1920:{(1080 - P_D) // 2}:{P_CY - P_D // 2}:color=0x0A1712[vrost]")
         p.append(f"movie=palco_moldura.png:loop=0,setpts=N/({FPS}*TB),format=rgba[pmold]")
         p.append("[vrost][pmold]overlay=0:0:shortest=1[vbase0]")
-    elif DIV_ALT <= 960:
-        corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * 960, 0), 960)))
-        p.append(f"[vdiv]crop=1080:960:0:{corte_y},pad=1080:1920:0:960:color={FUNDO_DIV}[vbase0]")
+    elif DIV_ALT <= CAM_H:
+        corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.3 * CAM_H, 0), DIV_Y)))
+        p.append(f"[vdiv]crop=1080:{CAM_H}:0:{corte_y},pad=1080:1920:0:{DIV_Y}:color={FUNDO_DIV}[vbase0]")
     else:
         # rosto muito de perto (R028): a câmera da tela dividida mostra um pedaço maior do quadro, reduzido
         # para caber na metade de baixo, com o mesmo trecho desfocado preenchendo as laterais
         corte_y = int(cfg.get("div_topo", min(max(FY * 1920 - 0.42 * DIV_ALT, 0), 1920 - DIV_ALT)))
-        larg_red = int(round(1080 * 960 / DIV_ALT / 2) * 2)
+        larg_red = int(round(1080 * CAM_H / DIV_ALT / 2) * 2)
         p.append(f"[vdiv]crop=1080:{DIV_ALT}:0:{corte_y},split[dv1][dv2]")
-        p.append(f"[dv1]scale=1080:960:force_original_aspect_ratio=increase,crop=1080:960,boxblur=24:2,eq=brightness=-0.08[dvfundo]")
-        p.append(f"[dv2]scale={larg_red}:960[dvrosto]")
-        p.append(f"[dvfundo][dvrosto]overlay=x={(1080 - larg_red) // 2}:y=0,pad=1080:1920:0:960:color={FUNDO_DIV}[vbase0]")
+        p.append(f"[dv1]scale=1080:{CAM_H}:force_original_aspect_ratio=increase,crop=1080:{CAM_H},boxblur=24:2,eq=brightness=-0.08[dvfundo]")
+        p.append(f"[dv2]scale={larg_red}:{CAM_H}[dvrosto]")
+        p.append(f"[dvfundo][dvrosto]overlay=x={(1080 - larg_red) // 2}:y=0,pad=1080:1920:0:{DIV_Y}:color={FUNDO_DIV}[vbase0]")
     if VIDRO:
         p.append("[vgl]crop=1080:960:0:0,scale=216:192,boxblur=6:2,scale=1080:960,eq=brightness=-0.10:saturation=0.75,"
                  "drawbox=x=0:y=0:w=1080:h=960:color=0x0A1712@0.50:t=fill,"
@@ -807,16 +810,23 @@ if DIVIDIDA and (cartoes or any(not x for x in TELA_CHEIA)):
     for k, (c, (t0, t1)) in enumerate(zip(cartoes, tempos)):
         larg = c.get("largura", 1000)
         if PALCO: larg = P_CARD_W
-        p.append(f"[{4 + k}:v]format=rgba,scale={larg}:-1[c{k}]")
-        y_c = f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2" if PALCO else "300+(640-h)/2"
-        p.append(f"{ult}[c{k}]overlay=x={(1080 - larg) // 2}:y='{y_c}':shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
+        ZC = cfg.get("div_cartao")  # zona do cartão [topo, fundo]; o cartão encolhe para caber
+        if ZC and not PALCO:
+            p.append(f"[{4 + k}:v]format=rgba,scale={larg}:{ZC[1] - ZC[0]}:force_original_aspect_ratio=decrease[c{k}]")
+            y_c, x_c = f"{ZC[0]}+({ZC[1] - ZC[0]}-h)/2", "(W-w)/2"
+        else:
+            p.append(f"[{4 + k}:v]format=rgba,scale={larg}:-1[c{k}]")
+            y_c = f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2" if PALCO else "300+(640-h)/2"
+            x_c = (1080 - larg) // 2
+        p.append(f"{ult}[c{k}]overlay=x='{x_c}':y='{y_c}':shortest=1:enable='between(t,{t0:.3f},{t1:.3f})'[vc{k}]")
         ult = f"[vc{k}]"
         print(f"cartão {k + 1}: {t0:.2f}s a {t1:.2f}s  ({Path(c['arquivo']).name})")
     for k, (c, (t0, t1)) in enumerate(zip(contadores, tempos_cont)):
         if TELA_CHEIA[k]: continue
-        esc = f",scale={P_CARD_W}:-1" if PALCO else ""
+        ZC = cfg.get("div_cartao")
+        esc = f",scale={P_CARD_W}:-1" if PALCO else (f",scale={cfg.get('div_cartao_largura', 950)}:{ZC[1] - ZC[0]}:force_original_aspect_ratio=decrease" if ZC else "")
         p.append(f"[{IDX_CONT + k}:v]format=rgba{esc},setpts=PTS-STARTPTS+{t0:.3f}/TB[n{k}]")
-        x_n, y_n = (f"{(1080 - P_CARD_W) // 2}", f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2") if PALCO else ("40", "300+(640-h)/2")
+        x_n, y_n = (f"{(1080 - P_CARD_W) // 2}", f"{P_CARD_Y}+({round(P_CARD_W * 0.58)}-h)/2") if PALCO else (("(W-w)/2", f"{ZC[0]}+({ZC[1] - ZC[0]}-h)/2") if ZC else ("40", "300+(640-h)/2"))
         p.append(f"{ult}[n{k}]overlay=x={x_n}:y='{y_n}':eof_action=repeat:enable='between(t,{t0:.3f},{t1:.3f})'[vn{k}]")
         ult = f"[vn{k}]"
         print(f"contador {k + 1} ({c.get('tipo', 'numero')}): {t0:.2f}s a {t1:.2f}s  ({c.get('rotulo', '')})")
@@ -976,7 +986,7 @@ def quadros_contador(k, c):
     if tipo != "numero":  # preço que cai e conta que monta
         import animacoes
         if tipo == "troca": animacoes.quadros_troca(pasta, c, c.get("_marcas", {}), FPS, FONTES)
-        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca", "placar", "veredito", "lado"):  # efeitos de 21/10 (A52), placar e veredito (R033)
+        elif tipo in ("destaque", "grade", "regua", "distancia", "rosca", "placar", "veredito", "lado", "tres"):  # efeitos de 21/10 (A52), placar e veredito (R033), três cartões (A53)
             import animacoes2
             import inspect
             fn = getattr(animacoes2, "quadros_" + tipo)
